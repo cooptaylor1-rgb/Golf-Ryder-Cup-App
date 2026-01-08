@@ -1,6 +1,13 @@
 import Foundation
 
 /// Engine for match play scoring - state machine, calculations, undo
+///
+/// Match play scoring rules implemented:
+/// - Each hole is worth +1, -1, or 0 (halved)
+/// - Match score = cumulative hole results (positive = Team A leading)
+/// - **Dormie**: When one team is up by exactly the number of holes remaining
+/// - **Closed out**: When one team is up by more holes than remain (e.g., 4&3)
+/// - Final results expressed as "X&Y" (closed out) or "X UP" (won at 18)
 struct ScoringEngine {
     
     // MARK: - Match State
@@ -16,7 +23,17 @@ struct ScoringEngine {
         var canContinue: Bool
     }
     
-    /// Calculate match state from hole results
+    /// Calculate match state from hole results.
+    ///
+    /// State transitions:
+    /// 1. **All Square**: matchScore == 0, match continues
+    /// 2. **X UP**: abs(matchScore) < holesRemaining, match continues
+    /// 3. **Dormie**: abs(matchScore) == holesRemaining, critical moment
+    /// 4. **Closed Out**: abs(matchScore) > holesRemaining, match ends (X&Y format)
+    /// 5. **Final at 18**: holesRemaining == 0, match ends (X UP or Halved)
+    ///
+    /// - Parameter holeResults: Array of hole results (should be sorted by hole number)
+    /// - Returns: MatchState with current standing and status
     static func calculateMatchState(holeResults: [HoleResult]) -> MatchState {
         let holesPlayed = holeResults.count
         let holesRemaining = 18 - holesPlayed

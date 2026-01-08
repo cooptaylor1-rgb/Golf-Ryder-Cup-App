@@ -35,7 +35,17 @@ enum MatchResultType: String, Codable {
     case notFinished = "not_finished"
 }
 
-/// Match entity for match play scoring
+/// Match entity for match play scoring.
+///
+/// Note: Player IDs are stored as comma-separated UUID strings rather than using SwiftData
+/// relationships. This is a pragmatic choice because:
+/// 1. SwiftData has limitations with many-to-many relationships in complex graphs
+/// 2. Match pairings are relatively static once created
+/// 3. Parsing overhead is minimal for the typical 1-4 players per side
+/// 4. Avoids cascade delete complexity when players are removed from roster
+///
+/// For production apps with heavy querying needs, consider migrating to Core Data
+/// with proper join tables.
 @Model
 final class Match {
     var id: UUID
@@ -47,7 +57,7 @@ final class Match {
     var createdAt: Date
     var updatedAt: Date
     
-    // Team A players (stored as comma-separated player IDs for simplicity)
+    // Team A players (stored as comma-separated player IDs - see class documentation)
     var teamAPlayerIds: String
     // Team B players
     var teamBPlayerIds: String
