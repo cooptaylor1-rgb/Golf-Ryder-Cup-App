@@ -232,7 +232,7 @@ struct CourseWizardValidator {
             warning = "Found \(numbers.count) values, using first 18"
             numbers = Array(numbers.prefix(18))
         } else if numbers.count < 18 {
-            warning = "Found only \(numbers.count) values, need 18"
+            warning = "Found only \(numbers.count) values, 18 needed"
         }
         
         return ParseResult(values: numbers, isValid: numbers.count == 18, warning: warning)
