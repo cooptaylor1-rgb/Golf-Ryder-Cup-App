@@ -7,43 +7,44 @@ struct ContentView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            TripTabView()
+            HomeTabView()
                 .tabItem {
-                    Label("Trip", systemImage: "airplane")
+                    Label("Home", systemImage: "house.fill")
                 }
                 .tag(0)
             
-            PlayersListView()
+            MatchupsTabView()
                 .tabItem {
-                    Label("Players", systemImage: "person.3")
+                    Label("Matchups", systemImage: "rectangle.grid.2x2.fill")
                 }
                 .tag(1)
             
-            CoursesListView()
+            ScoreTabView()
                 .tabItem {
-                    Label("Courses", systemImage: "flag")
+                    Label("Score", systemImage: "plus.circle.fill")
                 }
                 .tag(2)
             
-            TeamsListView()
+            StandingsTabView()
                 .tabItem {
-                    Label("Teams", systemImage: "person.2.badge.gearshape")
+                    Label("Standings", systemImage: "trophy.fill")
                 }
                 .tag(3)
             
-            ScoringTabView()
+            TeamsTabView()
                 .tabItem {
-                    Label("Scoring", systemImage: "list.number")
+                    Label("Teams", systemImage: "person.2.fill")
                 }
                 .tag(4)
             
-            SettingsView()
+            MoreTabView()
                 .tabItem {
-                    Label("Settings", systemImage: "gear")
+                    Label("More", systemImage: "ellipsis.circle.fill")
                 }
                 .tag(5)
         }
         .tint(.green)
+        .preferredColorScheme(.dark)
     }
 }
 

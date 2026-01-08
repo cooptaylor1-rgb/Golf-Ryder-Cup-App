@@ -20,6 +20,15 @@ final class Trip {
     @Relationship(deleteRule: .cascade, inverse: \Team.trip)
     var teams: [Team]?
     
+    @Relationship(deleteRule: .cascade, inverse: \RyderCupSession.trip)
+    var ryderCupSessions: [RyderCupSession]?
+    
+    @Relationship(deleteRule: .cascade, inverse: \BanterPost.trip)
+    var banterPosts: [BanterPost]?
+    
+    @Relationship(deleteRule: .cascade, inverse: \TripPhoto.trip)
+    var photos: [TripPhoto]?
+    
     init(
         id: UUID = UUID(),
         name: String,
@@ -66,5 +75,56 @@ extension Trip {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.day], from: startDate, to: endDate)
         return (components.day ?? 0) + 1
+    }
+    
+    /// Sorted Ryder Cup sessions by date and time slot
+    var sortedSessions: [RyderCupSession] {
+        (ryderCupSessions ?? []).sorted { session1, session2 in
+            if session1.scheduledDate != session2.scheduledDate {
+                return session1.scheduledDate < session2.scheduledDate
+            }
+            return session1.timeSlot < session2.timeSlot
+        }
+    }
+    
+    /// Team A (first team in Ryder Cup mode)
+    var teamA: Team? {
+        (teams ?? []).filter { $0.mode == .ryderCup }.first
+    }
+    
+    /// Team B (second team in Ryder Cup mode)
+    var teamB: Team? {
+        let ryderCupTeams = (teams ?? []).filter { $0.mode == .ryderCup }
+        return ryderCupTeams.count > 1 ? ryderCupTeams[1] : nil
+    }
+    
+    /// Total points for Team A across all sessions
+    var teamATotalPoints: Double {
+        sortedSessions.reduce(0.0) { $0 + $1.teamAPoints }
+    }
+    
+    /// Total points for Team B across all sessions
+    var teamBTotalPoints: Double {
+        sortedSessions.reduce(0.0) { $0 + $1.teamBPoints }
+    }
+    
+    /// Total points available
+    var totalPointsAvailable: Double {
+        sortedSessions.reduce(0.0) { $0 + $1.totalPointsAvailable }
+    }
+    
+    /// Points to win (half + 0.5)
+    var pointsToWin: Double {
+        (totalPointsAvailable / 2) + 0.5
+    }
+    
+    /// Sorted banter posts (newest first)
+    var sortedBanterPosts: [BanterPost] {
+        (banterPosts ?? []).sorted { $0.timestamp > $1.timestamp }
+    }
+    
+    /// Photos sorted by date
+    var sortedPhotos: [TripPhoto] {
+        (photos ?? []).sorted { $0.takenAt < $1.takenAt }
     }
 }

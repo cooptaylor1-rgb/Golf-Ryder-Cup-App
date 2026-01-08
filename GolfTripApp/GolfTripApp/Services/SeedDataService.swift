@@ -299,5 +299,154 @@ struct SeedDataService {
             member.player = player
             context.insert(member)
         }
+        
+        // Create Ryder Cup sessions
+        createRyderCupSessions(context: context, trip: trip, players: players, courses: courses, days: days)
+        
+        // Create initial banter post
+        let welcomePost = BanterPost(
+            content: "🏆 Welcome to the Ryder Cup 2026! Let the games begin!",
+            authorName: "System",
+            postType: "system"
+        )
+        welcomePost.trip = trip
+        context.insert(welcomePost)
+    }
+    
+    private static func createRyderCupSessions(
+        context: ModelContext,
+        trip: Trip,
+        players: [Player],
+        courses: [Course],
+        days: [ScheduleDay]
+    ) {
+        guard days.count >= 3, courses.count >= 1 else { return }
+        
+        let course = courses[0]
+        guard let teeSet = course.sortedTeeSets.first else { return }
+        
+        // Day 2: Morning Fourballs
+        let day2 = days[1]
+        let session1 = RyderCupSession(
+            name: "Morning Fourballs",
+            sessionType: .fourball,
+            scheduledDate: day2.date,
+            timeSlot: "AM",
+            pointsPerMatch: 1.0
+        )
+        session1.trip = trip
+        context.insert(session1)
+        
+        // Create 2 fourball matches
+        for i in 0..<2 {
+            var matchTime = Calendar.current.dateComponents([.year, .month, .day], from: day2.date)
+            matchTime.hour = 8
+            matchTime.minute = 30 + (i * 10)
+            
+            let match = Match(
+                matchOrder: i,
+                startTime: Calendar.current.date(from: matchTime),
+                teamAPlayerIds: [players[i * 2].id, players[i * 2 + 1].id].map { $0.uuidString }.joined(separator: ","),
+                teamBPlayerIds: [players[4 + i * 2].id, players[4 + i * 2 + 1].id].map { $0.uuidString }.joined(separator: ",")
+            )
+            match.session = session1
+            match.course = course
+            match.teeSet = teeSet
+            context.insert(match)
+        }
+        
+        // Day 2: Afternoon Singles
+        let session2 = RyderCupSession(
+            name: "Afternoon Singles",
+            sessionType: .singles,
+            scheduledDate: day2.date,
+            timeSlot: "PM",
+            pointsPerMatch: 1.0
+        )
+        session2.trip = trip
+        context.insert(session2)
+        
+        // Create 4 singles matches
+        for i in 0..<4 {
+            var matchTime = Calendar.current.dateComponents([.year, .month, .day], from: day2.date)
+            matchTime.hour = 14
+            matchTime.minute = i * 10
+            
+            let match = Match(
+                matchOrder: i,
+                startTime: Calendar.current.date(from: matchTime),
+                teamAPlayerIds: players[i].id.uuidString,
+                teamBPlayerIds: players[4 + i].id.uuidString
+            )
+            match.session = session2
+            match.course = course
+            match.teeSet = teeSet
+            context.insert(match)
+        }
+        
+        // Day 3: Morning Foursomes
+        guard days.count >= 3 else { return }
+        let day3 = days[2]
+        
+        let session3 = RyderCupSession(
+            name: "Morning Foursomes",
+            sessionType: .foursomes,
+            scheduledDate: day3.date,
+            timeSlot: "AM",
+            pointsPerMatch: 1.0
+        )
+        session3.trip = trip
+        context.insert(session3)
+        
+        // Create 2 foursomes matches
+        for i in 0..<2 {
+            var matchTime = Calendar.current.dateComponents([.year, .month, .day], from: day3.date)
+            matchTime.hour = 8
+            matchTime.minute = 30 + (i * 10)
+            
+            let match = Match(
+                matchOrder: i,
+                startTime: Calendar.current.date(from: matchTime),
+                teamAPlayerIds: [players[i * 2].id, players[i * 2 + 1].id].map { $0.uuidString }.joined(separator: ","),
+                teamBPlayerIds: [players[4 + i * 2].id, players[4 + i * 2 + 1].id].map { $0.uuidString }.joined(separator: ",")
+            )
+            match.session = session3
+            match.course = course
+            match.teeSet = teeSet
+            context.insert(match)
+        }
+        
+        // Day 3: Afternoon Singles (Championship)
+        let session4 = RyderCupSession(
+            name: "Championship Singles",
+            sessionType: .singles,
+            scheduledDate: day3.date,
+            timeSlot: "PM",
+            pointsPerMatch: 1.5  // Higher stakes for championship singles
+        )
+        session4.trip = trip
+        context.insert(session4)
+        
+        // Create 4 singles matches
+        for i in 0..<4 {
+            var matchTime = Calendar.current.dateComponents([.year, .month, .day], from: day3.date)
+            matchTime.hour = 14
+            matchTime.minute = i * 10
+            
+            // Reverse order for singles to change matchups
+            let teamAIndex = 3 - i
+            let teamBIndex = 7 - i
+            
+            let match = Match(
+                matchOrder: i,
+                startTime: Calendar.current.date(from: matchTime),
+                teamAPlayerIds: players[teamAIndex].id.uuidString,
+                teamBPlayerIds: players[teamBIndex].id.uuidString
+            )
+            match.session = session4
+            match.course = course
+            match.teeSet = teeSet
+            context.insert(match)
+        }
     }
 }

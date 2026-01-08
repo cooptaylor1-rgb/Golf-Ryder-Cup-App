@@ -21,7 +21,13 @@ struct GolfTripApp: App {
                 Format.self,
                 Scorecard.self,
                 HoleScore.self,
-                TeamScore.self
+                TeamScore.self,
+                // Ryder Cup models
+                RyderCupSession.self,
+                Match.self,
+                HoleResult.self,
+                BanterPost.self,
+                TripPhoto.self
             ])
             
             let modelConfiguration = ModelConfiguration(

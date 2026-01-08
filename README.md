@@ -1,6 +1,50 @@
-# Golf Trip App
+# Golf Ryder Cup App
 
-A production-grade iOS mobile app for managing golf trips, built with SwiftUI and SwiftData. The app supports player profiles with USGA Handicap Index, course management, trip scheduling, team competitions, and comprehensive scoring with leaderboards.
+A premium iOS app for managing Ryder Cup-style buddies golf trips. Built with SwiftUI and SwiftData for iOS 17+. Features match play scoring, team management, live standings, and a "Trip Command Center" that makes running a competitive golf trip legendary.
+
+## 🏆 Ryder Cup Mode
+
+The app is designed around the Ryder Cup experience with:
+
+### Match Play Scoring
+- **Quick scoring**: +1 Team A | Halved | +1 Team B buttons
+- **Live status**: "Team A 2 UP with 5 to play"
+- **Auto-detection**: Dormie, closed out, final results
+- **5-step undo history** for corrections
+- **Haptic feedback** on every interaction
+
+### Sessions & Formats
+- **Foursomes** (alternate shot) - partners take turns
+- **Fourball** (best ball) - each plays own ball, best score counts
+- **Singles** - 1v1 match play
+- Configurable points per match (default: 1.0, championship: 1.5)
+
+### Handicap Allowances
+```swift
+// Singles: 100% of course handicap difference
+// Fourball: 90% off lowest handicap
+// Foursomes: 50% of combined team handicap
+```
+
+### Standings & Leaderboard
+- **Big score display**: Team A 8.5 — Team B 5.5
+- **Session breakdown** with points per session
+- **Individual player stats**: points, W-L-H record
+- **"Points to win"** and scenario calculator
+- **Share cards** for results
+
+## Navigation
+
+The app uses a 6-tab layout optimized for "in the moment" use:
+
+| Tab | Description |
+|-----|-------------|
+| **Home** | Trip Command Center - next match, today's schedule, captain actions |
+| **Matchups** | Session list, match pairings, captain editing mode |
+| **Score** | "Score Now" CTA, active matches, scoring interface |
+| **Standings** | Live team scores, session breakdown, player leaderboard |
+| **Teams** | Rosters, captain tools, pairing history |
+| **More** | Banter feed, photos, players, courses, settings |
 
 ## Features
 
@@ -22,7 +66,7 @@ A production-grade iOS mobile app for managing golf trips, built with SwiftUI an
   - Hole pars
 - Course detail screen with complete hole handicap table
 
-### Course Setup Wizard ✨ NEW
+### Course Setup Wizard
 A guided multi-step wizard to set up courses quickly (under 2 minutes on a phone):
 
 **Entry Points:**
@@ -60,34 +104,20 @@ A guided multi-step wizard to set up courses quickly (under 2 minutes on a phone
 - Two team modes:
   - **Freeform Teams** - any number of teams, flexible roster sizes
   - **Ryder Cup Sides** - exactly 2 teams with roster validation
-- Team color selection
-- Captain designation
-- Drag-to-reorder roster
-- Teams reusable across multiple tee times
+- Team color selection (Team USA blue, Team Europe red)
+- Captain and vice-captain designation
+- Player stats: points earned, W-L-H record
+- Pairing history matrix
 
-### Formats & Scoring
-- Multiple game formats:
-  - Individual Stroke Play (Gross)
-  - Individual Stroke Play (Net)
-  - Stableford (Net Points)
-  - 2-Person Best Ball (Net)
-  - 4-Person Scramble
+### Banter Feed
+- Post messages with emoji reactions
+- Auto-generated posts for match results and lineup announcements
+- Offline-first with local storage
 
-- Scoring features:
-  - Per-hole score entry with large tap targets
-  - Visual strokes-received indicators (orange dots)
-  - Auto-calculated totals and net scores
-  - Real-time gross/net/points display
-  - Full scorecard summary view
-
-### Event Scoring Tab
-- Upcoming tee times requiring scores
-- In-progress scorecards
-- Completed scorecards with results
-- Leaderboards with aggregation options:
-  - Single Event
-  - Day Totals
-  - Trip Totals
+### Photo Albums
+- Per-day photo organization
+- Attach photos to matches
+- Memory lane recap view
 
 ## How to Run
 
@@ -101,11 +131,17 @@ A guided multi-step wizard to set up courses quickly (under 2 minutes on a phone
 2. Select a simulator or connected device (iOS 17+)
 3. Build and run (⌘R)
 
-The app automatically seeds sample data on first launch:
-- 8 sample players with various handicaps
-- 4 courses with tee sets and hole handicaps (including 1 draft example)
-- A sample trip with schedule
-- Two teams in Ryder Cup mode
+### Sample Ryder Cup Weekend
+The app automatically seeds a full Ryder Cup experience on first launch:
+- **8 players** with realistic handicaps (5.1 to 22.3)
+- **4 courses** with complete tee sets
+- **2 teams**: Team USA (4 players) vs Team Europe (4 players)
+- **4 sessions**:
+  - Day 1 AM: Morning Fourballs (2 matches, 2 points)
+  - Day 1 PM: Afternoon Singles (4 matches, 4 points)
+  - Day 2 AM: Morning Foursomes (2 matches, 2 points)
+  - Day 2 PM: Championship Singles (4 matches, 6 points @ 1.5 each)
+- **Total: 14 points available**, 7.5 to win
 
 ## Architecture Overview
 
@@ -115,7 +151,7 @@ The app uses a clean MVVM architecture with SwiftData for persistence:
 ```
 GolfTripApp/
 ├── GolfTripApp.swift          # App entry point, ModelContainer setup
-├── Models/                     # SwiftData @Model entities
+├── Models/                     # SwiftData @Model entities (19 models)
 │   ├── Player.swift
 │   ├── Course.swift
 │   ├── TeeSet.swift
@@ -124,25 +160,33 @@ GolfTripApp/
 │   ├── ScheduleItem.swift
 │   ├── Team.swift
 │   ├── TeamMember.swift
-│   ├── Group.swift
-│   ├── GroupPlayer.swift
-│   ├── Format.swift
-│   ├── Scorecard.swift
-│   ├── HoleScore.swift
-│   └── TeamScore.swift
+│   ├── RyderCupSession.swift   # NEW: Session management
+│   ├── Match.swift             # NEW: Match play matches
+│   ├── HoleResult.swift        # NEW: Per-hole match results
+│   ├── BanterPost.swift        # NEW: Social feed
+│   ├── TripPhoto.swift         # NEW: Photo albums
+│   └── ...
 ├── Views/                      # SwiftUI views organized by feature
 │   ├── ContentView.swift       # Main tab navigation
-│   ├── Player/                 # Player CRUD views
-│   ├── Course/                 # Course and TeeSet views
-│   ├── Trip/                   # Trip, Schedule, Groups views
-│   ├── Teams/                  # Team management views
-│   ├── Scoring/                # Scorecard, entry, results views
-│   └── Settings/               # Settings and data management
+│   ├── Home/                   # Trip Command Center
+│   ├── Matchups/               # Session & pairing management
+│   ├── Score/                  # Match play scoring
+│   ├── Standings/              # Live standings
+│   ├── Teams/                  # Team management
+│   ├── More/                   # Banter, photos, settings
+│   └── ...
 ├── Services/
-│   ├── HandicapCalculator.swift  # Core handicap logic
-│   └── SeedDataService.swift     # Sample data generation
-└── Extensions/
-    └── Color+Hex.swift           # Hex color support
+│   ├── HandicapCalculator.swift   # USGA handicap logic
+│   ├── TournamentEngine.swift     # NEW: Pairings, points, rules
+│   ├── ScoringEngine.swift        # NEW: Match play state machine
+│   ├── CourseWizardValidator.swift
+│   └── SeedDataService.swift
+├── Extensions/
+│   ├── DesignSystem.swift         # NEW: Design tokens & components
+│   └── Color+Hex.swift
+└── Docs/
+    ├── UX-Spec.md                 # NEW: Full UX specification
+    └── DesignSystem.md            # NEW: Design system documentation
 ```
 
 ### Data Model
@@ -154,6 +198,11 @@ Player ──┬── TeamMember ──── Team ──── Trip
                                      └── Scorecard ── HoleScore
                                               │
                                               └── Format
+
+Trip ──┬── RyderCupSession ──── Match ──── HoleResult
+       │
+       ├── BanterPost
+       └── TripPhoto
 ```
 
 ### Offline-First
@@ -188,91 +237,81 @@ CourseHandicap = round(HandicapIndex × (Slope ÷ 113) + (CourseRating - Par))
 | Double+ | 0 |
 
 ### Testing
-Unit tests in `Tests/HandicapCalculatorTests.swift`:
-- Course handicap calculations (various slopes/ratings)
-- Strokes allocation (0, 18, 36 handicaps, plus-handicaps)
-- Stableford points for all scoring scenarios
-- Best ball team calculations
-- Full round integration tests
+Unit tests in `Tests/`:
+- **HandicapCalculatorTests.swift**: Course handicap, strokes allocation, Stableford
+- **CourseWizardValidatorTests.swift**: Validation and parsing
+- **ScoringEngineTests.swift**: Match play state machine, undo manager
+- **TournamentEngineTests.swift**: Handicap allowances, draft order
 
-Unit tests in `Tests/CourseWizardValidatorTests.swift`:
-- Hole handicap validation (missing, duplicates, out-of-range)
-- Hole pars validation (total mismatch, invalid values)
-- Tee set basics validation (rating, slope, par ranges)
-- Paste list parsing (spaces, commas, newlines, mixed formats)
-- Default par generation for different totals
+## Scoring Engine
 
-## Course Setup Wizard
-
-### Architecture
-The wizard uses a state-based MVVM pattern:
-
-```
-Views/CourseWizard/
-├── CourseSetupWizardView.swift    # Main container with navigation
-├── CourseWizardState.swift        # Observable state manager
-├── WizardSteps1And2.swift         # Basic Info + Tee Set steps
-├── WizardStep3HolePars.swift      # Optional hole pars entry
-├── WizardStep4HoleHandicaps.swift # Required handicap rankings
-└── WizardStep5Review.swift        # Summary and save
-
-Services/
-└── CourseWizardValidator.swift    # Pure validation functions
-```
-
-### Hole Handicap Input Modes
-
-**1. Paste List Mode**
-- Accepts multiple formats: `7 15 1 11...`, `7, 15, 1, 11...`, `H1: 7 H2: 15...`
-- Robust parsing handles spaces, commas, semicolons, newlines, tabs
-- Shows parsed values and warnings
-
-**2. Quick Grid Mode**
-- 9-hole toggle (Front/Back)
-- Direct numeric entry per hole
-- Visual indicators for duplicates and invalid values
-
-**3. Rank by Hole Mode**
-- Tap-to-assign interface
-- Current rank highlighted
-- Auto-advances to next unassigned rank
-- Undo support
-
-### Validation Service
-`CourseWizardValidator` provides pure functions (easily testable):
-
+### Match Play State Machine
 ```swift
-// Validate hole handicaps
-let result = CourseWizardValidator.validateHoleHandicaps([7, 15, 1, ...])
-// Returns: HoleHandicapValidationResult with missing/duplicates/outOfRange
-
-// Parse pasted text
-let parsed = CourseWizardValidator.parseHandicapList("7, 15, 1, 11...")
-// Returns: ParseResult with values and warnings
-
-// Generate default pars
-let pars = CourseWizardValidator.generateTypicalPars(for: 72)
-// Returns: [4, 4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 3, 5, 4, 4, 3, 4, 5]
+// Calculate current match state
+let state = ScoringEngine.calculateMatchState(holeResults: results)
+// Returns: matchScore, holesPlayed, isDormie, isClosedOut, statusText
 ```
 
-## Teams & Event Scoring Model
+**States:**
+- All Square
+- Team A/B X UP through Y
+- Dormie (X up with X to play)
+- Closed Out (X&Y format)
+- Final (X UP or Halved)
 
-### Teams
-- **Team** entity with `mode` (freeform/ryderCup)
-- **TeamMember** links players to teams with captain flag
-- Teams scoped to trips for reuse across events
-- Ryder Cup mode validates equal roster sizes
+### Undo System
+- 5-step undo history
+- Records previous hole state
+- Restores on undo
 
-### Event Scoring
-- **Scorecard** tracks status (draft/inProgress/final)
-- **HoleScore** stores per-hole strokes per player/team
-- **Format** defines game type and options
-- Aggregation computed at runtime from completed scorecards
+## Tournament Engine
+
+### Handicap Allowances
+```swift
+// Singles: 100% difference
+TournamentEngine.singlesStrokes(playerA: 18, playerB: 10)
+// Returns: (8, 0) - Player A gets 8 strokes
+
+// Fourball: 90% off lowest
+TournamentEngine.fourballStrokes(teamA: [15, 10], teamB: [18, 12])
+// Returns strokes for each player relative to lowest
+
+// Foursomes: 50% combined
+TournamentEngine.foursomesStrokes(teamA: [15, 10], teamB: [18, 8])
+// Returns team strokes based on combined handicaps
+```
+
+### Pairing Validation
+- Checks player counts per match
+- Warns on duplicate players in session
+- Calculates "fairness score" (0-100)
+
+## Design System
+
+See `/Docs/DesignSystem.md` for full specification:
+
+### Color Tokens
+- **Team USA**: #1565C0 (blue)
+- **Team Europe**: #C62828 (red)
+- **Primary**: Green with gold accents
+- **Dark mode first** for premium feel
+
+### Typography
+- Score fonts: 72pt hero, 48pt large, 32pt medium (monospace)
+- System SF Pro for body text
+- Full Dynamic Type support
+
+### Components
+- BigScoreDisplay
+- MatchStatusBadge
+- HoleIndicatorDots
+- AvatarView
+- EmptyStateView
 
 ## Product Backlog (Future Features)
 
 ### High Priority
-- [ ] Ryder Cup session scoring (match play format)
+- [x] ~~Ryder Cup session scoring (match play format)~~
 - [ ] Skins game tracking
 - [ ] Nassau (front/back/total) betting
 - [ ] Side games (closest to pin, long drive)
@@ -281,14 +320,15 @@ let pars = CourseWizardValidator.generateTypicalPars(for: 72)
 - [ ] iCloud sync across devices
 - [ ] Live sharing (multiple phones scoring same round)
 - [ ] Import handicaps from GHIN API
-- [ ] Team vs Team match play scoring
+- [ ] Draft board (captain picks in real time)
 
 ### Lower Priority
 - [ ] Push notifications for tee times
 - [ ] PDF export / share leaderboard screenshot
 - [ ] Apple Watch companion for quick scoring
-- [ ] Course GPS integration
-- [ ] Weather integration
+- [ ] Live Activities for lock screen
+- [ ] Widgets for standings
+- [ ] Betting/side games ledger
 
 ## License
 
