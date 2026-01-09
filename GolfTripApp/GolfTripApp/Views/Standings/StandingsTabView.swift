@@ -1,11 +1,14 @@
 import SwiftUI
 import SwiftData
 
-/// Standings tab - Live points and leaderboards
+/// Standings tab - Live points and premium leaderboards
 struct StandingsTabView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var trips: [Trip]
     @Query private var players: [Player]
+    
+    @State private var showShareSheet = false
+    @State private var shareImage: UIImage?
     
     private var currentTrip: Trip? {
         trips.first
@@ -15,46 +18,71 @@ struct StandingsTabView: View {
         NavigationStack {
             ScrollView {
                 if let trip = currentTrip {
-                    VStack(spacing: DesignTokens.Spacing.lg) {
-                        // Big score
-                        bigScoreCard(trip)
+                    VStack(spacing: DesignTokens.Spacing.xl) {
+                        // Hero big score
+                        heroScoreCard(trip)
                         
-                        // Points info
-                        pointsInfoCard(trip)
+                        // Magic numbers / what needs to happen
+                        if !hasTeamClinched(trip) {
+                            magicNumbersCard(trip)
+                        }
                         
                         // Session breakdown
-                        sessionBreakdownSection(trip)
+                        sessionBreakdownCard(trip)
                         
                         // Player leaderboard
-                        playerLeaderboardSection(trip)
+                        playerLeaderboardCard(trip)
+                        
+                        // Share button
+                        shareButton(trip)
                     }
                     .padding(DesignTokens.Spacing.lg)
                 } else {
                     EmptyStateView(
-                        icon: "trophy",
-                        title: "No Trip",
-                        description: "Create a trip to see standings."
+                        icon: "trophy.fill",
+                        title: "No Tournament",
+                        description: "Create a trip to track your Ryder Cup standings."
                     )
                 }
             }
+            .background(Color.surfaceBackground)
             .navigationTitle("Standings")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    ShareLink(item: "Team A \(currentTrip?.teamATotalPoints ?? 0) - \(currentTrip?.teamBTotalPoints ?? 0) Team B") {
-                        Image(systemName: "square.and.arrow.up")
+                    if let trip = currentTrip {
+                        Button(action: { shareStandings(trip) }) {
+                            Image(systemName: "square.and.arrow.up")
+                        }
                     }
                 }
             }
         }
     }
     
-    // MARK: - Big Score Card
+    // MARK: - Hero Score Card
     
     @ViewBuilder
-    private func bigScoreCard(_ trip: Trip) -> some View {
+    private func heroScoreCard(_ trip: Trip) -> some View {
         let hasClinched = hasTeamClinched(trip)
         
-        VStack(spacing: DesignTokens.Spacing.xl) {
+        VStack(spacing: DesignTokens.Spacing.xxl) {
+            // Trophy header if clinched
+            if hasClinched {
+                VStack(spacing: DesignTokens.Spacing.md) {
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 48))
+                        .foregroundStyle(LinearGradient.goldGradient)
+                        .shadow(color: .gold.opacity(0.5), radius: 10)
+                    
+                    let winningTeam = trip.teamATotalPoints > trip.teamBTotalPoints ? trip.teamA?.name : trip.teamB?.name
+                    Text("\(winningTeam ?? "Winner") WINS!")
+                        .font(.title.weight(.black))
+                        .foregroundColor(.gold)
+                }
+                .padding(.top, DesignTokens.Spacing.md)
+            }
+            
+            // Big score display
             BigScoreDisplay(
                 teamAScore: trip.teamATotalPoints,
                 teamBScore: trip.teamBTotalPoints,
@@ -62,196 +90,227 @@ struct StandingsTabView: View {
                 teamBName: trip.teamB?.name ?? "Team B",
                 teamAColor: .teamUSA,
                 teamBColor: .teamEurope,
-                showCelebration: hasClinched
+                showCelebration: hasClinched,
+                large: true
             )
             
-            // Winner banner if clinched
-            if hasClinched {
-                clinchBanner(trip)
+            // Points info row
+            HStack(spacing: DesignTokens.Spacing.xxl) {
+                statPill(
+                    value: String(format: "%.1f", trip.pointsToWin),
+                    label: "To Win",
+                    icon: "trophy"
+                )
+                
+                let remaining = trip.totalPointsAvailable - trip.teamATotalPoints - trip.teamBTotalPoints
+                statPill(
+                    value: String(format: "%.0f", remaining),
+                    label: "Remaining",
+                    icon: "clock"
+                )
+                
+                let completed = trip.sortedSessions.filter { $0.isComplete }.count
+                statPill(
+                    value: "\(completed)/\(trip.sortedSessions.count)",
+                    label: "Sessions",
+                    icon: "flag.2.crossed"
+                )
             }
             
-            // Momentum indicator - last 5 matches
+            // Momentum view
             momentumView(trip)
         }
         .padding(DesignTokens.Spacing.xxl)
         .heroCardStyle()
     }
     
-    // MARK: - Momentum View
+    @ViewBuilder
+    private func statPill(value: String, label: String, icon: String) -> some View {
+        VStack(spacing: DesignTokens.Spacing.xs) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Text(value)
+                .font(.title3.weight(.bold))
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+    }
     
     @ViewBuilder
     private func momentumView(_ trip: Trip) -> some View {
         let recentMatches = trip.sortedSessions
             .flatMap { $0.sortedMatches }
             .filter { $0.status == .final }
-            .suffix(5)
+            .suffix(7)
         
         if !recentMatches.isEmpty {
             VStack(spacing: DesignTokens.Spacing.sm) {
                 Text("MOMENTUM")
-                    .font(.caption2.weight(.bold))
+                    .font(.caption2.weight(.black))
                     .foregroundColor(.secondary)
+                    .tracking(2)
                 
                 HStack(spacing: DesignTokens.Spacing.sm) {
                     ForEach(Array(recentMatches), id: \.id) { match in
-                        Circle()
-                            .fill(match.result == .teamAWin ? Color.teamUSA : (match.result == .teamBWin ? Color.teamEurope : Color.secondary))
-                            .frame(width: 12, height: 12)
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                            )
+                        VStack(spacing: 2) {
+                            Circle()
+                                .fill(matchResultColor(match))
+                                .frame(width: 16, height: 16)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                                .shadow(color: matchResultColor(match).opacity(0.5), radius: 4)
+                        }
                     }
                 }
             }
         }
     }
     
-    @ViewBuilder
-    private func clinchBanner(_ trip: Trip) -> some View {
-        let teamAWins = trip.teamATotalPoints >= trip.pointsToWin
-        let winningTeam = teamAWins ? (trip.teamA?.name ?? "Team A") : (trip.teamB?.name ?? "Team B")
-        let winningColor: Color = teamAWins ? .teamUSA : .teamEurope
-        
-        VStack(spacing: DesignTokens.Spacing.sm) {
-            HStack(spacing: DesignTokens.Spacing.md) {
-                Image(systemName: "trophy.fill")
-                    .font(.title2)
-                Text("\(winningTeam) WINS!")
-                    .font(.title3.weight(.black))
-                Image(systemName: "trophy.fill")
-                    .font(.title2)
-            }
-            .foregroundColor(winningColor)
-            
-            Text("🎉 Congratulations! 🎉")
-                .font(.caption)
-                .foregroundColor(.secondary)
+    private func matchResultColor(_ match: Match) -> Color {
+        switch match.result {
+        case .teamAWin: return .teamUSA
+        case .teamBWin: return .teamEurope
+        case .halved: return .secondary
+        case .inProgress, .notStarted: return .clear
         }
-        .padding(DesignTokens.Spacing.lg)
-        .frame(maxWidth: .infinity)
-        .background(
-            LinearGradient(
-                colors: [winningColor.opacity(0.2), winningColor.opacity(0.1)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md))
-        .overlay(
-            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
-                .stroke(winningColor.opacity(0.5), lineWidth: 2)
-        )
     }
     
-    private func hasTeamClinched(_ trip: Trip) -> Bool {
-        trip.teamATotalPoints >= trip.pointsToWin || trip.teamBTotalPoints >= trip.pointsToWin
-    }
-    
-    // MARK: - Points Info Card
+    // MARK: - Magic Numbers Card
     
     @ViewBuilder
-    private func pointsInfoCard(_ trip: Trip) -> some View {
-        let pointsRemaining = trip.totalPointsAvailable - trip.teamATotalPoints - trip.teamBTotalPoints
-        
-        VStack(spacing: DesignTokens.Spacing.md) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("Points to Win")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(String(format: "%.1f", trip.pointsToWin))
-                        .font(.title2.weight(.bold))
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing) {
-                    Text("Points Remaining")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(String(format: "%.1f", pointsRemaining))
-                        .font(.title2.weight(.bold))
-                }
-            }
-            
-            // What needs to happen
-            if !hasTeamClinched(trip) && pointsRemaining > 0 {
-                whatNeedsToHappen(trip, pointsRemaining: pointsRemaining)
-            }
-        }
-        .padding(DesignTokens.Spacing.lg)
-        .cardStyle()
-    }
-    
-    @ViewBuilder
-    private func whatNeedsToHappen(_ trip: Trip, pointsRemaining: Double) -> some View {
+    private func magicNumbersCard(_ trip: Trip) -> some View {
         let teamANeeds = max(0, trip.pointsToWin - trip.teamATotalPoints)
         let teamBNeeds = max(0, trip.pointsToWin - trip.teamBTotalPoints)
+        let remaining = trip.totalPointsAvailable - trip.teamATotalPoints - trip.teamBTotalPoints
         
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-            Divider()
-            
-            Text("TO WIN")
-                .font(.caption.weight(.bold))
-                .foregroundColor(.secondary)
-            
+        VStack(spacing: DesignTokens.Spacing.lg) {
             HStack {
-                VStack(alignment: .leading) {
+                Image(systemName: "sparkles")
+                    .foregroundColor(.gold)
+                Text("TO CLINCH")
+                    .font(.caption.weight(.black))
+                    .foregroundColor(.secondary)
+                    .tracking(2)
+            }
+            
+            HStack(spacing: DesignTokens.Spacing.xxl) {
+                // Team A magic number
+                VStack(spacing: DesignTokens.Spacing.sm) {
                     Text(trip.teamA?.name ?? "Team A")
-                        .font(.caption)
+                        .font(.caption.weight(.bold))
                         .foregroundColor(.teamUSA)
-                    Text("\(String(format: "%.1f", teamANeeds)) more")
-                        .font(.subheadline.weight(.semibold))
+                    
+                    Text(String(format: "%.1f", teamANeeds))
+                        .font(.scoreMedium)
+                        .foregroundColor(.teamUSA)
+                        .glow(color: .teamUSA, radius: 6)
+                    
+                    Text("points needed")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
                 
-                Spacer()
+                Divider()
+                    .frame(height: 60)
                 
-                VStack(alignment: .trailing) {
+                // Team B magic number
+                VStack(spacing: DesignTokens.Spacing.sm) {
                     Text(trip.teamB?.name ?? "Team B")
-                        .font(.caption)
+                        .font(.caption.weight(.bold))
                         .foregroundColor(.teamEurope)
-                    Text("\(String(format: "%.1f", teamBNeeds)) more")
-                        .font(.subheadline.weight(.semibold))
+                    
+                    Text(String(format: "%.1f", teamBNeeds))
+                        .font(.scoreMedium)
+                        .foregroundColor(.teamEurope)
+                        .glow(color: .teamEurope, radius: 6)
+                    
+                    Text("points needed")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // Scenario
+            if remaining > 0 {
+                Divider()
+                
+                VStack(spacing: DesignTokens.Spacing.xs) {
+                    if teamANeeds <= remaining && teamBNeeds <= remaining {
+                        Text("Either team can still win!")
+                            .font(.caption.weight(.medium))
+                            .foregroundColor(.warning)
+                    } else if teamANeeds > remaining {
+                        Text("\(trip.teamB?.name ?? "Team B") has secured at least a tie")
+                            .font(.caption.weight(.medium))
+                            .foregroundColor(.teamEurope)
+                    } else if teamBNeeds > remaining {
+                        Text("\(trip.teamA?.name ?? "Team A") has secured at least a tie")
+                            .font(.caption.weight(.medium))
+                            .foregroundColor(.teamUSA)
+                    }
                 }
             }
         }
+        .padding(DesignTokens.Spacing.xl)
+        .glassStyle()
     }
     
     // MARK: - Session Breakdown
     
     @ViewBuilder
-    private func sessionBreakdownSection(_ trip: Trip) -> some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-            Text("SESSION BREAKDOWN")
-                .font(.caption.weight(.bold))
-                .foregroundColor(.secondary)
+    private func sessionBreakdownCard(_ trip: Trip) -> some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
+            HStack {
+                Image(systemName: "flag.2.crossed.fill")
+                    .foregroundColor(.fairway)
+                Text("SESSION BREAKDOWN")
+                    .font(.caption.weight(.black))
+                    .foregroundColor(.secondary)
+                    .tracking(1)
+            }
             
             if trip.sortedSessions.isEmpty {
-                Text("No sessions yet")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                HStack {
+                    Spacer()
+                    Text("No sessions yet")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                .padding(.vertical, DesignTokens.Spacing.lg)
             } else {
                 ForEach(trip.sortedSessions, id: \.id) { session in
                     sessionRow(session)
                 }
             }
         }
-        .padding(DesignTokens.Spacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .cardStyle()
+        .padding(DesignTokens.Spacing.xl)
+        .cardStyle(elevation: 1)
     }
     
     @ViewBuilder
     private func sessionRow(_ session: RyderCupSession) -> some View {
         HStack {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(session.displayTitle)
-                    .font(.subheadline.weight(.medium))
+                    .font(.subheadline.weight(.semibold))
                 
-                Text("\(session.sortedMatches.count) matches")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                HStack(spacing: DesignTokens.Spacing.sm) {
+                    Text("\(session.sortedMatches.count) matches")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    if !session.isComplete {
+                        let inProgress = session.sortedMatches.filter { $0.status == .inProgress }.count
+                        if inProgress > 0 {
+                            LiveStatusIndicator(text: "\(inProgress) live", color: .success)
+                        }
+                    }
+                }
             }
             
             Spacer()
@@ -259,24 +318,20 @@ struct StandingsTabView: View {
             if session.isComplete {
                 HStack(spacing: DesignTokens.Spacing.sm) {
                     Text(String(format: "%.1f", session.teamAPoints))
+                        .font(.headline.weight(.bold))
                         .foregroundColor(.teamUSA)
+                    
                     Text("-")
                         .foregroundColor(.secondary)
+                    
                     Text(String(format: "%.1f", session.teamBPoints))
+                        .font(.headline.weight(.bold))
                         .foregroundColor(.teamEurope)
                 }
-                .font(.subheadline.weight(.semibold))
             } else {
-                let inProgress = session.sortedMatches.filter { $0.status == .inProgress }.count
-                if inProgress > 0 {
-                    Text("\(inProgress) in progress")
-                        .font(.caption)
-                        .foregroundColor(.info)
-                } else {
-                    Text("Not started")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                Text("In Progress")
+                    .font(.caption)
+                    .foregroundColor(.info)
             }
         }
         .padding(.vertical, DesignTokens.Spacing.sm)
@@ -285,11 +340,16 @@ struct StandingsTabView: View {
     // MARK: - Player Leaderboard
     
     @ViewBuilder
-    private func playerLeaderboardSection(_ trip: Trip) -> some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
-            Text("TOP PERFORMERS")
-                .font(.caption.weight(.bold))
-                .foregroundColor(.secondary)
+    private func playerLeaderboardCard(_ trip: Trip) -> some View {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
+            HStack {
+                Image(systemName: "star.fill")
+                    .foregroundColor(.gold)
+                Text("TOP PERFORMERS")
+                    .font(.caption.weight(.black))
+                    .foregroundColor(.secondary)
+                    .tracking(1)
+            }
             
             let allMatches = trip.sortedSessions.flatMap { $0.sortedMatches }
             let teamAIds = Set((trip.teamA?.players ?? []).map { $0.id })
@@ -303,53 +363,112 @@ struct StandingsTabView: View {
             .sorted { $0.points > $1.points }
             
             if playerStats.isEmpty {
-                Text("No completed matches yet")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                HStack {
+                    Spacer()
+                    Text("Complete matches to see standings")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+                .padding(.vertical, DesignTokens.Spacing.lg)
             } else {
-                ForEach(Array(playerStats.prefix(10).enumerated()), id: \.element.player.id) { index, stat in
-                    playerRow(index: index + 1, stat: stat, teamAIds: teamAIds)
+                ForEach(Array(playerStats.prefix(8).enumerated()), id: \.element.player.id) { index, stat in
+                    playerRow(rank: index + 1, stat: stat, teamAIds: teamAIds)
                 }
             }
         }
-        .padding(DesignTokens.Spacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .cardStyle()
+        .padding(DesignTokens.Spacing.xl)
+        .cardStyle(elevation: 1)
     }
     
     @ViewBuilder
-    private func playerRow(index: Int, stat: (player: Player, points: Double, record: (Int, Int, Int)), teamAIds: Set<UUID>) -> some View {
+    private func playerRow(rank: Int, stat: (player: Player, points: Double, record: (Int, Int, Int)), teamAIds: Set<UUID>) -> some View {
         let isTeamA = teamAIds.contains(stat.player.id)
+        let teamColor: Color = isTeamA ? .teamUSA : .teamEurope
         
-        HStack {
-            Text("\(index).")
-                .font(.subheadline.weight(.bold))
-                .foregroundColor(.secondary)
-                .frame(width: 24)
+        HStack(spacing: DesignTokens.Spacing.md) {
+            // Rank
+            ZStack {
+                if rank <= 3 {
+                    Circle()
+                        .fill(rank == 1 ? Color.gold : (rank == 2 ? Color.platinum : Color.secondaryGoldDark))
+                        .frame(width: 28, height: 28)
+                }
+                
+                Text("\(rank)")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundColor(rank <= 3 ? .black : .secondary)
+            }
+            .frame(width: 28)
             
+            // Team indicator
             Circle()
-                .fill(isTeamA ? Color.teamUSA : Color.teamEurope)
-                .frame(width: 8, height: 8)
+                .fill(teamColor)
+                .frame(width: 10, height: 10)
             
+            // Name
             Text(stat.player.name)
-                .font(.subheadline)
+                .font(.subheadline.weight(.medium))
+                .lineLimit(1)
             
             Spacer()
             
-            VStack(alignment: .trailing) {
-                Text(String(format: "%.1f pts", stat.points))
-                    .font(.subheadline.weight(.semibold))
+            // Stats
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(String(format: "%.1f", stat.points))
+                    .font(.subheadline.weight(.bold))
+                    .foregroundColor(teamColor)
                 
                 Text("\(stat.record.0)-\(stat.record.1)-\(stat.record.2)")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundColor(.secondary)
             }
         }
         .padding(.vertical, DesignTokens.Spacing.xs)
+    }
+    
+    // MARK: - Share Button
+    
+    @ViewBuilder
+    private func shareButton(_ trip: Trip) -> some View {
+        Button(action: { shareStandings(trip) }) {
+            HStack {
+                Image(systemName: "square.and.arrow.up")
+                Text("Share Standings")
+            }
+            .secondaryButtonStyle()
+        }
+        .pressAnimation()
+    }
+    
+    // MARK: - Helpers
+    
+    private func hasTeamClinched(_ trip: Trip) -> Bool {
+        trip.teamATotalPoints >= trip.pointsToWin || trip.teamBTotalPoints >= trip.pointsToWin
+    }
+    
+    private func shareStandings(_ trip: Trip) {
+        // Generate shareable card
+        let text = """
+        🏆 \(trip.name) Standings
+        
+        \(trip.teamA?.name ?? "Team A"): \(String(format: "%.1f", trip.teamATotalPoints))
+        \(trip.teamB?.name ?? "Team B"): \(String(format: "%.1f", trip.teamBTotalPoints))
+        
+        #RyderCup #GolfTrip
+        """
+        
+        let activityVC = UIActivityViewController(activityItems: [text], applicationActivities: nil)
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            rootVC.present(activityVC, animated: true)
+        }
     }
 }
 
 #Preview {
     StandingsTabView()
         .modelContainer(for: [Trip.self, Player.self, RyderCupSession.self, Match.self], inMemory: true)
+        .preferredColorScheme(.dark)
 }

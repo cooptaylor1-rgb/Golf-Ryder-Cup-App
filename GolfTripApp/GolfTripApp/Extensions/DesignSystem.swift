@@ -13,6 +13,7 @@ enum DesignTokens {
         static let xl: CGFloat = 24
         static let xxl: CGFloat = 32
         static let xxxl: CGFloat = 48
+        static let hero: CGFloat = 64
     }
     
     // MARK: Corner Radius
@@ -22,6 +23,7 @@ enum DesignTokens {
         static let md: CGFloat = 12
         static let lg: CGFloat = 16
         static let xl: CGFloat = 24
+        static let xxl: CGFloat = 32
         static let full: CGFloat = 9999
     }
     
@@ -32,6 +34,15 @@ enum DesignTokens {
         static let normal: Double = 0.3
         static let slow: Double = 0.5
         static let celebration: Double = 1.0
+        static let dramatic: Double = 1.5
+    }
+    
+    // MARK: Button Sizes
+    enum ButtonSize {
+        static let small: CGFloat = 44
+        static let medium: CGFloat = 56
+        static let large: CGFloat = 72
+        static let hero: CGFloat = 88
     }
 }
 
@@ -43,18 +54,25 @@ extension Color {
     static let primaryGreenVariant = Color(hex: "#2E7D32")
     static let secondaryGold = Color(hex: "#FFD54F")
     static let secondaryGoldDark = Color(hex: "#B8860B")
+    static let gold = Color(hex: "#FFD700")
+    static let platinum = Color(hex: "#E5E4E2")
     
-    // Team Colors
+    // Team Colors - Enhanced with gradients support
     static let teamUSA = Color(hex: "#1565C0")
     static let teamUSALight = Color(hex: "#42A5F5")
+    static let teamUSADark = Color(hex: "#0D47A1")
     static let teamEurope = Color(hex: "#C62828")
     static let teamEuropeLight = Color(hex: "#EF5350")
+    static let teamEuropeDark = Color(hex: "#B71C1C")
     
     // Semantic Colors
     static let success = Color(hex: "#66BB6A")
+    static let successLight = Color(hex: "#81C784")
     static let warning = Color(hex: "#FFB74D")
+    static let warningLight = Color(hex: "#FFCC80")
     static let error = Color(hex: "#EF5350")
     static let info = Color(hex: "#64B5F6")
+    static let infoLight = Color(hex: "#90CAF9")
     
     // Golf Colors
     static let fairway = Color(hex: "#4CAF50")
@@ -63,21 +81,34 @@ extension Color {
     static let rough = Color(hex: "#8BC34A")
     static let greenColor = Color(hex: "#2E7D32")
     
-    // Surface Colors (Dark Mode First)
-    static let surfaceBackground = Color(hex: "#121212")
-    static let surface = Color(hex: "#1E1E1E")
-    static let surfaceVariant = Color(hex: "#2C2C2C")
-    static let surfaceElevated = Color(hex: "#333333")
+    // Surface Colors (Dark Mode First) - Enhanced
+    static let surfaceBackground = Color(hex: "#0A0A0A")
+    static let surface = Color(hex: "#141414")
+    static let surfaceVariant = Color(hex: "#1E1E1E")
+    static let surfaceElevated = Color(hex: "#282828")
+    static let surfaceHighlight = Color(hex: "#333333")
+    
+    // Glass morphism
+    static let glassBackground = Color.white.opacity(0.05)
+    static let glassBorder = Color.white.opacity(0.1)
 }
 
 // MARK: - Typography
 
 extension Font {
-    // Score Fonts (Monospace)
-    static let scoreHero = Font.system(size: 72, weight: .bold, design: .monospaced)
-    static let scoreLarge = Font.system(size: 48, weight: .bold, design: .monospaced)
-    static let scoreMedium = Font.system(size: 32, weight: .semibold, design: .monospaced)
-    static let scoreSmall = Font.system(size: 24, weight: .medium, design: .monospaced)
+    // Score Fonts (Monospace) - Enhanced
+    static let scoreHero = Font.system(size: 80, weight: .black, design: .rounded)
+    static let scoreLarge = Font.system(size: 56, weight: .bold, design: .rounded)
+    static let scoreMedium = Font.system(size: 40, weight: .bold, design: .rounded)
+    static let scoreSmall = Font.system(size: 28, weight: .semibold, design: .rounded)
+    
+    // Display Fonts
+    static let displayLarge = Font.system(size: 48, weight: .black, design: .rounded)
+    static let displayMedium = Font.system(size: 36, weight: .bold, design: .rounded)
+    static let displaySmall = Font.system(size: 28, weight: .bold, design: .rounded)
+    
+    // Countdown Fonts
+    static let countdown = Font.system(size: 64, weight: .black, design: .monospaced)
 }
 
 // MARK: - Haptics
@@ -112,6 +143,23 @@ struct HapticManager {
         let generator = UIImpactFeedbackGenerator(style: .heavy)
         generator.impactOccurred()
     }
+    
+    static func victory() {
+        // Triple haptic for celebrations
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.success)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            generator.notificationOccurred(.success)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            generator.notificationOccurred(.success)
+        }
+    }
+    
+    static func countdown() {
+        let generator = UIImpactFeedbackGenerator(style: .rigid)
+        generator.impactOccurred()
+    }
 }
 
 // MARK: - View Modifiers
@@ -127,76 +175,133 @@ extension View {
                     .stroke(Color.white.opacity(0.05), lineWidth: 1)
             )
             .shadow(
-                color: Color.black.opacity(elevation == 0 ? 0 : 0.15 + Double(elevation) * 0.05),
-                radius: CGFloat(elevation * 6),
-                y: CGFloat(elevation * 3)
+                color: Color.black.opacity(elevation == 0 ? 0 : 0.2 + Double(elevation) * 0.08),
+                radius: CGFloat(elevation * 8),
+                y: CGFloat(elevation * 4)
             )
     }
     
-    /// Apply hero card styling with gradient
+    /// Apply hero card styling with premium gradient
     func heroCardStyle() -> some View {
         self
             .background(
-                LinearGradient(
-                    colors: [Color.surface, Color.surfaceVariant.opacity(0.9)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+                ZStack {
+                    LinearGradient(
+                        colors: [Color.surface, Color.surfaceVariant.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    
+                    // Subtle noise texture effect
+                    Color.white.opacity(0.02)
+                }
             )
-            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xxl))
             .overlay(
-                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl)
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xxl)
                     .stroke(
                         LinearGradient(
-                            colors: [Color.white.opacity(0.1), Color.white.opacity(0.02)],
+                            colors: [Color.white.opacity(0.15), Color.white.opacity(0.02)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
                         lineWidth: 1
                     )
             )
-            .shadow(color: Color.black.opacity(0.25), radius: 12, y: 6)
+            .shadow(color: Color.black.opacity(0.35), radius: 20, y: 10)
     }
     
-    /// Apply primary button styling with enhanced depth
+    /// Glass morphism effect
+    func glassStyle() -> some View {
+        self
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl)
+                    .stroke(Color.glassBorder, lineWidth: 1)
+            )
+    }
+    
+    /// Apply primary button styling with glow
     func primaryButtonStyle() -> some View {
         self
-            .font(.headline)
+            .font(.headline.weight(.bold))
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(height: DesignTokens.ButtonSize.medium)
             .background(
-                LinearGradient(
-                    colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                ZStack {
+                    LinearGradient(
+                        colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    
+                    // Inner highlight
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.2), Color.clear],
+                        startPoint: .top,
+                        endPoint: .center
+                    )
+                }
             )
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md))
-            .shadow(color: Color.accentColor.opacity(0.3), radius: 8, y: 4)
+            .shadow(color: Color.accentColor.opacity(0.4), radius: 12, y: 6)
     }
     
     /// Apply secondary button styling
     func secondaryButtonStyle() -> some View {
         self
-            .font(.headline)
+            .font(.headline.weight(.semibold))
             .foregroundColor(.accentColor)
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(height: DesignTokens.ButtonSize.medium)
             .background(Color.accentColor.opacity(0.1))
             .overlay(
                 RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
-                    .stroke(Color.accentColor, lineWidth: 1.5)
+                    .stroke(Color.accentColor.opacity(0.5), lineWidth: 1.5)
             )
             .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md))
+    }
+    
+    /// Apply hero scoring button styling with glow effect
+    func heroScoringButtonStyle(teamColor: Color) -> some View {
+        self
+            .font(.title2.weight(.bold))
+            .foregroundColor(.white)
+            .frame(height: DesignTokens.ButtonSize.hero)
+            .frame(maxWidth: .infinity)
+            .background(
+                ZStack {
+                    // Base gradient
+                    LinearGradient(
+                        colors: [teamColor, teamColor.opacity(0.7)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    
+                    // Inner glow
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.25), Color.clear],
+                        startPoint: .top,
+                        endPoint: .center
+                    )
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
+            .shadow(color: teamColor.opacity(0.5), radius: 16, y: 8)
     }
     
     /// Apply scoring button styling with enhanced feedback
     func scoringButtonStyle(teamColor: Color) -> some View {
         self
-            .font(.headline)
+            .font(.headline.weight(.bold))
             .foregroundColor(.white)
-            .frame(height: 72)
+            .frame(height: DesignTokens.ButtonSize.large)
             .frame(maxWidth: .infinity)
             .background(
                 LinearGradient(
@@ -219,6 +324,14 @@ extension View {
             .background(color.opacity(0.15))
             .clipShape(Capsule())
     }
+    
+    /// Glow effect modifier
+    func glow(color: Color, radius: CGFloat = 10) -> some View {
+        self
+            .shadow(color: color.opacity(0.6), radius: radius / 2)
+            .shadow(color: color.opacity(0.4), radius: radius)
+            .shadow(color: color.opacity(0.2), radius: radius * 1.5)
+    }
 }
 
 // MARK: - Custom Animations
@@ -228,6 +341,9 @@ extension SwiftUI.Animation {
     static let scoreChange = SwiftUI.Animation.spring(response: 0.3, dampingFraction: 0.7)
     static let cardAppear = SwiftUI.Animation.easeOut(duration: 0.3)
     static let celebration = SwiftUI.Animation.easeInOut(duration: 1.0)
+    static let bounce = SwiftUI.Animation.spring(response: 0.4, dampingFraction: 0.5, blendDuration: 0.2)
+    static let smooth = SwiftUI.Animation.easeInOut(duration: 0.4)
+    static let snappy = SwiftUI.Animation.spring(response: 0.25, dampingFraction: 0.8)
 }
 
 // MARK: - Gradient Backgrounds
@@ -240,21 +356,33 @@ extension LinearGradient {
     )
     
     static let teamUSAGradient = LinearGradient(
-        colors: [Color.teamUSA, Color.teamUSALight.opacity(0.8)],
+        colors: [Color.teamUSALight, Color.teamUSA, Color.teamUSADark],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
     
     static let teamEuropeGradient = LinearGradient(
-        colors: [Color.teamEurope, Color.teamEuropeLight.opacity(0.8)],
+        colors: [Color.teamEuropeLight, Color.teamEurope, Color.teamEuropeDark],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
     
     static let goldGradient = LinearGradient(
-        colors: [Color.secondaryGold, Color.secondaryGoldDark],
+        colors: [Color.gold, Color.secondaryGold, Color.secondaryGoldDark],
         startPoint: .top,
         endPoint: .bottom
+    )
+    
+    static let premiumGradient = LinearGradient(
+        colors: [Color.surfaceHighlight, Color.surface, Color.surfaceBackground],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+    
+    static let victoryGradient = LinearGradient(
+        colors: [Color.gold.opacity(0.3), Color.clear, Color.gold.opacity(0.2)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
     )
 }
 
@@ -312,10 +440,11 @@ struct ConfettiView: View {
     
     var body: some View {
         ZStack {
-            ForEach(0..<30, id: \.self) { index in
+            ForEach(0..<50, id: \.self) { index in
                 ConfettiPiece(
-                    color: index % 2 == 0 ? teamColor : .secondaryGold,
-                    delay: Double(index) * 0.05
+                    color: index % 3 == 0 ? teamColor : (index % 3 == 1 ? .gold : .white),
+                    delay: Double(index) * 0.03,
+                    index: index
                 )
             }
         }
@@ -326,27 +455,151 @@ struct ConfettiView: View {
 struct ConfettiPiece: View {
     let color: Color
     let delay: Double
+    let index: Int
     
     @State private var animate = false
     
+    private var randomX: CGFloat {
+        CGFloat.random(in: -200...200)
+    }
+    
+    private var randomY: CGFloat {
+        CGFloat.random(in: -400...400)
+    }
+    
+    private var randomRotation: Double {
+        Double.random(in: 0...720)
+    }
+    
+    private var randomSize: CGFloat {
+        CGFloat.random(in: 6...14)
+    }
+    
     var body: some View {
-        Circle()
+        RoundedRectangle(cornerRadius: 2)
             .fill(color)
-            .frame(width: CGFloat.random(in: 4...10), height: CGFloat.random(in: 4...10))
+            .frame(width: randomSize, height: randomSize * 0.6)
             .offset(
-                x: animate ? CGFloat.random(in: -150...150) : 0,
-                y: animate ? CGFloat.random(in: -300...300) : 0
+                x: animate ? randomX : 0,
+                y: animate ? randomY : -100
             )
+            .rotationEffect(.degrees(animate ? randomRotation : 0))
             .opacity(animate ? 0 : 1)
             .animation(
-                .easeOut(duration: 2.0).delay(delay),
+                .easeOut(duration: 2.5).delay(delay),
                 value: animate
             )
             .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     animate = true
                 }
             }
+    }
+}
+
+// MARK: - Shimmer Effect
+
+struct ShimmerEffect: ViewModifier {
+    @State private var phase: CGFloat = 0
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geometry in
+                    LinearGradient(
+                        colors: [
+                            Color.clear,
+                            Color.white.opacity(0.3),
+                            Color.clear
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: geometry.size.width * 2)
+                    .offset(x: -geometry.size.width + phase * geometry.size.width * 2)
+                    .animation(
+                        .linear(duration: 1.5).repeatForever(autoreverses: false),
+                        value: phase
+                    )
+                }
+            )
+            .clipped()
+            .onAppear { phase = 1 }
+    }
+}
+
+extension View {
+    func shimmer() -> some View {
+        modifier(ShimmerEffect())
+    }
+}
+
+// MARK: - Trophy Animation
+
+struct TrophyAnimation: View {
+    let teamColor: Color
+    let teamName: String
+    @State private var scale: CGFloat = 0.5
+    @State private var opacity: Double = 0
+    @State private var rotation: Double = -10
+    @State private var showGlow = false
+    
+    var body: some View {
+        VStack(spacing: DesignTokens.Spacing.lg) {
+            ZStack {
+                // Glow effect
+                if showGlow {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [teamColor.opacity(0.6), Color.clear],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 100
+                            )
+                        )
+                        .frame(width: 200, height: 200)
+                        .blur(radius: 30)
+                }
+                
+                // Trophy
+                Image(systemName: "trophy.fill")
+                    .font(.system(size: 100))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.gold, .secondaryGold, .secondaryGoldDark],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .shadow(color: .gold.opacity(0.5), radius: 20)
+            }
+            .scaleEffect(scale)
+            .rotationEffect(.degrees(rotation))
+            
+            Text("\(teamName) WINS!")
+                .font(.displayMedium)
+                .foregroundColor(teamColor)
+                .opacity(opacity)
+            
+            Text("🎉 CHAMPIONS 🎉")
+                .font(.title3.weight(.bold))
+                .foregroundColor(.gold)
+                .opacity(opacity)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.5)) {
+                scale = 1.0
+                rotation = 0
+            }
+            withAnimation(.easeIn(duration: 0.5).delay(0.3)) {
+                opacity = 1
+            }
+            withAnimation(.easeIn(duration: 0.3).delay(0.5)) {
+                showGlow = true
+            }
+            HapticManager.victory()
+        }
     }
 }
 
@@ -393,41 +646,61 @@ struct BigScoreDisplay: View {
     let teamAColor: Color
     let teamBColor: Color
     var showCelebration: Bool = false
+    var large: Bool = false
     
     @State private var animatedTeamAScore: Double = 0
     @State private var animatedTeamBScore: Double = 0
     @State private var showConfetti = false
+    @State private var glowPulse = false
     
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
+        VStack(spacing: DesignTokens.Spacing.lg) {
             ZStack {
-                HStack(spacing: DesignTokens.Spacing.xl) {
-                    VStack(spacing: DesignTokens.Spacing.xs) {
+                // Background glow for winning team
+                if showCelebration {
+                    let winningColor = teamAScore > teamBScore ? teamAColor : teamBColor
+                    Circle()
+                        .fill(winningColor.opacity(glowPulse ? 0.3 : 0.1))
+                        .frame(width: 300, height: 300)
+                        .blur(radius: 60)
+                        .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: glowPulse)
+                }
+                
+                HStack(spacing: large ? DesignTokens.Spacing.xxl : DesignTokens.Spacing.xl) {
+                    // Team A
+                    VStack(spacing: DesignTokens.Spacing.sm) {
                         Text(teamAName)
-                            .font(.caption.weight(.bold))
-                            .foregroundColor(teamAColor.opacity(0.8))
+                            .font(.caption.weight(.black))
+                            .foregroundColor(teamAColor.opacity(0.9))
                             .textCase(.uppercase)
+                            .tracking(1)
+                        
                         Text(formatScore(animatedTeamAScore))
-                            .font(.scoreHero)
+                            .font(large ? .scoreHero : .scoreLarge)
                             .foregroundColor(teamAColor)
                             .contentTransition(.numericText())
-                    }
-                    
-                    VStack {
-                        Text("—")
-                            .font(.title2)
-                            .foregroundColor(.secondary.opacity(0.6))
+                            .glow(color: teamAColor, radius: teamAScore > teamBScore ? 15 : 0)
                     }
                     
                     VStack(spacing: DesignTokens.Spacing.xs) {
+                        Text("—")
+                            .font(.title)
+                            .foregroundColor(.secondary.opacity(0.4))
+                    }
+                    
+                    // Team B
+                    VStack(spacing: DesignTokens.Spacing.sm) {
                         Text(teamBName)
-                            .font(.caption.weight(.bold))
-                            .foregroundColor(teamBColor.opacity(0.8))
+                            .font(.caption.weight(.black))
+                            .foregroundColor(teamBColor.opacity(0.9))
                             .textCase(.uppercase)
+                            .tracking(1)
+                        
                         Text(formatScore(animatedTeamBScore))
-                            .font(.scoreHero)
+                            .font(large ? .scoreHero : .scoreLarge)
                             .foregroundColor(teamBColor)
                             .contentTransition(.numericText())
+                            .glow(color: teamBColor, radius: teamBScore > teamAScore ? 15 : 0)
                     }
                 }
                 
@@ -436,32 +709,56 @@ struct BigScoreDisplay: View {
                 }
             }
             
-            // Enhanced progress bar with gradient
+            // Enhanced progress bar
             GeometryReader { geometry in
                 let total = max(teamAScore + teamBScore, 1)
                 let teamAWidth = (teamAScore / total) * geometry.size.width
                 
-                HStack(spacing: 2) {
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(LinearGradient(colors: [teamAColor, teamAColor.opacity(0.7)], startPoint: .leading, endPoint: .trailing))
-                        .frame(width: max(teamAWidth, 4))
+                ZStack(alignment: .leading) {
+                    // Track
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.surfaceVariant)
+                        .frame(height: 12)
                     
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(LinearGradient(colors: [teamBColor.opacity(0.7), teamBColor], startPoint: .leading, endPoint: .trailing))
+                    // Team A progress
+                    HStack(spacing: 2) {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                LinearGradient(
+                                    colors: [teamAColor, teamAColor.opacity(0.7)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: max(teamAWidth - 1, 4), height: 12)
+                        
+                        Spacer(minLength: 0)
+                        
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(
+                                LinearGradient(
+                                    colors: [teamBColor.opacity(0.7), teamBColor],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(height: 12)
+                    }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
             }
-            .frame(height: 10)
-            .clipShape(RoundedRectangle(cornerRadius: 5))
-            .shadow(color: .black.opacity(0.2), radius: 2, y: 1)
+            .frame(height: 12)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.8)) {
+            withAnimation(.easeOut(duration: 1.0)) {
                 animatedTeamAScore = teamAScore
                 animatedTeamBScore = teamBScore
             }
             if showCelebration {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     showConfetti = true
+                    glowPulse = true
                 }
             }
         }
@@ -482,6 +779,214 @@ struct BigScoreDisplay: View {
             return String(format: "%.0f", score)
         }
         return String(format: "%.1f", score)
+    }
+}
+
+// MARK: - Magic Number Display
+
+struct MagicNumberDisplay: View {
+    let teamName: String
+    let pointsNeeded: Double
+    let teamColor: Color
+    
+    @State private var pulse = false
+    
+    var body: some View {
+        VStack(spacing: DesignTokens.Spacing.sm) {
+            Text("MAGIC NUMBER")
+                .font(.caption2.weight(.black))
+                .foregroundColor(.secondary)
+                .tracking(2)
+            
+            Text(String(format: "%.1f", pointsNeeded))
+                .font(.scoreLarge)
+                .foregroundColor(teamColor)
+                .scaleEffect(pulse ? 1.05 : 1.0)
+                .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: pulse)
+            
+            Text("\(teamName) needs to win")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(DesignTokens.Spacing.lg)
+        .glassStyle()
+        .onAppear { pulse = true }
+    }
+}
+
+// MARK: - Countdown Timer
+
+struct CountdownTimer: View {
+    let targetDate: Date
+    let title: String
+    
+    @State private var timeRemaining: (hours: Int, minutes: Int, seconds: Int) = (0, 0, 0)
+    @State private var timer: Timer?
+    
+    var body: some View {
+        VStack(spacing: DesignTokens.Spacing.sm) {
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundColor(.secondary)
+            
+            HStack(spacing: DesignTokens.Spacing.md) {
+                timeUnit(value: timeRemaining.hours, label: "HR")
+                Text(":")
+                    .font(.title2.weight(.bold))
+                    .foregroundColor(.secondary)
+                timeUnit(value: timeRemaining.minutes, label: "MIN")
+                Text(":")
+                    .font(.title2.weight(.bold))
+                    .foregroundColor(.secondary)
+                timeUnit(value: timeRemaining.seconds, label: "SEC")
+            }
+        }
+        .onAppear { startTimer() }
+        .onDisappear { timer?.invalidate() }
+    }
+    
+    @ViewBuilder
+    private func timeUnit(value: Int, label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(String(format: "%02d", value))
+                .font(.countdown)
+                .foregroundColor(.primary)
+                .contentTransition(.numericText())
+            
+            Text(label)
+                .font(.caption2.weight(.bold))
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private func startTimer() {
+        updateTime()
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            updateTime()
+        }
+    }
+    
+    private func updateTime() {
+        let diff = max(0, targetDate.timeIntervalSince(Date()))
+        let hours = Int(diff) / 3600
+        let minutes = (Int(diff) % 3600) / 60
+        let seconds = Int(diff) % 60
+        
+        withAnimation(.snappy) {
+            timeRemaining = (hours, minutes, seconds)
+        }
+    }
+}
+
+// MARK: - Match Commentary
+
+struct MatchCommentary: View {
+    let commentary: String
+    let teamColor: Color?
+    
+    @State private var opacity: Double = 0
+    @State private var offset: CGFloat = 20
+    
+    var body: some View {
+        HStack(spacing: DesignTokens.Spacing.sm) {
+            if let color = teamColor {
+                Circle()
+                    .fill(color)
+                    .frame(width: 8, height: 8)
+            }
+            
+            Text(commentary)
+                .font(.subheadline.weight(.medium))
+                .foregroundColor(.primary)
+        }
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
+        .background(Color.surfaceVariant.opacity(0.8))
+        .clipShape(Capsule())
+        .opacity(opacity)
+        .offset(y: offset)
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                opacity = 1
+                offset = 0
+            }
+        }
+    }
+}
+
+// MARK: - Shareable Score Card
+
+struct ShareableScoreCard: View {
+    let teamAName: String
+    let teamBName: String
+    let teamAScore: Double
+    let teamBScore: Double
+    let tripName: String
+    let sessionName: String?
+    
+    var body: some View {
+        VStack(spacing: DesignTokens.Spacing.xl) {
+            // Header
+            VStack(spacing: DesignTokens.Spacing.xs) {
+                Text(tripName.uppercased())
+                    .font(.caption.weight(.black))
+                    .foregroundColor(.gold)
+                    .tracking(2)
+                
+                if let session = sessionName {
+                    Text(session)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            // Score
+            HStack(spacing: DesignTokens.Spacing.xxl) {
+                VStack {
+                    Text(teamAName)
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(.teamUSA)
+                    Text(String(format: "%.1f", teamAScore))
+                        .font(.scoreLarge)
+                        .foregroundColor(.teamUSA)
+                }
+                
+                Text("vs")
+                    .font(.headline)
+                    .foregroundColor(.secondary)
+                
+                VStack {
+                    Text(teamBName)
+                        .font(.subheadline.weight(.bold))
+                        .foregroundColor(.teamEurope)
+                    Text(String(format: "%.1f", teamBScore))
+                        .font(.scoreLarge)
+                        .foregroundColor(.teamEurope)
+                }
+            }
+            
+            // Footer
+            HStack {
+                Image(systemName: "trophy.fill")
+                    .foregroundColor(.gold)
+                Text("Ryder Cup")
+                    .font(.caption.weight(.bold))
+            }
+            .foregroundColor(.secondary)
+        }
+        .padding(DesignTokens.Spacing.xxl)
+        .background(
+            LinearGradient(
+                colors: [Color.surface, Color.surfaceBackground],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl)
+                .stroke(LinearGradient.goldGradient, lineWidth: 2)
+        )
     }
 }
 
@@ -553,26 +1058,46 @@ struct EmptyStateView: View {
         self.action = action
     }
     
+    @State private var iconScale: CGFloat = 0.8
+    @State private var iconOpacity: Double = 0
+    
     var body: some View {
-        VStack(spacing: DesignTokens.Spacing.lg) {
-            // Enhanced icon with background
+        VStack(spacing: DesignTokens.Spacing.xl) {
+            // Enhanced icon with animated background
             ZStack {
+                // Outer ring
                 Circle()
-                    .fill(Color.surfaceVariant)
-                    .frame(width: 100, height: 100)
+                    .stroke(Color.secondary.opacity(0.1), lineWidth: 2)
+                    .frame(width: 120, height: 120)
                 
+                // Inner gradient circle
                 Circle()
-                    .stroke(Color.secondary.opacity(0.2), lineWidth: 2)
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.surfaceVariant, Color.surfaceBackground],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 60
+                        )
+                    )
                     .frame(width: 100, height: 100)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 40))
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 44))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.secondary, Color.secondary.opacity(0.6)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
             }
+            .scaleEffect(iconScale)
+            .opacity(iconOpacity)
             
-            VStack(spacing: DesignTokens.Spacing.sm) {
+            VStack(spacing: DesignTokens.Spacing.md) {
                 Text(title)
-                    .font(.title3.weight(.bold))
+                    .font(.title2.weight(.bold))
                 
                 Text(description)
                     .font(.body)
@@ -580,38 +1105,49 @@ struct EmptyStateView: View {
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, DesignTokens.Spacing.xl)
+            .padding(.horizontal, DesignTokens.Spacing.xxl)
             
             if let actionTitle = actionTitle, let action = action {
                 Button(action: {
                     HapticManager.buttonTap()
                     action()
                 }) {
-                    Text(actionTitle)
-                        .primaryButtonStyle()
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                        Text(actionTitle)
+                    }
+                    .primaryButtonStyle()
                 }
                 .pressAnimation()
                 .padding(.top, DesignTokens.Spacing.md)
-                .padding(.horizontal, DesignTokens.Spacing.xl)
+                .padding(.horizontal, DesignTokens.Spacing.xxl)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(DesignTokens.Spacing.xl)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.1)) {
+                iconScale = 1.0
+                iconOpacity = 1
+            }
+        }
     }
 }
 
-/// Avatar view
+/// Avatar view with enhanced styling
 struct AvatarView: View {
     let name: String
     let imageData: Data?
     let size: CGFloat
     let teamColor: Color?
+    var showGlow: Bool = false
     
-    init(name: String, imageData: Data? = nil, size: CGFloat = 32, teamColor: Color? = nil) {
+    init(name: String, imageData: Data? = nil, size: CGFloat = 32, teamColor: Color? = nil, showGlow: Bool = false) {
         self.name = name
         self.imageData = imageData
         self.size = size
         self.teamColor = teamColor
+        self.showGlow = showGlow
     }
     
     var body: some View {
@@ -623,19 +1159,33 @@ struct AvatarView: View {
                     .frame(width: size, height: size)
                     .clipShape(Circle())
             } else {
+                // Gradient background based on name
                 Circle()
-                    .fill(Color.surfaceVariant)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.surfaceElevated, Color.surfaceVariant],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .frame(width: size, height: size)
                 
                 Text(initials)
-                    .font(.system(size: size * 0.4, weight: .semibold))
-                    .foregroundColor(.primary)
+                    .font(.system(size: size * 0.4, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary.opacity(0.8))
             }
             
             if let teamColor = teamColor {
                 Circle()
-                    .stroke(teamColor, lineWidth: 2)
+                    .stroke(teamColor, lineWidth: size > 40 ? 3 : 2)
                     .frame(width: size, height: size)
+                
+                if showGlow {
+                    Circle()
+                        .stroke(teamColor.opacity(0.4), lineWidth: 4)
+                        .frame(width: size + 6, height: size + 6)
+                        .blur(radius: 4)
+                }
             }
         }
     }
@@ -648,6 +1198,61 @@ struct AvatarView: View {
             return String(parts[0].prefix(2))
         }
         return "?"
+    }
+}
+
+// MARK: - Player Tag
+
+struct PlayerTag: View {
+    let text: String
+    let color: Color
+    let icon: String?
+    
+    init(_ text: String, color: Color = .secondary, icon: String? = nil) {
+        self.text = text
+        self.color = color
+        self.icon = icon
+    }
+    
+    var body: some View {
+        HStack(spacing: DesignTokens.Spacing.xs) {
+            if let icon = icon {
+                Image(systemName: icon)
+                    .font(.caption2)
+            }
+            Text(text)
+                .font(.caption2.weight(.semibold))
+        }
+        .foregroundColor(color)
+        .padding(.horizontal, DesignTokens.Spacing.sm)
+        .padding(.vertical, DesignTokens.Spacing.xxs)
+        .background(color.opacity(0.15))
+        .clipShape(Capsule())
+    }
+}
+
+// MARK: - Status Indicator
+
+struct LiveStatusIndicator: View {
+    let text: String
+    let color: Color
+    
+    @State private var pulse = false
+    
+    var body: some View {
+        HStack(spacing: DesignTokens.Spacing.xs) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+                .scaleEffect(pulse ? 1.2 : 1.0)
+                .opacity(pulse ? 0.7 : 1.0)
+                .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulse)
+            
+            Text(text)
+                .font(.caption.weight(.semibold))
+                .foregroundColor(color)
+        }
+        .onAppear { pulse = true }
     }
 }
 
