@@ -79,6 +79,14 @@ struct HomeTabView: View {
             standingsHeroCard(trip)
         }
         
+        // Magic Number Card (if not clinched)
+        if trip.teamA != nil && trip.teamB != nil {
+            let hasClinched = trip.teamATotalPoints >= trip.pointsToWin || trip.teamBTotalPoints >= trip.pointsToWin
+            if !hasClinched {
+                magicNumberCard(trip)
+            }
+        }
+        
         // Next Up Card
         if let nextMatch = nextUpMatch(for: trip) {
             nextUpCard(nextMatch, trip: trip)
@@ -156,6 +164,81 @@ struct HomeTabView: View {
         .heroCardStyle()
     }
     
+    // MARK: - Magic Number Card
+    
+    @ViewBuilder
+    private func magicNumberCard(_ trip: Trip) -> some View {
+        let teamALeading = trip.teamATotalPoints > trip.teamBTotalPoints
+        let leadingPoints = max(trip.teamATotalPoints, trip.teamBTotalPoints)
+        let pointsNeeded = trip.pointsToWin - leadingPoints
+        let leadingTeam = teamALeading ? trip.teamA : trip.teamB
+        let leadingColor = teamALeading ? Color.teamUSA : Color.teamEurope
+        
+        HStack(spacing: DesignTokens.Spacing.xl) {
+            // Magic Number Display
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
+                Text("MAGIC NUMBER")
+                    .font(.caption.weight(.black))
+                    .foregroundColor(.secondary)
+                    .tracking(1)
+                
+                Text("\(String(format: "%.1f", pointsNeeded))")
+                    .font(.system(size: 56, weight: .black, design: .rounded))
+                    .foregroundStyle(LinearGradient.goldGradient)
+                    .contentTransition(.numericText())
+            }
+            
+            Spacer()
+            
+            // Team Info
+            VStack(alignment: .trailing, spacing: DesignTokens.Spacing.xs) {
+                Text(leadingTeam?.name ?? "Team")
+                    .font(.title3.weight(.bold))
+                    .foregroundColor(leadingColor)
+                
+                Text("needs to clinch")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                // Progress indicator
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.secondary.opacity(0.2))
+                            .frame(height: 8)
+                        
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(leadingColor)
+                            .frame(
+                                width: geometry.size.width * min(1.0, leadingPoints / trip.pointsToWin),
+                                height: 8
+                            )
+                    }
+                }
+                .frame(height: 8)
+            }
+        }
+        .padding(DesignTokens.Spacing.xl)
+        .background(
+            ZStack {
+                Color.surface
+                
+                // Subtle gold glow
+                LinearGradient(
+                    colors: [Color.secondaryGold.opacity(0.1), Color.clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl))
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.xl)
+                .stroke(Color.secondaryGold.opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: Color.secondaryGold.opacity(0.2), radius: 12, y: 6)
+    }
+    
     // MARK: - Weather Placeholder
     
     private var weatherPlaceholder: some View {
@@ -218,7 +301,7 @@ struct HomeTabView: View {
     
     @ViewBuilder
     private func nextUpCard(_ match: Match, trip: Trip) -> some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.md) {
+        VStack(alignment: .leading, spacing: DesignTokens.Spacing.lg) {
             HStack {
                 HStack(spacing: DesignTokens.Spacing.xs) {
                     Circle()
@@ -229,6 +312,7 @@ struct HomeTabView: View {
                     Text("NEXT UP")
                         .font(.caption.weight(.black))
                         .foregroundColor(.success)
+                        .tracking(1)
                 }
                 
                 Spacer()
@@ -238,6 +322,12 @@ struct HomeTabView: View {
                         .font(.subheadline.weight(.bold))
                         .foregroundColor(.primary)
                 }
+            }
+            
+            // Countdown Timer (if match has start time)
+            if let startTime = match.startTime {
+                CountdownTimer(targetDate: startTime)
+                    .padding(.vertical, DesignTokens.Spacing.sm)
             }
             
             Divider()

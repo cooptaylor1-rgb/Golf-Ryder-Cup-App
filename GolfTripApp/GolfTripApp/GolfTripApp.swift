@@ -27,7 +27,8 @@ struct GolfTripApp: App {
                 Match.self,
                 HoleResult.self,
                 BanterPost.self,
-                TripPhoto.self
+                TripPhoto.self,
+                AuditLog.self
             ])
             
             let modelConfiguration = ModelConfiguration(
