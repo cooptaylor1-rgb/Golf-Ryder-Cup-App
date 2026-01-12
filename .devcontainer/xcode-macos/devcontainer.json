@@ -1,0 +1,49 @@
+{
+  "name": "Golf Ryder Cup App - Xcode (macOS)",
+  "image": "mcr.microsoft.com/devcontainers/base:sonoma",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "sswg.swift-lang",
+        "vknabel.vscode-apple-swift-format",
+        "streetsidesoftware.code-spell-checker",
+        "github.copilot",
+        "github.copilot-chat",
+        "eamodio.gitlens",
+        "gruntfuggly.todo-tree",
+        "nickmillerdev.swift-test-runner"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "[swift]": {
+          "editor.defaultFormatter": "vknabel.vscode-apple-swift-format"
+        }
+      }
+    }
+  },
+
+  "postCreateCommand": "xcode-select --print-path && swift --version && echo '✅ Xcode dev container ready!'",
+
+  "remoteUser": "vscode",
+
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "64gb"
+  },
+
+  "runArgs": [
+    "--platform=darwin/arm64"
+  ]
+}
