@@ -1,7 +1,7 @@
 {
-  "name": "Golf Ryder Cup App - Xcode Dev Container",
-  "image": "mcr.microsoft.com/devcontainers/swift:1-focal",
-  
+  "name": "Golf Ryder Cup App - Swift Dev Container",
+  "image": "swift:6.0-jammy",
+
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/git:1": {
@@ -13,35 +13,30 @@
     "vscode": {
       "extensions": [
         "sswg.swift-lang",
-        "vknabel.vscode-apple-swift-format",
         "streetsidesoftware.code-spell-checker",
         "github.copilot",
         "github.copilot-chat",
         "eamodio.gitlens",
-        "gruntfuggly.todo-tree"
+        "gruntfuggly.todo-tree",
+        "redhat.vscode-yaml",
+        "davidanson.vscode-markdownlint"
       ],
       "settings": {
         "editor.formatOnSave": true,
         "editor.tabSize": 4,
         "files.insertFinalNewline": true,
         "files.trimTrailingWhitespace": true,
-        "swift.path": "/usr/bin/swift",
-        "[swift]": {
-          "editor.defaultFormatter": "vknabel.vscode-apple-swift-format"
+        "files.associations": {
+          "*.swift": "swift"
         }
       }
     }
   },
 
-  "postCreateCommand": "swift --version && echo '✅ Swift dev container ready!'",
+  "postCreateCommand": "swift --version && echo '✅ Swift dev container ready! SPM builds work here. Full iOS builds require GitHub Actions CI (macOS).'",
 
-  "remoteUser": "vscode",
-
-  "mounts": [],
-
-  "forwardPorts": [],
-
-  "portsAttributes": {},
+  "containerUser": "root",
+  "remoteUser": "root",
 
   "hostRequirements": {
     "cpus": 4,
