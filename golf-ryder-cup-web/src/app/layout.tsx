@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { PWAProvider } from '@/components/PWAProvider';
+import { PWABanners } from '@/components/PWABanners';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -47,7 +49,10 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+        <PWAProvider>
+          {children}
+          <PWABanners />
+        </PWAProvider>
       </body>
     </html>
   );

@@ -1,0 +1,46 @@
+{
+    "name": "Golf Ryder Cup",
+    "short_name": "Ryder Cup",
+    "description": "Live scoring app for Ryder Cup style golf tournaments. Track matches, standings, and player records in real-time.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#036635",
+    "theme_color": "#036635",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "sports",
+        "utilities"
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshots/score.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Live match scoring"
+        },
+        {
+            "src": "/screenshots/standings.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Tournament standings"
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false
+}
