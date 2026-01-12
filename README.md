@@ -61,6 +61,37 @@ The app uses a 6-tab layout optimized for "in the moment" use:
 
 ## Features
 
+## 🎖️ Captain's Toolkit (NEW in v1.1)
+
+### Captain Mode
+- **Lock/Unlock Sessions** - Prevent accidental changes during live scoring with confirmation dialogs
+- **Audit Trail** - Track all critical actions (locks, pairings, score edits) with timestamps
+- **Data Validation** - Prevent duplicate players and invalid pairings before matches start
+- **Visual Lock Badges** - Orange glow indicates locked state, clear unlocked indicator
+- **Hold-to-Unlock** - Confirmation required to unlock active sessions
+
+### Lineup Builder
+- **Auto-Fill Suggestions** - Smart algorithm generates optimal pairings in under 100ms
+- **Fairness Score** - 0-100 rating with detailed explanations (handicap balance, repeated pairings)
+- **Pairing History** - Track partnerships to minimize repeated matchups across sessions
+- **Duplicate Detection** - Automatic warnings when players appear in multiple matches
+- **Stroke Preview** - See expected stroke differences before finalizing pairings
+
+### Command Center (Home Tab)
+- **Countdown Timer** - Large 64pt countdown to next match with color-coded urgency
+- **Magic Number** - Points needed to clinch with visual progress indicator
+- **Next Up Card** - Prominent display of upcoming match with team details
+- **Captain Quick Actions** - One-tap access to lineup builder and session management
+- **Live Session Status** - See locked/unlocked state at a glance
+
+### Share & Notifications
+- **Shareable Standings Cards** - High-res (3x) images perfect for group chats
+- **Session Result Cards** - Branded cards for sharing match results
+- **Tee Time Notifications** - Local reminders 45min and 10min before start
+- **One-Tap Export** - ShareLink integration for instant sharing
+
+## Features
+
 ### Player Profiles
 - Create/edit/delete players with full profile information
 - USGA Handicap Index (decimal precision)
