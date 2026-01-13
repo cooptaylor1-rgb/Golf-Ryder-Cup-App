@@ -157,8 +157,8 @@ export default function MatchScoringPage() {
   const isMatchComplete = matchState.isClosedOut || matchState.holesRemaining === 0;
 
   return (
-    <div 
-      className="min-h-screen" 
+    <div
+      className="min-h-screen"
       style={{ background: 'var(--canvas)' }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -173,13 +173,13 @@ export default function MatchScoringPage() {
             </button>
             <span className="type-overline">Match {activeMatch.matchOrder}</span>
           </div>
-          
+
           {/* Undo - Always visible in header */}
           <button
             onClick={handleUndo}
             disabled={undoStack.length === 0}
             className="flex items-center gap-1 type-meta"
-            style={{ 
+            style={{
               color: undoStack.length > 0 ? 'var(--masters)' : 'var(--ink-tertiary)',
               opacity: undoStack.length === 0 ? 0.5 : 1,
             }}
@@ -208,11 +208,11 @@ export default function MatchScoringPage() {
 
             {/* Score */}
             <div className="text-center">
-              <p 
+              <p
                 className="score-hero"
                 style={{
                   color: matchState.currentScore > 0 ? 'var(--team-usa)' :
-                         matchState.currentScore < 0 ? 'var(--team-europe)' : 'var(--ink-tertiary)'
+                    matchState.currentScore < 0 ? 'var(--team-europe)' : 'var(--ink-tertiary)'
                 }}
               >
                 {matchState.displayScore}
@@ -413,16 +413,16 @@ export default function MatchScoringPage() {
             >
               <Check size={24} style={{ color: 'var(--masters)' }} />
             </div>
-            
+
             <p className="type-headline" style={{ marginBottom: 'var(--space-2)' }}>
               {matchState.currentScore > 0 ? teamAName :
-               matchState.currentScore < 0 ? teamBName : 'Match Halved'}
+                matchState.currentScore < 0 ? teamBName : 'Match Halved'}
             </p>
-            
+
             <p className="score-large" style={{ color: 'var(--masters)', marginBottom: 'var(--space-1)' }}>
               {matchState.displayScore}
             </p>
-            
+
             {matchState.currentScore !== 0 && (
               <p className="type-meta">wins</p>
             )}

@@ -3,20 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTripStore, useUIStore } from '@/lib/stores';
-import { AppShellNew } from '@/components/layout';
-import {
-    Card,
-    SectionHeader,
-    Button,
-    IconButton,
-    Modal,
-    ConfirmDialog,
-    Input,
-    NoPlayersEmptyNew,
-} from '@/components/ui';
-import { cn, formatPlayerName, formatHandicapIndex } from '@/lib/utils';
+import { formatPlayerName } from '@/lib/utils';
 import type { Player } from '@/lib/types/models';
 import { Plus, Edit2, Trash2, UserPlus, Users, X, ChevronLeft } from 'lucide-react';
+
+/**
+ * PLAYERS PAGE - Editorial Design
+ *
+ * Player management with clean typography and minimal chrome
+ */
 
 export default function PlayersPage() {
     const router = useRouter();
@@ -34,34 +29,24 @@ export default function PlayersPage() {
         teamId: '',
     });
 
-    // Redirect if no trip
     useEffect(() => {
         if (!currentTrip) {
             router.push('/');
         }
     }, [currentTrip, router]);
 
-    // Get player's team
     const getPlayerTeam = (playerId: string) => {
         const membership = teamMembers.find(tm => tm.playerId === playerId);
         if (!membership) return null;
         return teams.find(t => t.id === membership.teamId);
     };
 
-    // Reset form
     const resetForm = () => {
-        setFormData({
-            firstName: '',
-            lastName: '',
-            handicapIndex: '',
-            email: '',
-            teamId: '',
-        });
+        setFormData({ firstName: '', lastName: '', handicapIndex: '', email: '', teamId: '' });
         setEditingPlayer(null);
         setShowAddModal(false);
     };
 
-    // Open edit modal
     const handleEdit = (player: Player) => {
         const team = getPlayerTeam(player.id);
         setFormData({
@@ -75,7 +60,6 @@ export default function PlayersPage() {
         setShowAddModal(true);
     };
 
-    // Save player
     const handleSave = async () => {
         if (!formData.firstName || !formData.lastName) {
             showToast('error', 'First and last name are required');
@@ -91,30 +75,21 @@ export default function PlayersPage() {
             };
 
             if (editingPlayer) {
-                // Update existing player
                 await updatePlayer(editingPlayer.id, playerData);
-
-                // Update team assignment
                 const currentTeam = getPlayerTeam(editingPlayer.id);
                 if (formData.teamId && formData.teamId !== currentTeam?.id) {
                     await assignPlayerToTeam(editingPlayer.id, formData.teamId);
                 } else if (!formData.teamId && currentTeam) {
                     await removePlayerFromTeam(editingPlayer.id, currentTeam.id);
                 }
-
                 showToast('success', 'Player updated');
             } else {
-                // Add new player
                 const newPlayer = await addPlayer(playerData);
-
-                // Assign to team if selected
                 if (formData.teamId) {
                     await assignPlayerToTeam(newPlayer.id, formData.teamId);
                 }
-
                 showToast('success', 'Player added');
             }
-
             resetForm();
         } catch (error) {
             console.error('Failed to save player:', error);
@@ -122,10 +97,8 @@ export default function PlayersPage() {
         }
     };
 
-    // Delete player
     const handleDelete = async () => {
         if (!playerToDelete) return;
-
         try {
             await removePlayer(playerToDelete.id);
             setPlayerToDelete(null);
@@ -140,45 +113,42 @@ export default function PlayersPage() {
 
     const teamA = teams.find(t => t.color === 'usa');
     const teamB = teams.find(t => t.color === 'europe');
-
-    // Group players by team
     const teamAPlayers = players.filter(p => getPlayerTeam(p.id)?.id === teamA?.id);
     const teamBPlayers = players.filter(p => getPlayerTeam(p.id)?.id === teamB?.id);
     const unassignedPlayers = players.filter(p => !getPlayerTeam(p.id));
 
     return (
-        <AppShellNew
-            headerTitle="Players"
-            headerSubtitle={`${players.length} players`}
-            showBack
-            headerRight={
-                isCaptainMode ? (
-                    <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => setShowAddModal(true)}
-                    >
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Add
-                    </Button>
-                ) : undefined
-            }
-        >
-            <div className="p-4 lg:p-6 space-y-6">
-                {/* Team USA */}
-                <section>
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="h-3 w-3 rounded-full bg-team-usa" />
-                        <SectionHeader
-                            title={teamA?.name || 'Team USA'}
-                            subtitle={`${teamAPlayers.length} players`}
-                            size="sm"
-                        />
+        <div className="min-h-screen" style={{ background: 'var(--canvas)' }}>
+            {/* Header */}
+            <header className="header">
+                <div className="container-editorial flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => router.back()} className="nav-item p-1" aria-label="Back">
+                            <ChevronLeft size={20} />
+                        </button>
+                        <div>
+                            <span className="type-overline">Players</span>
+                            <p className="type-meta">{players.length} players</p>
+                        </div>
                     </div>
+                    {isCaptainMode && (
+                        <button onClick={() => setShowAddModal(true)} className="btn btn-primary" style={{ padding: 'var(--space-2) var(--space-3)' }}>
+                            <UserPlus size={16} />
+                            Add
+                        </button>
+                    )}
+                </div>
+            </header>
 
-                    <Card padding="none" className="overflow-hidden divide-y divide-surface-border/50">
-                        {teamAPlayers.length > 0 ? (
-                            teamAPlayers.map(player => (
+            <main className="container-editorial" style={{ paddingBottom: 'var(--space-8)' }}>
+                {/* Team A */}
+                <section className="section">
+                    <h2 className="type-overline" style={{ color: 'var(--team-usa)', marginBottom: 'var(--space-3)' }}>
+                        {teamA?.name || 'USA'} ({teamAPlayers.length})
+                    </h2>
+                    {teamAPlayers.length > 0 ? (
+                        <div>
+                            {teamAPlayers.map(player => (
                                 <PlayerRow
                                     key={player.id}
                                     player={player}
@@ -187,29 +157,23 @@ export default function PlayersPage() {
                                     onEdit={() => handleEdit(player)}
                                     onDelete={() => setPlayerToDelete(player)}
                                 />
-                            ))
-                        ) : (
-                            <div className="p-6 text-center text-text-tertiary">
-                                No players on this team
-                            </div>
-                        )}
-                    </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="type-meta">No players on this team</p>
+                    )}
                 </section>
 
-                {/* Team Europe */}
-                <section>
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="h-3 w-3 rounded-full bg-team-europe" />
-                        <SectionHeader
-                            title={teamB?.name || 'Team Europe'}
-                            subtitle={`${teamBPlayers.length} players`}
-                            size="sm"
-                        />
-                    </div>
+                <hr className="divider" />
 
-                    <Card padding="none" className="overflow-hidden divide-y divide-surface-border/50">
-                        {teamBPlayers.length > 0 ? (
-                            teamBPlayers.map(player => (
+                {/* Team B */}
+                <section className="section">
+                    <h2 className="type-overline" style={{ color: 'var(--team-europe)', marginBottom: 'var(--space-3)' }}>
+                        {teamB?.name || 'Europe'} ({teamBPlayers.length})
+                    </h2>
+                    {teamBPlayers.length > 0 ? (
+                        <div>
+                            {teamBPlayers.map(player => (
                                 <PlayerRow
                                     key={player.id}
                                     player={player}
@@ -218,132 +182,142 @@ export default function PlayersPage() {
                                     onEdit={() => handleEdit(player)}
                                     onDelete={() => setPlayerToDelete(player)}
                                 />
-                            ))
-                        ) : (
-                            <div className="p-6 text-center text-text-tertiary">
-                                No players on this team
-                            </div>
-                        )}
-                    </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="type-meta">No players on this team</p>
+                    )}
                 </section>
 
                 {/* Unassigned */}
                 {unassignedPlayers.length > 0 && (
-                    <section>
-                        <SectionHeader
-                            title="Unassigned"
-                            subtitle={`${unassignedPlayers.length} players`}
-                            icon={Users}
-                            className="mb-3"
-                        />
-
-                        <Card padding="none" className="overflow-hidden divide-y divide-surface-border/50">
-                            {unassignedPlayers.map(player => (
-                                <PlayerRow
-                                    key={player.id}
-                                    player={player}
-                                    canEdit={isCaptainMode}
-                                    onEdit={() => handleEdit(player)}
-                                    onDelete={() => setPlayerToDelete(player)}
-                                />
-                            ))}
-                        </Card>
-                    </section>
+                    <>
+                        <hr className="divider" />
+                        <section className="section">
+                            <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>
+                                Unassigned ({unassignedPlayers.length})
+                            </h2>
+                            <div>
+                                {unassignedPlayers.map(player => (
+                                    <PlayerRow
+                                        key={player.id}
+                                        player={player}
+                                        canEdit={isCaptainMode}
+                                        onEdit={() => handleEdit(player)}
+                                        onDelete={() => setPlayerToDelete(player)}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    </>
                 )}
 
                 {/* Empty State */}
                 {players.length === 0 && (
-                    <Card variant="outlined" padding="none">
-                        <NoPlayersEmptyNew onAddPlayer={() => setShowAddModal(true)} />
-                    </Card>
+                    <div className="empty-state">
+                        <Users size={32} style={{ color: 'var(--ink-tertiary)', marginBottom: 'var(--space-4)' }} />
+                        <p className="empty-state-title">No players yet</p>
+                        <p className="empty-state-text">Add players to build your teams</p>
+                        {isCaptainMode && (
+                            <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
+                                <UserPlus size={18} />
+                                Add Player
+                            </button>
+                        )}
+                    </div>
                 )}
-            </div>
+            </main>
 
             {/* Add/Edit Modal */}
-            <Modal
-                isOpen={showAddModal}
-                onClose={resetForm}
-                title={editingPlayer ? 'Edit Player' : 'Add Player'}
-            >
-                <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                        <Input
-                            label="First Name"
-                            required
-                            value={formData.firstName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                            placeholder="John"
-                        />
-                        <Input
-                            label="Last Name"
-                            required
-                            value={formData.lastName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                            placeholder="Doe"
-                        />
-                    </div>
+            {showAddModal && (
+                <div className="modal-backdrop" onClick={resetForm}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-4)' }}>
+                            <h2 className="type-headline">{editingPlayer ? 'Edit Player' : 'Add Player'}</h2>
+                            <button onClick={resetForm}>
+                                <X size={20} style={{ color: 'var(--ink-tertiary)' }} />
+                            </button>
+                        </div>
 
-                    <Input
-                        label="Handicap Index"
-                        type="number"
-                        value={formData.handicapIndex}
-                        onChange={(e) => setFormData(prev => ({ ...prev, handicapIndex: e.target.value }))}
-                        placeholder="12.4"
-                    />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-3)' }}>
+                                <div>
+                                    <label className="type-meta" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>First Name *</label>
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        value={formData.firstName}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                                        placeholder="John"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="type-meta" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>Last Name *</label>
+                                    <input
+                                        type="text"
+                                        className="input"
+                                        value={formData.lastName}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                                        placeholder="Doe"
+                                    />
+                                </div>
+                            </div>
 
-                    <Input
-                        label="Email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="john@example.com"
-                    />
+                            <div>
+                                <label className="type-meta" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>Handicap Index</label>
+                                <input
+                                    type="number"
+                                    className="input"
+                                    value={formData.handicapIndex}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, handicapIndex: e.target.value }))}
+                                    placeholder="12.4"
+                                />
+                            </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-text-secondary mb-2">Team</label>
-                        <select
-                            value={formData.teamId}
-                            onChange={(e) => setFormData(prev => ({ ...prev, teamId: e.target.value }))}
-                            className={cn(
-                                'w-full px-4 py-3 rounded-lg',
-                                'bg-surface-base border border-surface-border',
-                                'text-text-primary',
-                                'focus:outline-none focus:ring-2 focus:ring-augusta-green/50 focus:border-augusta-green',
-                                'transition-colors duration-150',
-                            )}
-                        >
-                            <option value="">Unassigned</option>
-                            {teamA && <option value={teamA.id}>{teamA.name}</option>}
-                            {teamB && <option value={teamB.id}>{teamB.name}</option>}
-                        </select>
+                            <div>
+                                <label className="type-meta" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>Team</label>
+                                <select
+                                    value={formData.teamId}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, teamId: e.target.value }))}
+                                    className="input"
+                                >
+                                    <option value="">Unassigned</option>
+                                    {teamA && <option value={teamA.id}>{teamA.name}</option>}
+                                    {teamB && <option value={teamB.id}>{teamB.name}</option>}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3" style={{ marginTop: 'var(--space-6)' }}>
+                            <button onClick={resetForm} className="btn btn-secondary flex-1">Cancel</button>
+                            <button onClick={handleSave} className="btn btn-primary flex-1">
+                                {editingPlayer ? 'Save' : 'Add'}
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <div className="flex gap-3 mt-6">
-                    <Button variant="outline" onClick={resetForm} className="flex-1">
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handleSave} className="flex-1">
-                        {editingPlayer ? 'Save Changes' : 'Add Player'}
-                    </Button>
-                </div>
-            </Modal>
+            )}
 
             {/* Delete Confirmation */}
-            <ConfirmDialog
-                isOpen={!!playerToDelete}
-                onClose={() => setPlayerToDelete(null)}
-                onConfirm={handleDelete}
-                title="Delete Player?"
-                description={playerToDelete ? `Are you sure you want to delete ${playerToDelete.firstName} ${playerToDelete.lastName}? This will also remove them from any matches.` : ''}
-                confirmLabel="Delete"
-                variant="danger"
-            />
-        </AppShellNew>
+            {playerToDelete && (
+                <div className="modal-backdrop" onClick={() => setPlayerToDelete(null)}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <h2 className="type-headline" style={{ marginBottom: 'var(--space-3)' }}>Delete Player?</h2>
+                        <p className="type-body" style={{ marginBottom: 'var(--space-4)' }}>
+                            Are you sure you want to delete {playerToDelete.firstName} {playerToDelete.lastName}? This will also remove them from any matches.
+                        </p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setPlayerToDelete(null)} className="btn btn-secondary flex-1">Cancel</button>
+                            <button onClick={handleDelete} className="btn btn-danger flex-1">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
 
-// Player Row Component
+/* Player Row Component */
 function PlayerRow({
     player,
     teamColor,
@@ -357,48 +331,47 @@ function PlayerRow({
     onEdit: () => void;
     onDelete: () => void;
 }) {
-    return (
-        <div className="flex items-center justify-between p-4 hover:bg-surface-highlight transition-colors duration-150">
-            <div className="flex items-center gap-3 min-w-0">
-                {/* Avatar */}
-                <div className={cn(
-                    'h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm shrink-0',
-                    teamColor === 'usa' && 'bg-team-usa/10 text-team-usa',
-                    teamColor === 'europe' && 'bg-team-europe/10 text-team-europe',
-                    !teamColor && 'bg-surface-elevated text-text-secondary',
-                )}>
-                    {player.firstName[0]}{player.lastName[0]}
-                </div>
+    const initials = `${player.firstName[0]}${player.lastName[0]}`;
+    const bgColor = teamColor === 'usa' ? 'var(--team-usa)' : teamColor === 'europe' ? 'var(--team-europe)' : 'var(--ink-tertiary)';
 
-                {/* Info */}
-                <div className="min-w-0">
-                    <p className="font-medium text-text-primary truncate">
-                        {formatPlayerName(player.firstName, player.lastName)}
-                    </p>
-                    {player.handicapIndex !== undefined && (
-                        <p className="text-sm text-text-secondary">
-                            HCP: {player.handicapIndex.toFixed(1)}
-                        </p>
-                    )}
-                </div>
+    return (
+        <div className="match-row">
+            {/* Avatar */}
+            <div
+                style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: bgColor,
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    opacity: teamColor ? 1 : 0.5,
+                }}
+            >
+                {initials}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+                <p style={{ fontWeight: 500 }}>{formatPlayerName(player.firstName, player.lastName)}</p>
+                {player.handicapIndex !== undefined && (
+                    <p className="type-meta">HCP: {player.handicapIndex.toFixed(1)}</p>
+                )}
             </div>
 
             {/* Actions */}
             {canEdit && (
                 <div className="flex items-center gap-1">
-                    <IconButton
-                        icon={<Edit2 className="h-4 w-4" />}
-                        aria-label="Edit player"
-                        size="sm"
-                        onClick={onEdit}
-                    />
-                    <IconButton
-                        icon={<Trash2 className="h-4 w-4" />}
-                        aria-label="Delete player"
-                        size="sm"
-                        variant="danger"
-                        onClick={onDelete}
-                    />
+                    <button onClick={onEdit} style={{ padding: 'var(--space-2)', color: 'var(--ink-secondary)' }}>
+                        <Edit2 size={16} />
+                    </button>
+                    <button onClick={onDelete} style={{ padding: 'var(--space-2)', color: 'var(--error)' }}>
+                        <Trash2 size={16} />
+                    </button>
                 </div>
             )}
         </div>

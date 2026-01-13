@@ -2,7 +2,7 @@
 
 /* ============================================
    MASTERS EDITORIAL DESIGN SYSTEM
-   
+
    Light, editorial, typographic authority.
    Not a dashboard. A tournament companion.
    ============================================ */
@@ -12,30 +12,30 @@
   --canvas: #FAFAF8;
   --canvas-raised: #FFFFFF;
   --canvas-sunken: #F4F3F0;
-  
+
   /* Ink - Text hierarchy */
   --ink: #1A1A1A;
   --ink-secondary: #6B6B6B;
   --ink-tertiary: #999999;
   --ink-disabled: #CCCCCC;
-  
+
   /* Rule - Dividers and borders */
   --rule: #E8E6E1;
   --rule-strong: #D4D2CD;
-  
+
   /* Masters Green - Primary accent */
   --masters: #006747;
   --masters-light: #008B5E;
-  
+
   /* Team Colors - Refined */
   --team-usa: #1E3A5F;
   --team-europe: #8B2942;
-  
+
   /* Semantic */
   --success: #2D7A4B;
   --warning: #B8860B;
   --error: #C41E3A;
-  
+
   /* Spacing rhythm - 8px grid */
   --space-1: 4px;
   --space-2: 8px;
@@ -45,7 +45,7 @@
   --space-8: 32px;
   --space-12: 48px;
   --space-16: 64px;
-  
+
   /* Motion */
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --duration: 150ms;
@@ -68,7 +68,9 @@ body {
 }
 
 /* Remove tap highlights */
-button, a, [role="button"] {
+button,
+a,
+[role="button"] {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
@@ -565,18 +567,34 @@ button, a, [role="button"] {
 }
 
 @keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ============================================
    TEAM COLORS
    ============================================ */
 
-.text-usa { color: var(--team-usa); }
-.text-europe { color: var(--team-europe); }
-.bg-usa { background: var(--team-usa); }
-.bg-europe { background: var(--team-europe); }
+.text-usa {
+  color: var(--team-usa);
+}
+
+.text-europe {
+  color: var(--team-europe);
+}
+
+.bg-usa {
+  background: var(--team-usa);
+}
+
+.bg-europe {
+  background: var(--team-europe);
+}
 
 /* Team indicator dot */
 .team-dot {
@@ -586,14 +604,20 @@ button, a, [role="button"] {
   flex-shrink: 0;
 }
 
-.team-dot-usa { background: var(--team-usa); }
-.team-dot-europe { background: var(--team-europe); }
+.team-dot-usa {
+  background: var(--team-usa);
+}
+
+.team-dot-europe {
+  background: var(--team-europe);
+}
 
 /* ============================================
    REDUCED MOTION
    ============================================ */
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

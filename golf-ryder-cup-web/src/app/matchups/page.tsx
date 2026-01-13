@@ -75,7 +75,7 @@ export default function MatchupsPage() {
               {teamAPlayers.length > 0 ? (
                 <div>
                   {teamAPlayers.map(player => (
-                    <div key={player.id} style={{ 
+                    <div key={player.id} style={{
                       padding: 'var(--space-2) 0',
                       borderBottom: '1px solid var(--rule)'
                     }}>
@@ -101,7 +101,7 @@ export default function MatchupsPage() {
               {teamBPlayers.length > 0 ? (
                 <div>
                   {teamBPlayers.map(player => (
-                    <div key={player.id} style={{ 
+                    <div key={player.id} style={{
                       padding: 'var(--space-2) 0',
                       borderBottom: '1px solid var(--rule)'
                     }}>
@@ -152,15 +152,15 @@ export default function MatchupsPage() {
                     <p style={{ fontWeight: 500 }}>{session.name}</p>
                     <p className="type-meta capitalize">{session.sessionType}</p>
                   </div>
-                  <span 
+                  <span
                     className="type-meta"
-                    style={{ 
+                    style={{
                       color: session.status === 'inProgress' ? 'var(--masters)' :
-                             session.status === 'completed' ? 'var(--success)' : 'var(--ink-tertiary)'
+                        session.status === 'completed' ? 'var(--success)' : 'var(--ink-tertiary)'
                     }}
                   >
                     {session.status === 'inProgress' ? 'Live' :
-                     session.status === 'completed' ? 'Complete' : 'Upcoming'}
+                      session.status === 'completed' ? 'Complete' : 'Upcoming'}
                   </span>
                   <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
                 </button>

@@ -87,7 +87,7 @@ export default function StandingsPage() {
               {/* Score Display */}
               <div className="flex items-baseline justify-center gap-10">
                 <div className="text-center">
-                  <p className="score-hero" style={{ 
+                  <p className="score-hero" style={{
                     color: standings.teamAPoints >= standings.teamBPoints ? 'var(--team-usa)' : 'var(--ink)'
                   }}>
                     {standings.teamAPoints}
@@ -96,11 +96,11 @@ export default function StandingsPage() {
                     {teamAName}
                   </p>
                 </div>
-                
+
                 <span className="score-hero" style={{ color: 'var(--ink-tertiary)' }}>–</span>
-                
+
                 <div className="text-center">
-                  <p className="score-hero" style={{ 
+                  <p className="score-hero" style={{
                     color: standings.teamBPoints > standings.teamAPoints ? 'var(--team-europe)' : 'var(--ink)'
                   }}>
                     {standings.teamBPoints}
@@ -205,9 +205,9 @@ function PlayerRow({ entry, rank, isTeamA }: PlayerRowProps) {
   return (
     <div className="match-row" style={{ gap: 'var(--space-4)' }}>
       {/* Rank */}
-      <span 
-        className="type-meta" 
-        style={{ 
+      <span
+        className="type-meta"
+        style={{
           width: '24px',
           fontWeight: isTopThree ? 600 : 400,
           color: isTopThree ? 'var(--masters)' : 'var(--ink-tertiary)'

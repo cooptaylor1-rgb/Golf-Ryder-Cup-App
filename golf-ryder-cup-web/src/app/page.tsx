@@ -13,7 +13,7 @@ import type { TeamStandings } from '@/lib/types/computed';
 
 /**
  * HOME PAGE - Editorial Front Page
- * 
+ *
  * Structure:
  * 1. Lead - Active tournament with live score
  * 2. Next - What's happening next
@@ -109,7 +109,7 @@ export default function HomePage() {
               </div>
 
               {/* CTA */}
-              <div 
+              <div
                 className="flex items-center justify-center gap-2 type-meta"
                 style={{ marginTop: 'var(--space-6)', color: 'var(--masters)' }}
               >
@@ -143,7 +143,7 @@ export default function HomePage() {
                   {formatDate(activeTrip.startDate, 'short')}
                 </span>
               </div>
-              <div 
+              <div
                 className="flex items-center gap-2 type-meta"
                 style={{ marginTop: 'var(--space-4)', color: 'var(--masters)' }}
               >

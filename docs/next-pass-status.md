@@ -53,6 +53,7 @@ npm test        # Run vitest tests
 ## Design Tokens
 
 Located in `src/app/globals.css`:
+
 - Dark theme with `--surface-base: #1A1918`
 - Text hierarchy via CSS custom properties
 - Masters green `#006747` as accent
