@@ -85,16 +85,13 @@ export default function MatchupsPage() {
 
           <div className="grid grid-cols-2 gap-6">
             {/* Team USA */}
-            <div>
+            <div className="team-bg-usa" style={{ padding: 'var(--space-4)', margin: 'calc(-1 * var(--space-4))', borderRadius: 'var(--radius-lg)' }}>
               <div
                 className="flex items-center gap-2"
                 style={{ marginBottom: 'var(--space-4)' }}
               >
-                <span className="team-dot-lg team-dot-usa" />
-                <span
-                  className="type-overline"
-                  style={{ color: 'var(--team-usa)', letterSpacing: '0.08em' }}
-                >
+                <span className="team-dot-xl team-dot-usa" />
+                <span className="team-badge team-badge-solid-usa">
                   {teamA?.name || 'USA'}
                 </span>
               </div>
@@ -103,8 +100,12 @@ export default function MatchupsPage() {
                   {teamAPlayers.map(player => (
                     <div
                       key={player.id}
+                      className="team-row team-row-usa"
                       style={{
-                        padding: 'var(--space-3) 0',
+                        padding: 'var(--space-3) var(--space-2)',
+                        marginLeft: 'calc(-1 * var(--space-2))',
+                        marginRight: 'calc(-1 * var(--space-2))',
+                        borderRadius: 'var(--radius-sm)',
                         borderBottom: '1px solid var(--rule-faint)'
                       }}
                     >
@@ -120,21 +121,18 @@ export default function MatchupsPage() {
                   ))}
                 </div>
               ) : (
-                <p className="type-caption">No players</p>
+                <p className="type-caption" style={{ color: 'var(--team-usa-muted)' }}>No players</p>
               )}
             </div>
 
             {/* Team Europe */}
-            <div>
+            <div className="team-bg-europe" style={{ padding: 'var(--space-4)', margin: 'calc(-1 * var(--space-4))', borderRadius: 'var(--radius-lg)' }}>
               <div
                 className="flex items-center gap-2"
                 style={{ marginBottom: 'var(--space-4)' }}
               >
-                <span className="team-dot-lg team-dot-europe" />
-                <span
-                  className="type-overline"
-                  style={{ color: 'var(--team-europe)', letterSpacing: '0.08em' }}
-                >
+                <span className="team-dot-xl team-dot-europe" />
+                <span className="team-badge team-badge-solid-europe">
                   {teamB?.name || 'Europe'}
                 </span>
               </div>
@@ -143,8 +141,12 @@ export default function MatchupsPage() {
                   {teamBPlayers.map(player => (
                     <div
                       key={player.id}
+                      className="team-row team-row-europe"
                       style={{
-                        padding: 'var(--space-3) 0',
+                        padding: 'var(--space-3) var(--space-2)',
+                        marginLeft: 'calc(-1 * var(--space-2))',
+                        marginRight: 'calc(-1 * var(--space-2))',
+                        borderRadius: 'var(--radius-sm)',
                         borderBottom: '1px solid var(--rule-faint)'
                       }}
                     >
@@ -160,7 +162,7 @@ export default function MatchupsPage() {
                   ))}
                 </div>
               ) : (
-                <p className="type-caption">No players</p>
+                <p className="type-caption" style={{ color: 'var(--team-europe-muted)' }}>No players</p>
               )}
             </div>
           </div>

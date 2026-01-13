@@ -100,13 +100,16 @@ export default function StandingsPage() {
                 {magicNumber.pointsToWin} points to win
               </p>
 
-              {/* Monumental Score Display */}
-              <div
-                className="flex items-end justify-center"
-                style={{ gap: 'var(--space-12)' }}
-              >
+              {/* Score Comparison Blocks */}
+              <div className="score-vs">
                 {/* Team USA */}
-                <div className="text-center">
+                <div
+                  className={`score-vs-team score-vs-usa ${standings.teamAPoints >= standings.teamBPoints ? 'leading' : ''}`}
+                >
+                  <span
+                    className={`team-dot team-dot-xl team-dot-usa ${standings.leader !== null ? 'team-dot-pulse' : ''}`}
+                    style={{ display: 'inline-block', marginBottom: 'var(--space-4)' }}
+                  />
                   <p
                     className="score-monumental"
                     style={{
@@ -129,18 +132,16 @@ export default function StandingsPage() {
                 </div>
 
                 {/* Separator */}
-                <span
-                  className="score-large"
-                  style={{
-                    color: 'var(--ink-faint)',
-                    marginBottom: '12px'
-                  }}
-                >
-                  –
-                </span>
+                <div className="score-vs-divider">–</div>
 
                 {/* Team Europe */}
-                <div className="text-center">
+                <div
+                  className={`score-vs-team score-vs-europe ${standings.teamBPoints > standings.teamAPoints ? 'leading' : ''}`}
+                >
+                  <span
+                    className={`team-dot team-dot-xl team-dot-europe ${standings.leader !== null ? 'team-dot-pulse' : ''}`}
+                    style={{ display: 'inline-block', marginBottom: 'var(--space-4)' }}
+                  />
                   <p
                     className="score-monumental"
                     style={{
@@ -166,19 +167,15 @@ export default function StandingsPage() {
               {/* Victory Banner or Magic Number */}
               {magicNumber.hasClinched ? (
                 <div
-                  className="flex items-center justify-center gap-2"
-                  style={{
-                    marginTop: 'var(--space-10)',
-                    padding: 'var(--space-3) var(--space-5)',
-                    background: 'var(--masters-subtle)',
-                    borderRadius: 'var(--radius-full)',
-                    display: 'inline-flex'
-                  }}
+                  className={`victory-banner ${magicNumber.clinchingTeam === 'A' ? 'victory-usa' : 'victory-europe'}`}
+                  style={{ marginTop: 'var(--space-10)', display: 'inline-block' }}
                 >
-                  <Trophy size={18} strokeWidth={1.75} style={{ color: 'var(--masters)' }} />
-                  <span style={{ color: 'var(--masters)', fontWeight: 600 }}>
+                  <div className="victory-icon">
+                    <Trophy size={18} strokeWidth={1.75} />
+                  </div>
+                  <p style={{ fontWeight: 600, fontSize: 'var(--text-base)' }}>
                     {magicNumber.clinchingTeam === 'A' ? teamAName : teamBName} Wins
-                  </span>
+                  </p>
                 </div>
               ) : (magicNumber.teamANeeded <= 3 || magicNumber.teamBNeeded <= 3) && (
                 <p
@@ -277,10 +274,20 @@ interface PlayerRowProps {
 
 function PlayerRow({ entry, rank, isTeamA }: PlayerRowProps) {
   const isTopThree = rank <= 3;
-  const teamColor = isTeamA ? 'var(--team-usa)' : 'var(--team-europe)';
+  const teamClass = isTeamA ? 'team-row-usa team-row-accent-usa' : 'team-row-europe team-row-accent-europe';
 
   return (
-    <div className="player-row" style={{ gap: 'var(--space-4)' }}>
+    <div
+      className={`player-row team-row team-row-accent ${teamClass}`}
+      style={{
+        gap: 'var(--space-4)',
+        paddingLeft: 'var(--space-3)',
+        paddingRight: 'var(--space-3)',
+        marginLeft: 'calc(-1 * var(--space-3))',
+        marginRight: 'calc(-1 * var(--space-3))',
+        borderRadius: 'var(--radius-md)'
+      }}
+    >
       {/* Rank */}
       <span
         style={{
@@ -294,11 +301,13 @@ function PlayerRow({ entry, rank, isTeamA }: PlayerRowProps) {
         {rank}
       </span>
 
-      {/* Team Color Indicator */}
+      {/* Team Badge */}
       <span
-        className="team-dot-lg"
-        style={{ background: teamColor }}
-      />
+        className={isTeamA ? 'team-badge team-badge-usa' : 'team-badge team-badge-europe'}
+        style={{ fontSize: 'var(--text-xs)', padding: 'var(--space-1) var(--space-2)' }}
+      >
+        {isTeamA ? 'USA' : 'EUR'}
+      </span>
 
       {/* Player Info */}
       <div className="flex-1 min-w-0">

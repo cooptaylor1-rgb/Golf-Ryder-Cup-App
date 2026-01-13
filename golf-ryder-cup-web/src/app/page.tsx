@@ -81,17 +81,16 @@ export default function HomePage() {
                 {activeTrip.name}
               </h1>
 
-              {/* Score Hero — The Main Event */}
-              <div
-                className="flex items-end justify-center"
-                style={{
-                  gap: 'var(--space-12)',
-                  padding: 'var(--space-8) 0',
-                  margin: '0 calc(-1 * var(--space-5))'
-                }}
-              >
-                {/* Team USA */}
-                <div className="text-center">
+              {/* Score Hero — Team Identity Blocks */}
+              <div className="score-vs">
+                {/* Team USA Block */}
+                <div
+                  className={`score-vs-team score-vs-usa ${standings.teamAPoints >= standings.teamBPoints ? 'leading' : ''}`}
+                >
+                  <span
+                    className={`team-dot team-dot-lg team-dot-usa ${standings.leader !== null ? 'team-dot-pulse' : ''}`}
+                    style={{ display: 'inline-block', marginBottom: 'var(--space-3)' }}
+                  />
                   <p
                     className="score-monumental"
                     style={{
@@ -114,18 +113,16 @@ export default function HomePage() {
                 </div>
 
                 {/* Separator */}
-                <span
-                  className="score-large"
-                  style={{
-                    color: 'var(--ink-faint)',
-                    marginBottom: '8px'
-                  }}
-                >
-                  –
-                </span>
+                <div className="score-vs-divider">–</div>
 
-                {/* Team Europe */}
-                <div className="text-center">
+                {/* Team Europe Block */}
+                <div
+                  className={`score-vs-team score-vs-europe ${standings.teamBPoints > standings.teamAPoints ? 'leading' : ''}`}
+                >
+                  <span
+                    className={`team-dot team-dot-lg team-dot-europe ${standings.leader !== null ? 'team-dot-pulse' : ''}`}
+                    style={{ display: 'inline-block', marginBottom: 'var(--space-3)' }}
+                  />
                   <p
                     className="score-monumental"
                     style={{

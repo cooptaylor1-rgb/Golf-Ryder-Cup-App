@@ -243,8 +243,28 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
             .join(' / ');
     };
 
+    // Determine leading team for row styling
+    const isUSALeading = currentScore > 0;
+    const isEuropeLeading = currentScore < 0;
+    const teamRowClass = isUSALeading
+        ? 'team-row team-row-usa team-row-accent team-row-accent-usa'
+        : isEuropeLeading
+            ? 'team-row team-row-europe team-row-accent team-row-accent-europe'
+            : '';
+
     return (
-        <button onClick={onClick} className="match-row w-full text-left">
+        <button
+            onClick={onClick}
+            className={`match-row w-full text-left ${teamRowClass}`}
+            style={{
+                paddingLeft: 'var(--space-3)',
+                paddingRight: 'var(--space-3)',
+                marginLeft: 'calc(-1 * var(--space-3))',
+                marginRight: 'calc(-1 * var(--space-3))',
+                borderRadius: 'var(--radius-md)',
+                position: 'relative'
+            }}
+        >
             {/* Match number */}
             <span
                 style={{
@@ -261,22 +281,32 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
             {/* Players */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <span className="team-dot team-dot-usa" />
+                    <span className={`team-dot team-dot-usa ${status === 'inProgress' && isUSALeading ? 'team-dot-pulse' : ''}`} />
                     <span
                         className="truncate type-body-sm"
                         style={{ fontWeight: currentScore > 0 ? 600 : 400 }}
                     >
                         {formatPlayers(teamAPlayers)}
                     </span>
+                    {currentScore > 0 && (
+                        <span className="team-badge team-badge-solid-usa" style={{ fontSize: '9px', padding: '2px 6px' }}>
+                            UP
+                        </span>
+                    )}
                 </div>
                 <div className="flex items-center gap-2" style={{ marginTop: 'var(--space-2)' }}>
-                    <span className="team-dot team-dot-europe" />
+                    <span className={`team-dot team-dot-europe ${status === 'inProgress' && isEuropeLeading ? 'team-dot-pulse' : ''}`} />
                     <span
                         className="truncate type-body-sm"
                         style={{ fontWeight: currentScore < 0 ? 600 : 400 }}
                     >
                         {formatPlayers(teamBPlayers)}
                     </span>
+                    {currentScore < 0 && (
+                        <span className="team-badge team-badge-solid-europe" style={{ fontSize: '9px', padding: '2px 6px' }}>
+                            UP
+                        </span>
+                    )}
                 </div>
             </div>
 
