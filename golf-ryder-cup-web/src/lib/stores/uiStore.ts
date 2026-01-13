@@ -6,6 +6,8 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { ScoringPreferences } from '@/lib/types/scoringPreferences';
+import { DEFAULT_SCORING_PREFERENCES } from '@/lib/types/scoringPreferences';
 
 // ============================================
 // TYPES
@@ -62,17 +64,13 @@ interface UIState {
     showGlobalLoading: (message?: string) => void;
     hideGlobalLoading: () => void;
 
-    // Scoring UI preferences
-    scoringPreferences: {
-        showStrokes: boolean;
-        autoAdvance: boolean;
-        hapticFeedback: boolean;
-        confirmCloseout: boolean;
-    };
-    updateScoringPreference: <K extends keyof UIState['scoringPreferences']>(
+    // Enhanced Scoring UI preferences (P2.3)
+    scoringPreferences: ScoringPreferences;
+    updateScoringPreference: <K extends keyof ScoringPreferences>(
         key: K,
-        value: UIState['scoringPreferences'][K]
+        value: ScoringPreferences[K]
     ) => void;
+    resetScoringPreferences: () => void;
 }
 
 // ============================================
@@ -197,13 +195,8 @@ export const useUIStore = create<UIState>()(
                 });
             },
 
-            // Scoring preferences
-            scoringPreferences: {
-                showStrokes: false, // Show stroke scores in addition to hole winner
-                autoAdvance: true, // Auto-advance to next hole after scoring
-                hapticFeedback: true, // Vibrate on score entry
-                confirmCloseout: true, // Confirm before recording match-ending score
-            },
+            // Enhanced Scoring preferences (P2.3)
+            scoringPreferences: DEFAULT_SCORING_PREFERENCES,
 
             updateScoringPreference: (key, value) => {
                 set(state => ({
@@ -212,6 +205,10 @@ export const useUIStore = create<UIState>()(
                         [key]: value,
                     },
                 }));
+            },
+
+            resetScoringPreferences: () => {
+                set({ scoringPreferences: DEFAULT_SCORING_PREFERENCES });
             },
         }),
         {

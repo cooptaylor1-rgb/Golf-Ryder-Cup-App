@@ -26,6 +26,7 @@ import type {
     SyncMetadata,
 } from '@/lib/types/models';
 import type { ScoringEvent } from '@/lib/types/events';
+import type { CourseProfile, TeeSetProfile } from '@/lib/types/courseProfile';
 
 /**
  * Golf Trip Database
@@ -47,6 +48,10 @@ export class GolfTripDB extends Dexie {
     // Course entities
     courses!: Table<Course>;
     teeSets!: Table<TeeSet>;
+
+    // Course Library (v1.2)
+    courseProfiles!: Table<CourseProfile>;
+    teeSetProfiles!: Table<TeeSetProfile>;
 
     // Schedule entities
     scheduleDays!: Table<ScheduleDay>;
@@ -101,6 +106,13 @@ export class GolfTripDB extends Dexie {
 
             // Sync metadata (key-value store)
             syncMeta: 'key',
+        });
+
+        // Schema version 2 - Course Library
+        this.version(2).stores({
+            // Course Library tables (v1.2)
+            courseProfiles: 'id, name',
+            teeSetProfiles: 'id, courseProfileId, [courseProfileId+name]',
         });
     }
 }
