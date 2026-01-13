@@ -82,13 +82,13 @@ export default function ScorePage() {
     if (!currentTrip) return null;
 
     return (
-        <div className="min-h-screen pb-nav" style={{ background: 'var(--canvas)' }}>
+        <div className="min-h-screen pb-nav page-enter" style={{ background: 'var(--canvas)' }}>
             {/* Header */}
             <header className="header">
                 <div className="container-editorial flex items-center gap-3">
                     <button
                         onClick={() => router.back()}
-                        className="p-2 -ml-2"
+                        className="p-2 -ml-2 press-scale"
                         style={{ color: 'var(--ink-secondary)' }}
                         aria-label="Back"
                     >
@@ -129,7 +129,7 @@ export default function ScorePage() {
                     </h2>
 
                     {isLoading ? (
-                        <div style={{ padding: 'var(--space-8) 0' }}>
+                        <div className="skeleton-group" style={{ padding: 'var(--space-8) 0' }}>
                             {[1, 2, 3].map(i => (
                                 <div key={i} className="player-row">
                                     <div className="skeleton" style={{ width: '24px', height: '16px' }} />
@@ -142,7 +142,7 @@ export default function ScorePage() {
                             ))}
                         </div>
                     ) : matchStates.length > 0 ? (
-                        <div>
+                        <div className="stagger-fast">
                             {matchStates.map((matchState, index) => (
                                 <MatchRow
                                     key={matchState.match.id}
@@ -151,12 +151,13 @@ export default function ScorePage() {
                                     teamAPlayers={getMatchPlayers(matchState.match.teamAPlayerIds)}
                                     teamBPlayers={getMatchPlayers(matchState.match.teamBPlayerIds)}
                                     onClick={() => handleMatchSelect(matchState.match.id)}
+                                    animationDelay={index * 50}
                                 />
                             ))}
                         </div>
                     ) : (
-                        <div className="empty-state">
-                            <div className="empty-state-icon">
+                        <div className="empty-state animate-victory">
+                            <div className="empty-state-icon animate-breathe">
                                 <Target size={28} strokeWidth={1.5} />
                             </div>
                             <p className="empty-state-title">No matches scheduled</p>
@@ -231,9 +232,10 @@ interface MatchRowProps {
     teamAPlayers: Player[];
     teamBPlayers: Player[];
     onClick: () => void;
+    animationDelay?: number;
 }
 
-function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick }: MatchRowProps) {
+function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick, animationDelay = 0 }: MatchRowProps) {
     const { currentScore, holesPlayed, status, displayScore } = matchState;
 
     const formatPlayers = (playerList: Player[]) => {
@@ -255,14 +257,15 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
     return (
         <button
             onClick={onClick}
-            className={`match-row w-full text-left ${teamRowClass}`}
+            className={`match-row row-interactive w-full text-left stagger-item ${teamRowClass}`}
             style={{
                 paddingLeft: 'var(--space-3)',
                 paddingRight: 'var(--space-3)',
                 marginLeft: 'calc(-1 * var(--space-3))',
                 marginRight: 'calc(-1 * var(--space-3))',
                 borderRadius: 'var(--radius-md)',
-                position: 'relative'
+                position: 'relative',
+                animationDelay: `${animationDelay}ms`
             }}
         >
             {/* Match number */}
@@ -334,6 +337,7 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
             <ChevronRight
                 size={20}
                 strokeWidth={1.5}
+                className="row-chevron"
                 style={{ color: 'var(--ink-tertiary)', marginLeft: 'var(--space-2)' }}
             />
         </button>

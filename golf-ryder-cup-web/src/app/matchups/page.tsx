@@ -43,14 +43,14 @@ export default function MatchupsPage() {
   if (!currentTrip) return null;
 
   return (
-    <div className="min-h-screen pb-nav" style={{ background: 'var(--canvas)' }}>
+    <div className="min-h-screen pb-nav page-enter" style={{ background: 'var(--canvas)' }}>
       {/* Header */}
       <header className="header">
         <div className="container-editorial flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="p-2 -ml-2"
+              className="p-2 -ml-2 press-scale"
               style={{ color: 'var(--ink-secondary)' }}
               aria-label="Back"
             >
@@ -66,7 +66,7 @@ export default function MatchupsPage() {
           {isCaptainMode && (
             <Link
               href="/players"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 press-scale"
               style={{ color: 'var(--masters)', fontWeight: 500, fontSize: 'var(--text-sm)' }}
             >
               <Plus size={16} strokeWidth={2} />

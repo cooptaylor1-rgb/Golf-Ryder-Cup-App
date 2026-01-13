@@ -102,10 +102,10 @@ export default function MatchScoringPage() {
 
     if (isLeftSwipe && currentHole < 18) {
       nextHole();
-      haptic('light');
+      haptic.tap();
     } else if (isRightSwipe && currentHole > 1) {
       prevHole();
-      haptic('light');
+      haptic.tap();
     }
   };
 
@@ -125,13 +125,13 @@ export default function MatchScoringPage() {
       }
     }
 
-    haptic(winner === 'halved' ? 'light' : 'medium');
+    haptic.scorePoint();
     await scoreHole(winner);
   };
 
   const handleUndo = async () => {
     if (undoStack.length === 0) return;
-    haptic('warning');
+    haptic.warning();
     await undoLastHole();
     showToast('info', 'Score undone');
   };

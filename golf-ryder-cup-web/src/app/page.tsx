@@ -55,7 +55,7 @@ export default function HomePage() {
   const pastTrips = trips?.filter(t => t.id !== activeTrip?.id) || [];
 
   return (
-    <div className="min-h-screen pb-nav" style={{ background: 'var(--canvas)' }}>
+    <div className="min-h-screen pb-nav page-enter" style={{ background: 'var(--canvas)' }}>
       {/* Minimal Header */}
       <header className="header">
         <div className="container-editorial">
@@ -69,7 +69,8 @@ export default function HomePage() {
           <section className="section">
             <button
               onClick={() => handleSelectTrip(activeTrip.id)}
-              className="w-full text-left"
+              className="w-full text-left press-scale card-interactive"
+              style={{ background: 'transparent', border: 'none', borderRadius: 'var(--radius-xl)', padding: 'var(--space-4)', margin: 'calc(-1 * var(--space-4))' }}
             >
               {/* Live Badge */}
               <div className="live-indicator" style={{ marginBottom: 'var(--space-4)' }}>
@@ -244,12 +245,13 @@ export default function HomePage() {
           </div>
 
           {pastTrips.length > 0 ? (
-            <div>
-              {pastTrips.map((trip) => (
+            <div className="stagger-fast">
+              {pastTrips.map((trip, index) => (
                 <button
                   key={trip.id}
                   onClick={() => handleSelectTrip(trip.id)}
-                  className="match-row w-full text-left"
+                  className="match-row row-interactive w-full text-left stagger-item"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex-1 min-w-0">
                     <p className="type-title-sm" style={{ marginBottom: 'var(--space-1)' }}>
@@ -268,6 +270,7 @@ export default function HomePage() {
                   <ChevronRight
                     size={20}
                     strokeWidth={1.5}
+                    className="row-chevron"
                     style={{ color: 'var(--ink-tertiary)' }}
                   />
                 </button>
@@ -275,15 +278,15 @@ export default function HomePage() {
             </div>
           ) : !activeTrip ? (
             /* Empty state */
-            <div className="empty-state">
-              <div className="empty-state-icon">
+            <div className="empty-state animate-victory">
+              <div className="empty-state-icon animate-breathe">
                 <Trophy size={28} strokeWidth={1.5} />
               </div>
               <p className="empty-state-title">No tournaments yet</p>
               <p className="empty-state-text">
                 Create your first tournament to start tracking matches with friends
               </p>
-              <Link href="/trip/new" className="btn btn-primary">
+              <Link href="/trip/new" className="btn btn-primary press-scale">
                 <Plus size={18} strokeWidth={2} />
                 Create Tournament
               </Link>

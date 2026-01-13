@@ -34,7 +34,7 @@ export function ScoreButton({
 
     const handleClick = () => {
         if (disabled) return;
-        haptic(isSelected ? 'light' : 'medium');
+        isSelected ? haptic.tap() : haptic.press();
         onClick();
     };
 

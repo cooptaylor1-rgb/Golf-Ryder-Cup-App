@@ -61,13 +61,13 @@ export default function StandingsPage() {
   const teamBName = teamB?.name || 'Europe';
 
   return (
-    <div className="min-h-screen pb-nav" style={{ background: 'var(--canvas)' }}>
+    <div className="min-h-screen pb-nav page-enter" style={{ background: 'var(--canvas)' }}>
       {/* Header */}
       <header className="header">
         <div className="container-editorial flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 -ml-2"
+            className="p-2 -ml-2 press-scale"
             style={{ color: 'var(--ink-secondary)' }}
             aria-label="Back"
           >
@@ -211,13 +211,14 @@ export default function StandingsPage() {
               </h2>
 
               {leaderboard.length > 0 ? (
-                <div>
+                <div className="stagger-fast">
                   {leaderboard.map((entry, index) => (
                     <PlayerRow
                       key={entry.playerId}
                       entry={entry}
                       rank={index + 1}
                       isTeamA={entry.teamId === teamA?.id}
+                      animationDelay={index * 50}
                     />
                   ))}
                 </div>
@@ -270,22 +271,24 @@ interface PlayerRowProps {
   entry: PlayerLeaderboard;
   rank: number;
   isTeamA: boolean;
+  animationDelay?: number;
 }
 
-function PlayerRow({ entry, rank, isTeamA }: PlayerRowProps) {
+function PlayerRow({ entry, rank, isTeamA, animationDelay = 0 }: PlayerRowProps) {
   const isTopThree = rank <= 3;
   const teamClass = isTeamA ? 'team-row-usa team-row-accent-usa' : 'team-row-europe team-row-accent-europe';
 
   return (
     <div
-      className={`player-row team-row team-row-accent ${teamClass}`}
+      className={`player-row team-row team-row-accent row-interactive stagger-item ${teamClass}`}
       style={{
         gap: 'var(--space-4)',
         paddingLeft: 'var(--space-3)',
         paddingRight: 'var(--space-3)',
         marginLeft: 'calc(-1 * var(--space-3))',
         marginRight: 'calc(-1 * var(--space-3))',
-        borderRadius: 'var(--radius-md)'
+        borderRadius: 'var(--radius-md)',
+        animationDelay: `${animationDelay}ms`
       }}
     >
       {/* Rank */}

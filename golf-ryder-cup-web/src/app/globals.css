@@ -141,13 +141,28 @@
   --text-7xl: 96px;
 
   /* ---- MOTION ----
-     Subtle, purposeful */
+     Premium, physics-based animation system.
+     Every interaction should feel inevitable. */
+
+  /* Core easings - natural physics */
   --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Premium easings - world-class feel */
+  --ease-bounce: cubic-bezier(0.34, 1.8, 0.64, 1);
+  --ease-snap: cubic-bezier(0.2, 1.4, 0.4, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decel: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accel: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Duration scale - purposeful timing */
+  --duration-instant: 50ms;
   --duration-fast: 100ms;
   --duration-normal: 200ms;
   --duration-slow: 350ms;
+  --duration-slower: 500ms;
+  --duration-slowest: 700ms;
 
   /* ---- RADII ---- */
   --radius-sm: 4px;
@@ -1513,4 +1528,744 @@ a,
 .card-elevated {
   box-shadow: var(--shadow-md);
   border: none;
+}
+
+/* ============================================
+   MICRO-INTERACTIONS — DESIGN SYSTEM v2.2
+
+   World-class tactile feedback.
+   Every tap, every transition feels premium.
+   The best golf buddies app deserves nothing less.
+   ============================================ */
+
+/* ---- INTERACTIVE PRESS STATES ----
+   Satisfying, springy button feedback */
+
+.press-scale {
+  transition: transform var(--duration-fast) var(--ease-spring);
+  will-change: transform;
+}
+
+.press-scale:active {
+  transform: scale(0.96);
+}
+
+.press-scale-sm:active {
+  transform: scale(0.98);
+}
+
+.press-scale-lg:active {
+  transform: scale(0.94);
+}
+
+/* Lift effect - feels like picking up */
+.press-lift {
+  transition: transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-out);
+  will-change: transform, box-shadow;
+}
+
+.press-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.press-lift:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Glow on focus/hover */
+.press-glow {
+  transition: box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.press-glow:hover {
+  box-shadow: 0 0 0 4px var(--masters-glow);
+}
+
+.press-glow-usa:hover {
+  box-shadow: 0 0 0 4px var(--team-usa-glow);
+}
+
+.press-glow-europe:hover {
+  box-shadow: 0 0 0 4px var(--team-europe-glow);
+}
+
+/* ---- RIPPLE EFFECT ----
+   Material-inspired touch feedback */
+
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%),
+      rgba(0, 0, 0, 0.08) 0%,
+      transparent 60%);
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity var(--duration-normal) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+  pointer-events: none;
+}
+
+.ripple:active::after {
+  opacity: 1;
+  transform: scale(2.5);
+  transition: opacity 0ms, transform var(--duration-slower) var(--ease-decel);
+}
+
+/* ---- SCORE CHANGE CELEBRATIONS ----
+   When the score changes, celebrate it */
+
+@keyframes scoreIncrement {
+  0% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(1.15);
+  }
+
+  50% {
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes scorePop {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scoreFlash {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes victoryBurst {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  40% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+
+  70% {
+    transform: scale(0.98);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-score-increment {
+  animation: scoreIncrement var(--duration-slow) var(--ease-spring);
+}
+
+.animate-score-pop {
+  animation: scorePop var(--duration-normal) var(--ease-bounce);
+}
+
+.animate-score-flash {
+  animation: scoreFlash var(--duration-slow) ease-in-out 2;
+}
+
+.animate-victory {
+  animation: victoryBurst var(--duration-slower) var(--ease-spring);
+}
+
+/* ---- ROW INTERACTIONS ----
+   Sophisticated list item feedback */
+
+.row-interactive {
+  position: relative;
+  transition: background var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring);
+  cursor: pointer;
+}
+
+.row-interactive:hover {
+  background: var(--canvas-sunken);
+}
+
+.row-interactive:active {
+  transform: scale(0.995);
+  background: var(--canvas-warm);
+}
+
+/* Slide reveal - chevron animation */
+.row-interactive .row-chevron {
+  transition: transform var(--duration-normal) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+.row-interactive:hover .row-chevron {
+  transform: translateX(4px);
+  opacity: 1;
+}
+
+/* Swipe hint animation */
+@keyframes swipeHint {
+
+  0%,
+  100% {
+    transform: translateX(0);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: translateX(8px);
+    opacity: 1;
+  }
+}
+
+.row-swipe-hint::after {
+  animation: swipeHint 2s var(--ease-in-out) infinite;
+}
+
+/* ---- CARD INTERACTIONS ----
+   Elevated card feedback */
+
+.card-interactive {
+  transition: transform var(--duration-normal) var(--ease-spring),
+    box-shadow var(--duration-normal) var(--ease-out);
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-interactive:active {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---- TAB TRANSITIONS ----
+   Smooth tab switching */
+
+.tab-content {
+  animation: tabFadeIn var(--duration-normal) var(--ease-out);
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tab indicator slide */
+.tab-indicator {
+  transition: transform var(--duration-normal) var(--ease-spring),
+    width var(--duration-normal) var(--ease-out);
+}
+
+/* ---- STAGGERED ANIMATIONS ----
+   List items animate in sequence */
+
+@keyframes staggerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-item {
+  opacity: 0;
+  animation: staggerFadeIn var(--duration-slow) var(--ease-out) forwards;
+}
+
+.stagger-item:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.stagger-item:nth-child(2) {
+  animation-delay: 50ms;
+}
+
+.stagger-item:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.stagger-item:nth-child(4) {
+  animation-delay: 150ms;
+}
+
+.stagger-item:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+.stagger-item:nth-child(6) {
+  animation-delay: 250ms;
+}
+
+.stagger-item:nth-child(7) {
+  animation-delay: 300ms;
+}
+
+.stagger-item:nth-child(8) {
+  animation-delay: 350ms;
+}
+
+.stagger-item:nth-child(9) {
+  animation-delay: 400ms;
+}
+
+.stagger-item:nth-child(10) {
+  animation-delay: 450ms;
+}
+
+/* Fast stagger for quick reveals */
+.stagger-fast .stagger-item:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.stagger-fast .stagger-item:nth-child(2) {
+  animation-delay: 30ms;
+}
+
+.stagger-fast .stagger-item:nth-child(3) {
+  animation-delay: 60ms;
+}
+
+.stagger-fast .stagger-item:nth-child(4) {
+  animation-delay: 90ms;
+}
+
+.stagger-fast .stagger-item:nth-child(5) {
+  animation-delay: 120ms;
+}
+
+/* ---- PAGE TRANSITIONS ----
+   Smooth page enter/exit */
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pageExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.page-enter {
+  animation: pageEnter var(--duration-slow) var(--ease-out);
+}
+
+.page-exit {
+  animation: pageExit var(--duration-normal) var(--ease-in-out);
+}
+
+/* Slide transitions */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight var(--duration-slow) var(--ease-out);
+}
+
+.slide-out-left {
+  animation: slideOutLeft var(--duration-normal) var(--ease-in-out);
+}
+
+/* ---- SKELETON CHOREOGRAPHY ----
+   Loading states that feel alive */
+
+@keyframes skeletonWave {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-group .skeleton:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.skeleton-group .skeleton:nth-child(2) {
+  animation-delay: 100ms;
+}
+
+.skeleton-group .skeleton:nth-child(3) {
+  animation-delay: 200ms;
+}
+
+.skeleton-group .skeleton:nth-child(4) {
+  animation-delay: 300ms;
+}
+
+/* Skeleton fade out when content loads */
+@keyframes skeletonFadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.skeleton-exit {
+  animation: skeletonFadeOut var(--duration-fast) var(--ease-out) forwards;
+}
+
+/* ---- FOCUS RINGS ----
+   Accessible, beautiful focus states */
+
+.focus-ring {
+  position: relative;
+}
+
+.focus-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid transparent;
+  transition: border-color var(--duration-fast) var(--ease-out);
+  pointer-events: none;
+}
+
+.focus-ring:focus-visible::before {
+  border-color: var(--masters);
+}
+
+/* ---- SWITCH/TOGGLE ANIMATIONS ----
+   Smooth toggle transitions */
+
+.toggle-switch {
+  position: relative;
+  width: 52px;
+  height: 32px;
+  background: var(--rule);
+  border-radius: var(--radius-full);
+  transition: background var(--duration-normal) var(--ease-out);
+  cursor: pointer;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--duration-normal) var(--ease-spring);
+}
+
+.toggle-switch[data-checked="true"] {
+  background: var(--masters);
+}
+
+.toggle-switch[data-checked="true"]::after {
+  transform: translateX(20px);
+}
+
+/* ---- PULSE EFFECTS ----
+   Attention-grabbing pulses */
+
+@keyframes attentionPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--masters-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+.pulse-attention {
+  animation: attentionPulse 2s var(--ease-in-out) infinite;
+}
+
+/* ---- NUMBER COUNTER ----
+   Animated number changes */
+
+@keyframes countUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes countDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.number-animate-up {
+  animation: countUp var(--duration-normal) var(--ease-out);
+}
+
+.number-animate-down {
+  animation: countDown var(--duration-normal) var(--ease-out);
+}
+
+/* ---- CONFETTI BURST ----
+   Victory celebration */
+
+@keyframes confettiBurst {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.5) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+.confetti-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-sm);
+  animation: confettiBurst var(--duration-slower) var(--ease-out) forwards;
+}
+
+/* ---- SHAKE EFFECT ----
+   Error/validation feedback */
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-4px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake var(--duration-slow) var(--ease-out);
+}
+
+/* ---- BREATHE EFFECT ----
+   Subtle idle animation */
+
+@keyframes breathe {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+.animate-breathe {
+  animation: breathe 4s var(--ease-in-out) infinite;
+}
+
+/* ---- HEADER SCROLL EFFECT ---- */
+
+.header-scrolled {
+  background: rgba(253, 252, 250, 0.95);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---- BOTTOM NAV ANIMATION ----
+   Smooth nav item transitions */
+
+.nav-item {
+  transition: color var(--duration-normal) var(--ease-out),
+    transform var(--duration-fast) var(--ease-spring);
+}
+
+.nav-item:active {
+  transform: scale(0.95);
+}
+
+.nav-item svg {
+  transition: transform var(--duration-normal) var(--ease-spring);
+}
+
+.nav-item-active svg {
+  transform: scale(1.1);
+}
+
+/* Active indicator animate in */
+.nav-item-active::after {
+  animation: navIndicatorIn var(--duration-normal) var(--ease-spring);
+}
+
+@keyframes navIndicatorIn {
+  from {
+    transform: translateX(-50%) scaleX(0);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* ---- TOUCH FEEDBACK ----
+   Mobile-first interaction patterns */
+
+@media (hover: none) and (pointer: coarse) {
+
+  /* Enhance touch targets */
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Disable hover effects on touch */
+  .row-interactive:hover {
+    background: transparent;
+  }
+
+  /* Active states are more important on touch */
+  .row-interactive:active {
+    background: var(--canvas-warm);
+    transform: scale(0.99);
+  }
+}
+
+/* ---- REDUCED MOTION ----
+   Respect user preferences */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .stagger-item,
+  .page-enter,
+  .slide-in-right,
+  .animate-score-increment,
+  .animate-score-pop,
+  .animate-victory,
+  .animate-breathe,
+  .pulse-attention {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .skeleton {
+    animation: none;
+    background: var(--canvas-sunken);
+  }
 }
