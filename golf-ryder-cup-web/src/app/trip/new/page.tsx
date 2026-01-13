@@ -81,11 +81,11 @@ export default function NewTripPage() {
                 teamBName: teamBName.trim(),
             });
 
-            showToast('success', `${tripName} created successfully!`);
+            showToast('success', `${tripName} created`);
             router.push(`/?tripId=${result.trip.id}`);
         } catch (error) {
             console.error('Failed to create trip:', error);
-            showToast('error', 'Failed to create trip');
+            showToast('error', 'Could not create trip');
         } finally {
             setIsCreating(false);
         }

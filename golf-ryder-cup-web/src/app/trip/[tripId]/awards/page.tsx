@@ -148,9 +148,9 @@ export default function AwardsPage() {
 
         try {
             await navigator.clipboard.writeText(lines.join('\n'));
-            showToast('success', 'Copied to clipboard!');
+            showToast('success', 'Copied to clipboard');
         } catch {
-            showToast('error', 'Failed to copy');
+            showToast('error', 'Could not copy');
         }
     };
 

@@ -33,9 +33,9 @@ export default function TripSettingsPage() {
         setIsExporting(true);
         try {
             await exportTripToFile(tripId);
-            showToast('success', 'Trip exported successfully!');
-        } catch (error) {
-            showToast('error', `Export failed: ${error}`);
+            showToast('success', 'Trip exported');
+        } catch {
+            showToast('error', 'Export failed');
         } finally {
             setIsExporting(false);
         }
@@ -57,20 +57,20 @@ export default function TripSettingsPage() {
             if (result.success) {
                 setImportResult({
                     success: true,
-                    message: `Successfully imported "${result.tripName}" with ${result.stats.players} players, ${result.stats.matches} matches`,
+                    message: `Imported "${result.tripName}" with ${result.stats.players} players, ${result.stats.matches} matches`,
                 });
-                showToast('success', 'Trip imported successfully!');
+                showToast('success', 'Trip imported');
             } else {
                 setImportResult({
                     success: false,
-                    message: result.errors.join(', '),
+                    message: 'Import failed. Check file format.',
                 });
                 showToast('error', 'Import failed');
             }
-        } catch (error) {
+        } catch {
             setImportResult({
                 success: false,
-                message: `Import failed: ${error}`,
+                message: 'Could not read file',
             });
         } finally {
             setIsImporting(false);
@@ -84,9 +84,9 @@ export default function TripSettingsPage() {
         setIsSharing(true);
         try {
             await shareTripSummary(tripId);
-            showToast('success', 'Summary copied to clipboard!');
-        } catch (error) {
-            showToast('error', `Share failed: ${error}`);
+            showToast('success', 'Summary copied to clipboard');
+        } catch {
+            showToast('error', 'Could not copy summary');
         } finally {
             setIsSharing(false);
         }
@@ -120,8 +120,8 @@ export default function TripSettingsPage() {
 
             showToast('success', 'Trip deleted');
             router.push('/');
-        } catch (error) {
-            showToast('error', `Delete failed: ${error}`);
+        } catch {
+            showToast('error', 'Could not delete trip');
             setIsDeleting(false);
             setShowDeleteConfirm(false);
         }

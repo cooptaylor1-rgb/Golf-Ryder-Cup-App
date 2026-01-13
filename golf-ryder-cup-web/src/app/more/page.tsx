@@ -138,10 +138,10 @@ export default function MorePage() {
         try {
             const tripId = await seedDemoData();
             await loadTrip(tripId);
-            showToast('success', 'Demo data loaded successfully');
+            showToast('success', 'Demo data loaded');
         } catch (error) {
             console.error('Failed to seed data:', error);
-            showToast('error', 'Failed to load demo data');
+            showToast('error', 'Could not load demo data');
         } finally {
             setIsSeeding(false);
         }
@@ -152,11 +152,11 @@ export default function MorePage() {
             await clearDemoData();
             clearTrip();
             setShowClearConfirm(false);
-            showToast('info', 'All data cleared');
+            showToast('info', 'Data cleared');
             router.push('/');
         } catch (error) {
             console.error('Failed to clear data:', error);
-            showToast('error', 'Failed to clear data');
+            showToast('error', 'Could not clear data');
         }
     };
 

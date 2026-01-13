@@ -166,8 +166,8 @@ export default function CourseLibraryPage() {
         try {
             await deleteCourseProfile(courseId);
             showToast('success', 'Course deleted');
-        } catch (error) {
-            showToast('error', `Failed to delete: ${error}`);
+        } catch {
+            showToast('error', 'Could not delete course');
         }
     };
 
@@ -204,8 +204,8 @@ export default function CourseLibraryPage() {
             );
             showToast('success', `${courseData.name} imported to library`);
             setShowDatabaseSearch(false);
-        } catch (error) {
-            showToast('error', `Failed to import: ${error}`);
+        } catch {
+            showToast('error', 'Could not import course');
         }
     };
 
