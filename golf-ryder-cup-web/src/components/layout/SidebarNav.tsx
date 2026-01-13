@@ -75,7 +75,7 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
             aria-label="Main navigation"
         >
             {/* Logo / Brand */}
-            <div 
+            <div
                 className={cn('h-14 flex items-center px-4')}
                 style={{ borderBottom: '1px solid rgba(58, 53, 48, 0.5)' }}
             >
@@ -161,11 +161,11 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
 
                             {/* Captain badge */}
                             {item.tab === 'more' && isCaptainMode && (
-                                <Shield 
+                                <Shield
                                     className={cn(
                                         'w-3.5 h-3.5',
                                         isExpanded ? 'ml-auto' : 'absolute top-2 right-2',
-                                    )} 
+                                    )}
                                     style={{ color: '#006747' }}
                                 />
                             )}
@@ -194,7 +194,7 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
                         'h-12',
                         'transition-colors duration-200',
                     )}
-                    style={{ 
+                    style={{
                         borderTop: '1px solid rgba(58, 53, 48, 0.5)',
                         color: '#807868',
                     }}

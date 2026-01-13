@@ -95,7 +95,7 @@ export function HeaderNew({
 
             {/* Center - Title & Context */}
             <div className="flex-1 min-w-0 text-center lg:text-left">
-                <h1 
+                <h1
                     className="text-lg font-semibold truncate"
                     style={{ fontFamily: 'Georgia, serif', color: '#F5F1E8' }}
                 >
@@ -113,7 +113,7 @@ export function HeaderNew({
                 {/* Offline indicator */}
                 {!isOnline && (
                     <Tooltip content="You're offline. Changes will sync when reconnected.">
-                        <div 
+                        <div
                             className="flex items-center gap-1.5 px-2 py-1 rounded-full"
                             style={{ background: 'rgba(212, 168, 75, 0.1)', color: '#D4A84B' }}
                         >
