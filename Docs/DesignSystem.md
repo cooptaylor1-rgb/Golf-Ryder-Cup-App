@@ -5,6 +5,7 @@
 This design system defines the visual language for the Golf Ryder Cup app, inspired by **The Masters / Augusta National**. The aesthetic evokes the understated luxury and timeless elegance of a premier private golf club.
 
 **Design Philosophy:**
+
 1. **Understated Luxury** - The quiet confidence of a private club, never flashy
 2. **Warm Surfaces** - Rich dark tones with warm undertones, never cold or sterile
 3. **Championship Gold** - Premium accent color that catches the eye
@@ -111,6 +112,7 @@ extension Font {
 ## Spacing System
 
 ### Base Unit
+
 `4pt` base unit. All spacing is a multiple of 4.
 
 ### Spacing Scale
@@ -207,30 +209,35 @@ extension View {
 ### Buttons
 
 #### Primary Button
+
 ```
 ┌─────────────────────────────┐
 │     Start Scoring           │  44pt height, full width
 │         ●                   │  Primary color bg
 └─────────────────────────────┘  White text, bold
 ```
+
 - Height: 44pt minimum (54pt preferred)
 - Corner radius: 12pt
 - Background: `primary`
 - Text: `textOnPrimary`, semibold
 
 #### Secondary Button
+
 ```
 ┌─────────────────────────────┐
 │     View Details            │  44pt height
 │                             │  Bordered, primary color
 └─────────────────────────────┘
 ```
+
 - Height: 44pt minimum
 - Corner radius: 12pt
 - Border: 1.5pt `primary`
 - Text: `primary`, semibold
 
 #### Scoring Button (Special)
+
 ```
 ┌───────────────────┐
 │                   │
@@ -238,6 +245,7 @@ extension View {
 │                   │  Team color bg
 └───────────────────┘  Extra large touch target
 ```
+
 - Height: 60pt minimum
 - Corner radius: 16pt
 - Background: Team color
@@ -246,6 +254,7 @@ extension View {
 ### Cards
 
 #### Match Card
+
 ```
 ┌────────────────────────────────────┐
 │ MATCH 1                    2:00 PM │
@@ -259,12 +268,14 @@ extension View {
 │ └──────────────────────────────┘   │
 └────────────────────────────────────┘
 ```
+
 - Padding: 16pt
 - Corner radius: 16pt
 - Background: `surface`
 - Status badge: rounded, team color
 
 #### Next Up Card (Hero)
+
 ```
 ┌────────────────────────────────────┐
 │ ⏰ NEXT UP                         │
@@ -283,6 +294,7 @@ extension View {
 │ └──────────────────────────────┘   │
 └────────────────────────────────────┘
 ```
+
 - Padding: 20pt
 - Corner radius: 20pt
 - Background: gradient or elevated surface
@@ -291,20 +303,24 @@ extension View {
 ### Score Display
 
 #### Big Score
+
 ```
         8.5 — 5.5
    ████████░░░░░░░
 ```
+
 - Numbers: `scoreHero` font
 - Progress bar: 8pt height, rounded
 - Team colors for fill
 
 #### Match Status Badge
+
 ```
 ┌─────────────────────┐
 │ USA 2 UP            │  Chip style
 └─────────────────────┘
 ```
+
 - Height: 28pt
 - Padding: 8pt horizontal
 - Corner radius: 14pt (pill)
@@ -314,10 +330,12 @@ extension View {
 ### Hole Indicator
 
 #### Hole Dots
+
 ```
 ● ○ ● ○ ○ ● ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○ ○
 1 2 3 4 5 6 7 8 9 ...
 ```
+
 - Dot size: 8pt (12pt current hole)
 - Spacing: 4pt
 - Colors: Team color for wins, `textTertiary` for halved, empty for unplayed
@@ -330,6 +348,7 @@ extension View {
 │ JS  │  32pt default, 44pt large
 └─────┘
 ```
+
 - Sizes: 24pt (small), 32pt (default), 44pt (large), 64pt (profile)
 - Shape: Circle
 - Fallback: Initials on `surfaceVariant`
@@ -350,6 +369,7 @@ extension View {
 │                                    │
 └────────────────────────────────────┘
 ```
+
 - Icon: 48pt, `textTertiary`
 - Title: `title3`, `textPrimary`
 - Description: `body`, `textSecondary`, centered
@@ -360,6 +380,7 @@ extension View {
 ## Motion & Animation
 
 ### Principles
+
 1. **Purposeful** - Animation guides attention, never decorative noise
 2. **Swift** - Fast enough to not slow interaction (200-300ms typical)
 3. **Natural** - Physics-based easing, not linear
@@ -387,18 +408,21 @@ extension View {
 ### Standard Animations
 
 #### Button Press
+
 ```swift
 .scaleEffect(isPressed ? 0.95 : 1.0)
 .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
 ```
 
 #### Score Change
+
 ```swift
 // Number rolls up/down with spring
 .contentTransition(.numericText())
 ```
 
 #### Card Appearance
+
 ```swift
 .transition(.asymmetric(
     insertion: .opacity.combined(with: .move(edge: .bottom)),
@@ -407,6 +431,7 @@ extension View {
 ```
 
 #### Match Win Celebration
+
 - Confetti particles (team colors)
 - Score flash (glow effect)
 - Badge pulse animation
@@ -444,15 +469,15 @@ struct HapticManager {
     static func buttonTap() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
-    
+
     static func scoreEntered() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
-    
+
     static func success() {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
-    
+
     static func error() {
         UINotificationFeedbackGenerator().notificationOccurred(.error)
     }

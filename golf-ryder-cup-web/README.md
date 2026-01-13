@@ -62,6 +62,7 @@ src/
 ⚠️ **Important**: Tailwind CSS 4 arbitrary color values (`bg-[#hex]`) may not render reliably. Critical colors use inline React `style={{}}` attributes for guaranteed rendering.
 
 Example:
+
 ```tsx
 // Preferred for critical colors:
 <div style={{ background: '#0F0D0A', color: '#F5F1E8' }}>
