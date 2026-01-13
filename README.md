@@ -203,19 +203,37 @@ npm start
 
 ## 🎨 Design System
 
-Augusta National-inspired premium design:
+**Masters / Augusta National-inspired premium design:**
 
-### Colors
+### Color Palette
 
-- **Team USA**: Blue (#1565C0)
-- **Team Europe**: Red (#C62828)
-- **Primary**: Augusta Green (#006747)
-- **Accent**: Championship Gold (#FFD700)
+| Color | Hex | Usage |
+|-------|-----|-------|
+| **Background** | `#0F0D0A` | Rich warm black (not pure black) |
+| **Surface** | `#1E1C18` | Card backgrounds, raised elements |
+| **Surface Raised** | `#252320` | Elevated elements, hover states |
+| **Championship Gold** | `#C4A747` | Primary accent, buttons, active states |
+| **Gold Dark** | `#A38B2D` | Gold gradients, shadows |
+| **Masters Green** | `#006747` | Secondary accent, success states |
+| **Magnolia Cream** | `#F5F1E8` | Primary text (warm, not pure white) |
+| **Muted Text** | `#B8B0A0` | Secondary text |
+| **Subtle Text** | `#807868` | Tertiary text, hints |
+| **Azalea Pink** | `#D84C6F` | Destructive actions, warnings |
+| **Border** | `#3A3530` | Subtle borders, dividers |
+
+### Design Philosophy
+
+- **Understated luxury** — The quiet confidence of a private club
+- **Warm surfaces** — Rich dark tones, never cold or sterile
+- **Championship gold** — Premium accent color throughout
+- **Serif typography** — Georgia for elegant display text
+- **Generous whitespace** — Let content breathe
 
 ### Typography
 
-- Score displays: Monospace, large sizes
-- Body text: System fonts for readability
+- **Display/Headers**: Georgia serif for timeless elegance
+- **Body**: System fonts (Inter) for readability
+- **Scores**: Monospace, tabular nums for alignment
 
 ### Principles
 

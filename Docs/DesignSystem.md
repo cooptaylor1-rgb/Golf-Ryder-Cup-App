@@ -2,72 +2,59 @@
 
 ## Overview
 
-This design system defines the visual language for the Golf Ryder Cup app. The goal is a premium, golf-inspired aesthetic that feels authoritative yet approachable—like the best golf club member experience, in your pocket.
+This design system defines the visual language for the Golf Ryder Cup app, inspired by **The Masters / Augusta National**. The aesthetic evokes the understated luxury and timeless elegance of a premier private golf club.
 
-**Design Principles:**
-1. **Clarity First** - Information hierarchy is paramount; scores must be glanceable
-2. **Premium Feel** - Dark mode default, subtle depth, refined typography
-3. **Golf Heritage** - Classic greens, tournament aesthetics, trophy gold accents
-4. **Accessibility** - WCAG AA minimum, Dynamic Type, high contrast options
+**Design Philosophy:**
+1. **Understated Luxury** - The quiet confidence of a private club, never flashy
+2. **Warm Surfaces** - Rich dark tones with warm undertones, never cold or sterile
+3. **Championship Gold** - Premium accent color that catches the eye
+4. **Serif Typography** - Georgia for elegance, system fonts for clarity
+5. **Generous Whitespace** - Let content breathe
 
 ---
 
 ## Color System
 
-### Brand Colors
-
-| Token | Light Mode | Dark Mode | Usage |
-|-------|-----------|-----------|-------|
-| `primary` | #1B5E20 | #4CAF50 | Primary actions, links, active states |
-| `primaryVariant` | #2E7D32 | #81C784 | Hover states, secondary emphasis |
-| `secondary` | #B8860B | #FFD54F | Accents, trophies, highlights |
-| `secondaryVariant` | #8B6914 | #FFECB3 | Secondary accents |
-
-### Team Colors
-
-| Token | Hex | RGB | Usage |
-|-------|-----|-----|-------|
-| `teamUSA` | #1565C0 | 21, 101, 192 | Team USA/Blue indicators |
-| `teamUSALight` | #42A5F5 | 66, 165, 245 | Team USA highlights |
-| `teamEurope` | #C62828 | 198, 40, 40 | Team Europe/Red indicators |
-| `teamEuropeLight` | #EF5350 | 239, 83, 80 | Team Europe highlights |
-
-### Semantic Colors
-
-| Token | Light Mode | Dark Mode | Usage |
-|-------|-----------|-----------|-------|
-| `success` | #2E7D32 | #66BB6A | Wins, positive states |
-| `warning` | #F57C00 | #FFB74D | Cautions, handicap warnings |
-| `error` | #C62828 | #EF5350 | Errors, destructive actions |
-| `info` | #1976D2 | #64B5F6 | Informational states |
-
-### Surface Colors
-
-| Token | Light Mode | Dark Mode | Usage |
-|-------|-----------|-----------|-------|
-| `background` | #FAFAFA | #121212 | App background |
-| `surface` | #FFFFFF | #1E1E1E | Cards, sheets, modals |
-| `surfaceVariant` | #F5F5F5 | #2C2C2C | Secondary surfaces |
-| `surfaceElevated` | #FFFFFF | #333333 | Elevated cards (depth) |
-
-### Text Colors
-
-| Token | Light Mode | Dark Mode | Usage |
-|-------|-----------|-----------|-------|
-| `textPrimary` | #212121 | #FFFFFF | Primary content |
-| `textSecondary` | #757575 | #B0B0B0 | Secondary content |
-| `textTertiary` | #9E9E9E | #757575 | Tertiary, disabled |
-| `textOnPrimary` | #FFFFFF | #000000 | Text on primary color |
-
-### Golf-Specific Colors
+### Masters Primary Colors
 
 | Token | Hex | Usage |
 |-------|-----|-------|
-| `fairway` | #4CAF50 | Course/fairway indicators |
-| `bunker` | #D7CCC8 | Bunker/sand indicators |
-| `water` | #29B6F6 | Water hazards |
-| `rough` | #8BC34A | Rough indicators |
-| `green` | #2E7D32 | Putting green |
+| `masters-green` | `#006747` | Official Masters green, secondary accent |
+| `masters-green-light` | `#1B8F6A` | Lighter green for hover states |
+| `masters-green-dark` | `#004D35` | Darker green for depth |
+| `masters-gold` | `#C4A747` | **Championship gold - PRIMARY accent** |
+| `masters-gold-light` | `#D4BC6A` | Gold hover state |
+| `masters-gold-dark` | `#A38B2D` | Gold shadows, gradients |
+
+### Augusta Course Elements
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `magnolia` | `#F5F1E8` | **Primary text color** (warm cream) |
+| `azalea` | `#D84C6F` | Destructive actions, warnings |
+| `amen-corner` | `#E8DCC8` | Sand/bunker tones |
+| `rae-creek` | `#5B8FA8` | Water hazard blue |
+| `dogwood` | `#FEFEFE` | Pure white (rare usage) |
+
+### Surface Colors (Dark Theme)
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `surface-base` | `#0F0D0A` | **App background** (warm black) |
+| `surface-raised` | `#1A1814` | Card backgrounds |
+| `surface-card` | `#1E1C18` | Elevated cards, modals |
+| `surface-elevated` | `#252320` | Hover states, higher elevation |
+| `surface-highlight` | `#3A3530` | Borders, dividers |
+
+### Text Colors
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `text-primary` | `#F5F1E8` | Primary content (magnolia cream) |
+| `text-secondary` | `#B8B0A0` | Secondary content |
+| `text-tertiary` | `#807868` | Hints, labels |
+| `text-disabled` | `#605850` | Disabled text |
+| `text-gold` | `#C4A747` | Gold accent text |
 
 ---
 

@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏆 Golf Ryder Cup Web App
+
+A premium Progressive Web App for tracking Ryder Cup–style golf tournaments.
+
+## Tech Stack
+
+- **Framework**: Next.js 16.1.1 (App Router + Turbopack)
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS 4 + inline styles for critical colors
+- **State**: Zustand (client state) + Dexie.js (IndexedDB persistence)
+- **Icons**: Lucide React
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Design System
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Masters / Augusta National inspired premium dark theme:**
 
-## Learn More
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Background | `#0F0D0A` | Rich warm black |
+| Surface | `#1E1C18` | Card backgrounds |
+| Gold Accent | `#C4A747` | Primary accent (buttons, active states) |
+| Magnolia | `#F5F1E8` | Primary text color |
+| Border | `#3A3530` | Subtle borders |
 
-To learn more about Next.js, take a look at the following resources:
+### Typography
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Display**: Georgia serif for headers and titles
+- **Body**: Inter / system fonts
+- **Scores**: Monospace with tabular nums
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+src/
+├── app/              # Next.js routes
+│   ├── page.tsx      # Home (trip list)
+│   ├── score/        # Live scoring
+│   ├── matchups/     # Session management
+│   ├── standings/    # Leaderboard
+│   └── trip/         # Trip creation/settings
+├── components/       # Reusable UI
+│   ├── layout/       # AppShell, Nav, Header
+│   └── ui/           # Buttons, Cards, etc.
+└── lib/
+    ├── db/           # IndexedDB (Dexie)
+    ├── services/     # Business logic
+    ├── stores/       # Zustand stores
+    └── types/        # TypeScript types
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Styling Notes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+⚠️ **Important**: Tailwind CSS 4 arbitrary color values (`bg-[#hex]`) may not render reliably. Critical colors use inline React `style={{}}` attributes for guaranteed rendering.
+
+Example:
+```tsx
+// Preferred for critical colors:
+<div style={{ background: '#0F0D0A', color: '#F5F1E8' }}>
+
+// Tailwind for layout/spacing:
+<div className="min-h-screen flex flex-col px-4">
+```
+
+## Commands
+
+```bash
+npm run dev       # Development server
+npm run build     # Production build
+npm run lint      # ESLint
+npm run typecheck # TypeScript check
+```
