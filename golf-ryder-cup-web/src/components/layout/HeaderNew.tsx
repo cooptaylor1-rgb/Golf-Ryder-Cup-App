@@ -64,9 +64,12 @@ export function HeaderNew({
                 'sticky top-0 z-40',
                 'h-14 px-4',
                 'flex items-center gap-3',
-                'bg-surface-card/95 backdrop-blur-md',
-                'border-b border-surface-border/50',
+                'backdrop-blur-md',
             )}
+            style={{
+                background: 'rgba(30, 28, 24, 0.95)',
+                borderBottom: '1px solid rgba(58, 53, 48, 0.5)',
+            }}
         >
             {/* Left side - Back button or Menu */}
             <div className="flex items-center gap-1 min-w-[40px]">
@@ -92,11 +95,14 @@ export function HeaderNew({
 
             {/* Center - Title & Context */}
             <div className="flex-1 min-w-0 text-center lg:text-left">
-                <h1 className="font-serif text-lg font-semibold text-magnolia truncate">
+                <h1 
+                    className="text-lg font-semibold truncate"
+                    style={{ fontFamily: 'Georgia, serif', color: '#F5F1E8' }}
+                >
                     {displayTitle}
                 </h1>
                 {subtitle && (
-                    <p className="text-xs text-text-secondary truncate">
+                    <p className="text-xs truncate" style={{ color: '#B8B0A0' }}>
                         {subtitle}
                     </p>
                 )}
@@ -107,7 +113,10 @@ export function HeaderNew({
                 {/* Offline indicator */}
                 {!isOnline && (
                     <Tooltip content="You're offline. Changes will sync when reconnected.">
-                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-warning/10 text-warning">
+                        <div 
+                            className="flex items-center gap-1.5 px-2 py-1 rounded-full"
+                            style={{ background: 'rgba(212, 168, 75, 0.1)', color: '#D4A84B' }}
+                        >
                             <WifiOff className="w-3.5 h-3.5" />
                             <span className="text-xs font-medium hidden sm:inline">Offline</span>
                         </div>
@@ -119,11 +128,8 @@ export function HeaderNew({
                     <Tooltip content="Captain Mode enabled. Tap to disable.">
                         <button
                             onClick={disableCaptainMode}
-                            className={cn(
-                                'flex items-center gap-1.5 px-2 py-1 rounded-full',
-                                'bg-gold/10 text-gold',
-                                'hover:bg-gold/20 transition-colors',
-                            )}
+                            className="flex items-center gap-1.5 px-2 py-1 rounded-full transition-colors"
+                            style={{ background: 'rgba(196, 167, 71, 0.1)', color: '#C4A747' }}
                         >
                             <Shield className="w-3.5 h-3.5" />
                             <span className="text-xs font-medium hidden sm:inline">Captain</span>

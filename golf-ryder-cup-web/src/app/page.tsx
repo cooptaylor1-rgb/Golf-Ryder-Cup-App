@@ -44,7 +44,7 @@ function HeroSection() {
           boxShadow: '0 10px 40px rgba(196, 167, 71, 0.4)'
         }}
       >
-        <Trophy className="h-10 w-10 text-white" />
+        <Trophy className="h-10 w-10" style={{ color: 'white' }} />
       </div>
 
       {/* Title - Serif elegance */}
@@ -83,12 +83,12 @@ function TripCard({ trip, onSelect }: TripCardProps) {
       onClick={() => onSelect(trip.id)}
       style={{
         background: '#1E1C18',
+        borderTop: '1px solid #3A3530',
+        borderRight: '1px solid #3A3530',
+        borderBottom: '1px solid #3A3530',
         borderLeft: '4px solid #C4A747',
-        border: '1px solid #3A3530',
-        borderLeftWidth: '4px',
-        borderLeftColor: '#C4A747',
       }}
-      className="group w-full text-left p-5 rounded-xl hover:bg-[#252320] active:scale-[0.99] transition-all duration-200"
+      className="group w-full text-left p-5 rounded-xl active:scale-[0.99] transition-all duration-200"
     >
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
