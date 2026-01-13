@@ -6,172 +6,21 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { seedDemoData, clearDemoData } from '@/lib/db/seed';
 import { useTripStore, useUIStore } from '@/lib/stores';
-import { AppShellNew } from '@/components/layout';
-import { Badge, ConfirmDialog } from '@/components/ui';
-import {
-  Trophy,
-  Play,
-  Plus,
-  ChevronRight,
-  Calendar,
-  MapPin,
-  Zap,
-  Settings,
-  ChevronDown,
-  Flag,
-  Users,
-  Database,
-  Trash2,
-} from 'lucide-react';
-import { cn, formatDate } from '@/lib/utils';
+import { ConfirmDialog } from '@/components/ui';
+import { Trophy, Plus, ChevronRight, MapPin, Flag, Database, Trash2 } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 /**
- * MASTERS-INSPIRED HOME PAGE
- * Premium, polished, tournament-quality design
+ * HOME PAGE - Clean Slate
+ * Minimal, functional starting point for new UI
  */
-
-// ============================================
-// HERO SECTION - Grand entrance
-// ============================================
-function HeroSection() {
-  return (
-    <div className="text-center py-12 px-4">
-      {/* Trophy Icon - Gold accent */}
-      <div
-        className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6"
-        style={{
-          background: 'linear-gradient(135deg, #C4A747 0%, #A38B2D 100%)',
-          boxShadow: '0 10px 40px rgba(196, 167, 71, 0.4)'
-        }}
-      >
-        <Trophy className="h-10 w-10" style={{ color: 'white' }} />
-      </div>
-
-      {/* Title - Serif elegance */}
-      <h1
-        className="text-3xl md:text-4xl font-semibold mb-3"
-        style={{ fontFamily: 'Georgia, serif', color: '#F5F1E8' }}
-      >
-        Ryder Cup Tracker
-      </h1>
-
-      {/* Subtitle */}
-      <p style={{ color: '#B8B0A0' }} className="text-lg max-w-md mx-auto">
-        Score your matches, track standings, manage your tournament
-      </p>
-    </div>
-  );
-}
-
-// ============================================
-// TRIP CARD - Premium card styling
-// ============================================
-interface TripCardProps {
-  trip: {
-    id: string;
-    name: string;
-    location?: string;
-    startDate: Date | string;
-    endDate: Date | string;
-  };
-  onSelect: (id: string) => void;
-}
-
-function TripCard({ trip, onSelect }: TripCardProps) {
-  return (
-    <button
-      onClick={() => onSelect(trip.id)}
-      style={{
-        background: '#1E1C18',
-        borderTop: '1px solid #3A3530',
-        borderRight: '1px solid #3A3530',
-        borderBottom: '1px solid #3A3530',
-        borderLeft: '4px solid #C4A747',
-      }}
-      className="group w-full text-left p-5 rounded-xl active:scale-[0.99] transition-all duration-200"
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex-1 min-w-0">
-          <h3 style={{ color: '#F5F1E8' }} className="font-semibold text-lg truncate">
-            {trip.name}
-          </h3>
-          {trip.location && (
-            <div className="flex items-center gap-1.5 mt-1" style={{ color: '#807868' }}>
-              <MapPin className="h-3.5 w-3.5" />
-              <span className="text-sm truncate">{trip.location}</span>
-            </div>
-          )}
-        </div>
-        {/* Date badge */}
-        <div className="flex items-center gap-2 ml-4">
-          <span style={{ color: '#C4A747' }} className="text-sm font-medium">
-            {formatDate(trip.startDate, 'short')}
-          </span>
-          <ChevronRight style={{ color: '#807868' }} className="h-5 w-5 group-hover:translate-x-0.5 transition-all" />
-        </div>
-      </div>
-    </button>
-  );
-}
-
-// ============================================
-// DEVELOPER TOOLS SECTION
-// ============================================
-interface DevToolsProps {
-  onLoadDemo: () => void;
-  onClearData: () => void;
-  isLoading: boolean;
-}
-
-function DevToolsSection({ onLoadDemo, onClearData, isLoading }: DevToolsProps) {
-  return (
-    <div style={{ borderTop: '1px solid #3A3530' }} className="mt-12 pt-8">
-      <h3 style={{ color: '#807868' }} className="text-sm font-medium mb-4">Developer Tools</h3>
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={onLoadDemo}
-          disabled={isLoading}
-          style={{
-            background: '#1E1C18',
-            border: '1px solid #3A3530',
-            color: '#B8B0A0',
-          }}
-          className="flex items-center justify-center gap-2 p-4 rounded-xl hover:bg-[#252320] disabled:opacity-50 transition-all duration-200"
-        >
-          <Database className="h-4 w-4" />
-          <span className="text-sm font-medium">Load Demo</span>
-        </button>
-        <button
-          onClick={onClearData}
-          disabled={isLoading}
-          style={{
-            background: 'rgba(216, 76, 111, 0.1)',
-            border: '1px solid rgba(216, 76, 111, 0.3)',
-            color: '#D84C6F',
-          }}
-          className="flex items-center justify-center gap-2 p-4 rounded-xl hover:bg-[#D84C6F]/20 disabled:opacity-50 transition-all duration-200"
-        >
-          <Trash2 className="h-4 w-4" />
-          <span className="text-sm font-medium">Clear Data</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// MAIN HOME PAGE COMPONENT
-// ============================================
 export default function HomePage() {
   const router = useRouter();
   const { loadTrip } = useTripStore();
   const { showToast } = useUIStore();
-
-  // Loading states
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Query trips from database
   const trips = useLiveQuery(
     () => db.trips.orderBy('startDate').reverse().toArray(),
     []
@@ -182,9 +31,7 @@ export default function HomePage() {
     router.push('/standings');
   };
 
-  const handleCreateTrip = () => {
-    router.push('/trip/new');
-  };
+  const handleCreateTrip = () => router.push('/trip/new');
 
   const handleLoadDemo = async () => {
     setIsDemoLoading(true);
@@ -193,7 +40,6 @@ export default function HomePage() {
       showToast('success', 'Demo tournament loaded');
     } catch (error) {
       showToast('error', 'Failed to load demo data');
-      console.error(error);
     } finally {
       setIsDemoLoading(false);
     }
@@ -206,7 +52,6 @@ export default function HomePage() {
       showToast('info', 'All data cleared');
     } catch (error) {
       showToast('error', 'Failed to clear data');
-      console.error(error);
     } finally {
       setIsDemoLoading(false);
       setShowClearConfirm(false);
@@ -214,84 +59,270 @@ export default function HomePage() {
   };
 
   return (
-    <AppShellNew>
-      <div className="min-h-screen" style={{ background: '#0F0D0A' }}>
-        <div className="max-w-2xl mx-auto px-4 pb-24">
-          {/* Hero Section */}
-          <HeroSection />
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#0a0a0a',
+      color: '#ffffff',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+    }}>
+      {/* Simple Header */}
+      <header style={{
+        padding: '16px 20px',
+        borderBottom: '1px solid #222',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <h1 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>
+          Ryder Cup Tracker
+        </h1>
+        <Trophy style={{ width: 24, height: 24, color: '#888' }} />
+      </header>
 
-          {/* Trips Section */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-serif text-xl" style={{ color: '#F5F1E8' }}>Your Trips</h2>
-              <button
-                onClick={handleCreateTrip}
-                className="flex items-center gap-1.5 text-sm font-medium transition-colors"
-                style={{ color: '#C4A747' }}
-              >
-                <Plus className="h-4 w-4" />
-                <span>New Trip</span>
-              </button>
-            </div>
+      {/* Main Content */}
+      <main style={{ padding: '24px 20px', maxWidth: '600px', margin: '0 auto' }}>
 
-            {trips && trips.length > 0 ? (
-              <div className="space-y-3">
-                {trips.map((trip) => (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    onSelect={handleSelectTrip}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div
-                className="text-center py-16 px-6 rounded-2xl border border-dashed"
-                style={{ background: '#1A1814', borderColor: '#3A3530' }}
-              >
-                <div
-                  className="inline-flex items-center justify-center w-14 h-14 rounded-xl mb-4"
-                  style={{ background: '#252320' }}
-                >
-                  <Flag className="h-7 w-7" style={{ color: '#807868' }} />
-                </div>
-                <h3 className="font-serif text-lg mb-2" style={{ color: '#F5F1E8' }}>No tournaments yet</h3>
-                <p className="text-sm mb-6" style={{ color: '#807868' }}>Create your first tournament to get started</p>
-                <button
-                  onClick={handleCreateTrip}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold active:scale-[0.98] transition-all duration-200"
-                  style={{
-                    background: 'linear-gradient(to right, #C4A747, #A38B2D)',
-                    color: '#0F0D0A',
-                    boxShadow: '0 10px 15px -3px rgba(196, 167, 71, 0.2)'
-                  }}
-                >
-                  <Plus className="h-5 w-5" />
-                  <span>Create Tournament</span>
-                </button>
-              </div>
-            )}
-          </section>
-
-          {/* Developer Tools */}
-          <DevToolsSection
-            onLoadDemo={handleLoadDemo}
-            onClearData={() => setShowClearConfirm(true)}
-            isLoading={isDemoLoading}
-          />
+        {/* Hero */}
+        <div style={{ textAlign: 'center', padding: '40px 0' }}>
+          <div style={{
+            width: 80,
+            height: 80,
+            borderRadius: 16,
+            backgroundColor: '#222',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 20,
+          }}>
+            <Trophy style={{ width: 40, height: 40, color: '#666' }} />
+          </div>
+          <h2 style={{ fontSize: '28px', fontWeight: 600, marginBottom: 8 }}>
+            Ryder Cup Tracker
+          </h2>
+          <p style={{ color: '#888', fontSize: '16px' }}>
+            Score matches, track standings, manage tournaments
+          </p>
         </div>
 
-        {/* Clear Confirmation Dialog */}
-        <ConfirmDialog
-          isOpen={showClearConfirm}
-          onClose={() => setShowClearConfirm(false)}
-          onConfirm={handleClearData}
-          title="Clear All Data"
-          description="This will permanently delete all tournaments, players, and scores. This action cannot be undone."
-          confirmLabel="Clear Everything"
-          variant="danger"
-        />
-      </div>
-    </AppShellNew>
+        {/* Trips Section */}
+        <section>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 16,
+          }}>
+            <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>Your Trips</h3>
+            <button
+              onClick={handleCreateTrip}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#3b82f6',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <Plus style={{ width: 16, height: 16 }} />
+              New Trip
+            </button>
+          </div>
+
+          {trips && trips.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {trips.map((trip) => (
+                <button
+                  key={trip.id}
+                  onClick={() => handleSelectTrip(trip.id)}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '16px',
+                    backgroundColor: '#1a1a1a',
+                    border: '1px solid #333',
+                    borderRadius: 12,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: 600, color: '#fff' }}>
+                      {trip.name}
+                    </div>
+                    {trip.location && (
+                      <div style={{
+                        fontSize: '14px',
+                        color: '#888',
+                        marginTop: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                      }}>
+                        <MapPin style={{ width: 14, height: 14 }} />
+                        {trip.location}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: '14px', color: '#888' }}>
+                      {formatDate(trip.startDate, 'short')}
+                    </span>
+                    <ChevronRight style={{ width: 20, height: 20, color: '#666' }} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div style={{
+              textAlign: 'center',
+              padding: '48px 24px',
+              backgroundColor: '#111',
+              borderRadius: 12,
+              border: '1px dashed #333',
+            }}>
+              <Flag style={{ width: 32, height: 32, color: '#666', marginBottom: 16 }} />
+              <h4 style={{ fontSize: '16px', fontWeight: 600, marginBottom: 8 }}>
+                No tournaments yet
+              </h4>
+              <p style={{ color: '#888', fontSize: '14px', marginBottom: 20 }}>
+                Create your first tournament to get started
+              </p>
+              <button
+                onClick={handleCreateTrip}
+                style={{
+                  backgroundColor: '#3b82f6',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: 8,
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <Plus style={{ width: 18, height: 18 }} />
+                Create Tournament
+              </button>
+            </div>
+          )}
+        </section>
+
+        {/* Dev Tools */}
+        <section style={{ marginTop: 48, paddingTop: 24, borderTop: '1px solid #222' }}>
+          <h4 style={{ fontSize: '14px', color: '#666', marginBottom: 16 }}>Developer Tools</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <button
+              onClick={handleLoadDemo}
+              disabled={isDemoLoading}
+              style={{
+                padding: '16px',
+                backgroundColor: '#1a1a1a',
+                border: '1px solid #333',
+                borderRadius: 8,
+                color: '#888',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                opacity: isDemoLoading ? 0.5 : 1,
+              }}
+            >
+              <Database style={{ width: 16, height: 16 }} />
+              Load Demo
+            </button>
+            <button
+              onClick={() => setShowClearConfirm(true)}
+              disabled={isDemoLoading}
+              style={{
+                padding: '16px',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: 8,
+                color: '#ef4444',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                opacity: isDemoLoading ? 0.5 : 1,
+              }}
+            >
+              <Trash2 style={{ width: 16, height: 16 }} />
+              Clear Data
+            </button>
+          </div>
+        </section>
+      </main>
+
+      {/* Bottom Nav */}
+      <nav style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 64,
+        backgroundColor: '#0a0a0a',
+        borderTop: '1px solid #222',
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        padding: '0 16px',
+      }}>
+        {['Home', 'Score', 'Matchups', 'Standings', 'More'].map((label, i) => (
+          <button
+            key={label}
+            onClick={() => {
+              if (label === 'Home') router.push('/');
+              else if (label === 'Score') router.push('/score');
+              else if (label === 'Matchups') router.push('/matchups');
+              else if (label === 'Standings') router.push('/standings');
+              else if (label === 'More') router.push('/more');
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: i === 0 ? '#3b82f6' : '#666',
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            <div style={{
+              width: 24,
+              height: 24,
+              borderRadius: 4,
+              backgroundColor: i === 0 ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+            }} />
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={handleClearData}
+        title="Clear All Data"
+        description="This will permanently delete all tournaments, players, and scores."
+        confirmLabel="Clear Everything"
+        variant="danger"
+      />
+    </div>
   );
 }
