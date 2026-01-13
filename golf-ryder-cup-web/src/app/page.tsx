@@ -10,6 +10,7 @@ import { formatDate } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { calculateTeamStandings } from '@/lib/services/tournamentEngine';
 import type { TeamStandings } from '@/lib/types/computed';
+import { NoTournamentsEmpty } from '@/components/ui';
 
 /**
  * HOME PAGE — The Front Page
@@ -277,20 +278,8 @@ export default function HomePage() {
               ))}
             </div>
           ) : !activeTrip ? (
-            /* Empty state */
-            <div className="empty-state animate-victory">
-              <div className="empty-state-icon animate-breathe">
-                <Trophy size={28} strokeWidth={1.5} />
-              </div>
-              <p className="empty-state-title">No tournaments yet</p>
-              <p className="empty-state-text">
-                Create your first tournament to start tracking matches with friends
-              </p>
-              <Link href="/trip/new" className="btn btn-primary press-scale">
-                <Plus size={18} strokeWidth={2} />
-                Create Tournament
-              </Link>
-            </div>
+            /* Premium Empty State */
+            <NoTournamentsEmpty onCreateTrip={() => router.push('/trip/new')} />
           ) : null}
         </section>
       </main>

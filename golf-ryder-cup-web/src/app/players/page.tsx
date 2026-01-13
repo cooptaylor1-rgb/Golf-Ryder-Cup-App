@@ -6,6 +6,7 @@ import { useTripStore, useUIStore } from '@/lib/stores';
 import { formatPlayerName } from '@/lib/utils';
 import type { Player } from '@/lib/types/models';
 import { Edit2, Trash2, UserPlus, Users, X, ChevronLeft } from 'lucide-react';
+import { NoPlayersPremiumEmpty } from '@/components/ui';
 
 /**
  * PLAYERS PAGE - Editorial Design
@@ -212,19 +213,11 @@ export default function PlayersPage() {
                     </>
                 )}
 
-                {/* Empty State */}
+                {/* Premium Empty State */}
                 {players.length === 0 && (
-                    <div className="empty-state">
-                        <Users size={32} style={{ color: 'var(--ink-tertiary)', marginBottom: 'var(--space-4)' }} />
-                        <p className="empty-state-title">No players yet</p>
-                        <p className="empty-state-text">Add players to build your teams</p>
-                        {isCaptainMode && (
-                            <button onClick={() => setShowAddModal(true)} className="btn btn-primary">
-                                <UserPlus size={18} />
-                                Add Player
-                            </button>
-                        )}
-                    </div>
+                    <NoPlayersPremiumEmpty
+                        onAddPlayer={isCaptainMode ? () => setShowAddModal(true) : undefined}
+                    />
                 )}
             </main>
 

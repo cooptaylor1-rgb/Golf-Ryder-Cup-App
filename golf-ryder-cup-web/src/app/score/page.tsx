@@ -11,6 +11,7 @@ import { formatPlayerName } from '@/lib/utils';
 import { ChevronRight, ChevronLeft, Home, Target, Users, Trophy, MoreHorizontal } from 'lucide-react';
 import type { MatchState } from '@/lib/types/computed';
 import type { Player } from '@/lib/types/models';
+import { NoScoresPremiumEmpty } from '@/components/ui';
 
 /**
  * SCORE PAGE — Match List
@@ -156,16 +157,7 @@ export default function ScorePage() {
                             ))}
                         </div>
                     ) : (
-                        <div className="empty-state animate-victory">
-                            <div className="empty-state-icon animate-breathe">
-                                <Target size={28} strokeWidth={1.5} />
-                            </div>
-                            <p className="empty-state-title">No matches scheduled</p>
-                            <p className="empty-state-text">Set up matchups to start scoring</p>
-                            <Link href="/matchups" className="btn btn-primary">
-                                Set Up Matches
-                            </Link>
-                        </div>
+                        <NoScoresPremiumEmpty onStartScoring={() => router.push('/matchups')} />
                     )}
                 </section>
 

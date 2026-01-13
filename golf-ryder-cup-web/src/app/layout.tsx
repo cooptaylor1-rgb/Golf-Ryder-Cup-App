@@ -4,6 +4,7 @@ import './globals.css';
 import { PWAProvider } from '@/components/PWAProvider';
 import { PWABanners } from '@/components/PWABanners';
 import { ToastContainer } from '@/components/ui/Toast';
+import { AppOnboardingProvider } from '@/components/AppOnboardingProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -51,7 +52,9 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <PWAProvider>
-          {children}
+          <AppOnboardingProvider>
+            {children}
+          </AppOnboardingProvider>
           <ToastContainer />
           <PWABanners />
         </PWAProvider>

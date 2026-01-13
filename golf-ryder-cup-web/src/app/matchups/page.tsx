@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTripStore, useUIStore } from '@/lib/stores';
 import { formatPlayerName } from '@/lib/utils';
 import { Users, Plus, Shield, Calendar, ChevronRight, Home, Target, Trophy, MoreHorizontal, ChevronLeft } from 'lucide-react';
+import { NoSessionsPremiumEmpty } from '@/components/ui';
 
 /**
  * MATCHUPS PAGE — Team Rosters & Sessions
@@ -220,24 +221,10 @@ export default function MatchupsPage() {
               ))}
             </div>
           ) : (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <Users size={28} strokeWidth={1.5} />
-              </div>
-              <p className="empty-state-title">No sessions yet</p>
-              <p className="empty-state-text">
-                {isCaptainMode ? 'Create a session to set up matches' : 'Enable Captain Mode to create sessions'}
-              </p>
-              {isCaptainMode && (
-                <button
-                  onClick={() => router.push('/lineup/new')}
-                  className="btn btn-primary"
-                >
-                  <Plus size={18} strokeWidth={2} />
-                  Create Session
-                </button>
-              )}
-            </div>
+            <NoSessionsPremiumEmpty 
+              isCaptain={isCaptainMode}
+              onCreateSession={() => router.push('/lineup/new')}
+            />
           )}
         </section>
 

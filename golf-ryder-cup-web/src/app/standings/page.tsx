@@ -7,6 +7,7 @@ import { useTripStore } from '@/lib/stores';
 import { calculateTeamStandings, calculateMagicNumber, calculatePlayerLeaderboard } from '@/lib/services/tournamentEngine';
 import type { TeamStandings, MagicNumber, PlayerLeaderboard } from '@/lib/types/computed';
 import { Trophy, Home, Target, Users, MoreHorizontal, ChevronLeft } from 'lucide-react';
+import { NoStandingsPremiumEmpty } from '@/components/ui';
 
 /**
  * STANDINGS PAGE — The Leaderboard
@@ -347,15 +348,5 @@ function LoadingState() {
 }
 
 function EmptyState() {
-  return (
-    <div className="empty-state">
-      <div className="empty-state-icon">
-        <Trophy size={28} strokeWidth={1.5} />
-      </div>
-      <p className="empty-state-title">No standings yet</p>
-      <p className="empty-state-text">
-        Complete matches to see tournament standings
-      </p>
-    </div>
-  );
+  return <NoStandingsPremiumEmpty />;
 }

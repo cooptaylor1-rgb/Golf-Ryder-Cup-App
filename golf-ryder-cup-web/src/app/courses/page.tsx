@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Plus, Search, MapPin, Flag, Trash2, Copy, ChevronRight, Globe } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
@@ -11,6 +12,7 @@ import { CourseSearch } from '@/components/CourseSearch';
 import type { CourseProfile, TeeSetProfile } from '@/lib/types/courseProfile';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/lib/stores';
+import { NoCoursesPremiumEmpty, NoSearchResultsEmpty } from '@/components/ui';
 
 /**
  * COURSE LIBRARY PAGE - Masters-inspired design
@@ -320,31 +322,13 @@ export default function CourseLibraryPage() {
                             />
                         ))}
                     </div>
+                ) : searchQuery ? (
+                    <NoSearchResultsEmpty
+                        query={searchQuery}
+                        onClear={() => setSearchQuery('')}
+                    />
                 ) : (
-                    <div className="bg-surface-card rounded-xl border border-surface-border p-8 text-center">
-                        <Flag className="w-12 h-12 mx-auto mb-4 text-text-tertiary" />
-                        <h3 className="font-semibold text-magnolia mb-1">
-                            {searchQuery ? 'No matches' : 'No courses yet'}
-                        </h3>
-                        <p className="text-text-secondary text-sm mb-4">
-                            {searchQuery
-                                ? 'Try a different search'
-                                : 'Add courses to build your library'}
-                        </p>
-                        {!searchQuery && (
-                            <Link
-                                href="/courses/new"
-                                className={cn(
-                                    "inline-flex items-center gap-2 px-5 py-2.5 rounded-xl",
-                                    "bg-gradient-to-r from-gold to-gold-dark text-surface-base font-semibold",
-                                    "hover:shadow-glow-gold transition-all duration-200"
-                                )}
-                            >
-                                <Plus className="w-4 h-4" />
-                                Add Course
-                            </Link>
-                        )}
-                    </div>
+                    <NoCoursesPremiumEmpty onSearchCourses={() => setShowDatabaseSearch(true)} />
                 )}
             </main>
         </div>

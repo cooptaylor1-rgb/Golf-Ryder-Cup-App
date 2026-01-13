@@ -923,6 +923,20 @@ a,
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-fade-out {
+  animation: fadeOut var(--duration-normal) var(--ease-out) forwards;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -933,6 +947,23 @@ a,
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* Slide up from bottom (for tooltips, spotlights) */
+@keyframes slideUpFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUpFromBottom var(--duration-normal) var(--ease-spring);
 }
 
 /* ============================================
@@ -2246,6 +2277,738 @@ a,
   }
 }
 
+/* ============================================
+   ILLUSTRATION ANIMATIONS
+   Premium animations for empty states
+   ============================================ */
+
+/* Gentle floating animation */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 3s var(--ease-smooth) infinite;
+}
+
+/* Trophy shine sweep */
+@keyframes trophy-shine {
+
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+
+  50% {
+    filter: brightness(1.1);
+  }
+}
+
+.animate-trophy-shine {
+  animation: trophy-shine 2s var(--ease-smooth) infinite;
+}
+
+/* Golfer subtle movement */
+@keyframes golfer-left {
+
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateX(2px) rotate(1deg);
+  }
+}
+
+@keyframes golfer-right {
+
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateX(-2px) rotate(-1deg);
+  }
+}
+
+.animate-golfer-left {
+  animation: golfer-left 2.5s var(--ease-smooth) infinite;
+}
+
+.animate-golfer-right {
+  animation: golfer-right 2.5s var(--ease-smooth) infinite;
+  animation-delay: 0.5s;
+}
+
+/* Gentle pulse */
+@keyframes pulse-gentle {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    transform: scale(0.95);
+  }
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 2s var(--ease-smooth) infinite;
+}
+
+/* Scores filling in */
+@keyframes scores-fill {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scores-fill {
+  animation: scores-fill 0.5s var(--ease-spring) forwards;
+  opacity: 0;
+}
+
+/* Pencil writing motion */
+@keyframes pencil-write {
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-45deg);
+  }
+
+  25% {
+    transform: translate(-3px, 3px) rotate(-45deg);
+  }
+
+  75% {
+    transform: translate(3px, -3px) rotate(-45deg);
+  }
+}
+
+.animate-pencil-write {
+  animation: pencil-write 1.5s var(--ease-smooth) infinite;
+  transform-origin: bottom left;
+}
+
+/* Flag waving */
+@keyframes flag-wave {
+
+  0%,
+  100% {
+    d: path("M50 15 Q65 22 50 30 L50 15");
+  }
+
+  50% {
+    d: path("M50 15 Q62 20 50 30 L50 15");
+  }
+}
+
+.animate-flag-wave {
+  animation: flag-wave 2s var(--ease-smooth) infinite;
+}
+
+/* Ball rolling towards hole */
+@keyframes ball-roll {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  100% {
+    transform: translateX(25px) rotate(360deg);
+  }
+}
+
+.animate-ball-roll {
+  animation: ball-roll 2.5s var(--ease-decel) infinite;
+}
+
+/* Stagger fade for multiple elements */
+@keyframes stagger-fade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-stagger-fade>* {
+  animation: stagger-fade 0.5s var(--ease-out) forwards;
+  opacity: 0;
+}
+
+.animate-stagger-fade>*:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.animate-stagger-fade>*:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.animate-stagger-fade>*:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.animate-stagger-fade>*:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+/* Podium rising */
+@keyframes podium-rise {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-podium-rise {
+  animation: podium-rise 0.6s var(--ease-spring) forwards;
+  opacity: 0;
+}
+
+/* Confetti falling */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(5px) rotate(180deg);
+    opacity: 0.7;
+  }
+}
+
+.animate-confetti-fall>* {
+  animation: confetti-fall 2s var(--ease-out) infinite;
+}
+
+.animate-confetti-fall>*:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.animate-confetti-fall>*:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.animate-confetti-fall>*:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+.animate-confetti-fall>*:nth-child(4) {
+  animation-delay: 0.9s;
+}
+
+.animate-confetti-fall>*:nth-child(5) {
+  animation-delay: 0.15s;
+}
+
+/* Golf swing motion */
+@keyframes swing {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(-5deg);
+  }
+}
+
+.animate-swing {
+  animation: swing 2s var(--ease-smooth) infinite;
+  transform-origin: 35px 85px;
+}
+
+/* Ball trajectory */
+@keyframes trajectory {
+  from {
+    stroke-dashoffset: 50;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-trajectory {
+  animation: trajectory 1.5s linear infinite;
+}
+
+/* Ball flying */
+@keyframes ball-fly {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+.animate-ball-fly {
+  animation: ball-fly 1s var(--ease-smooth) infinite;
+}
+
+/* Rays spinning slowly */
+@keyframes rays-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-rays-spin {
+  animation: rays-spin 20s linear infinite;
+  transform-origin: center;
+}
+
+/* Bounce in for celebration */
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s var(--ease-spring) forwards;
+  opacity: 0;
+}
+
+/* Confetti burst */
+@keyframes confetti-burst {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-confetti-burst>* {
+  animation: confetti-burst 0.8s var(--ease-spring) forwards;
+  opacity: 0;
+}
+
+.animate-confetti-burst>*:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.animate-confetti-burst>*:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.animate-confetti-burst>*:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.animate-confetti-burst>*:nth-child(4) {
+  animation-delay: 0.25s;
+}
+
+.animate-confetti-burst>*:nth-child(5) {
+  animation-delay: 0.3s;
+}
+
+.animate-confetti-burst>*:nth-child(6) {
+  animation-delay: 0.35s;
+}
+
+.animate-confetti-burst>*:nth-child(7) {
+  animation-delay: 0.4s;
+}
+
+.animate-confetti-burst>*:nth-child(8) {
+  animation-delay: 0.45s;
+}
+
+/* Sparkle twinkle */
+@keyframes sparkle {
+
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-sparkle>* {
+  animation: sparkle 1.5s var(--ease-smooth) infinite;
+}
+
+.animate-sparkle>*:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.animate-sparkle>*:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.animate-sparkle>*:nth-child(3) {
+  animation-delay: 1s;
+}
+
+/* ============================================
+   ENHANCED EMPTY STATES
+   Premium, delightful empty experiences
+   ============================================ */
+
+.empty-state-premium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+  animation: pageEnter var(--duration-slow) var(--ease-out);
+}
+
+.empty-state-premium.compact {
+  padding: var(--space-8) var(--space-4);
+}
+
+.empty-state-premium.large {
+  padding: var(--space-20) var(--space-8);
+}
+
+/* Illustration container with glow */
+.empty-state-illustration {
+  position: relative;
+  margin-bottom: var(--space-6);
+}
+
+.empty-state-illustration::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle,
+      var(--gold) 0%,
+      transparent 70%);
+  opacity: 0.1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Title with serif elegance */
+.empty-state-premium .empty-state-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: var(--text-2xl);
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: var(--space-3);
+  line-height: 1.2;
+}
+
+/* Description with warmth */
+.empty-state-premium .empty-state-text {
+  font-family: var(--font-inter, system-ui, sans-serif);
+  font-size: var(--text-base);
+  color: var(--ink-secondary);
+  max-width: 300px;
+  line-height: 1.6;
+  margin-bottom: var(--space-8);
+}
+
+/* Motivational subtext */
+.empty-state-hint {
+  font-family: var(--font-inter, system-ui, sans-serif);
+  font-size: var(--text-sm);
+  color: var(--ink-tertiary);
+  font-style: italic;
+  margin-top: var(--space-4);
+}
+
+/* Action buttons with premium feel */
+.empty-state-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-8);
+  background: var(--masters);
+  color: var(--cream);
+  font-family: var(--font-inter, system-ui, sans-serif);
+  font-size: var(--text-base);
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  box-shadow: 0 4px 12px rgba(4, 106, 56, 0.3);
+}
+
+.empty-state-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(4, 106, 56, 0.4);
+}
+
+.empty-state-action:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(4, 106, 56, 0.3);
+}
+
+/* Secondary action */
+.empty-state-action-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-5);
+  background: transparent;
+  color: var(--ink-secondary);
+  font-family: var(--font-inter, system-ui, sans-serif);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  margin-top: var(--space-3);
+}
+
+.empty-state-action-secondary:hover {
+  background: var(--canvas-warm);
+  border-color: var(--ink-tertiary);
+}
+
+/* Feature hints list */
+.empty-state-features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  text-align: left;
+  margin-top: var(--space-6);
+  padding: var(--space-5);
+  background: var(--canvas-warm);
+  border-radius: var(--radius-lg);
+  max-width: 280px;
+}
+
+.empty-state-feature {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--ink-secondary);
+}
+
+.empty-state-feature-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--masters);
+  color: var(--cream);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+}
+
+/* ============================================
+   ONBOARDING FLOW
+   Welcome & first-run experiences
+   ============================================ */
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--canvas);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn var(--duration-slow) var(--ease-out);
+}
+
+.onboarding-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.onboarding-illustration {
+  margin-bottom: var(--space-8);
+  animation: bounce-in var(--duration-slow) var(--ease-spring);
+}
+
+.onboarding-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: var(--text-3xl);
+  font-weight: 400;
+  color: var(--ink);
+  margin-bottom: var(--space-4);
+  line-height: 1.1;
+}
+
+.onboarding-subtitle {
+  font-family: var(--font-inter, system-ui, sans-serif);
+  font-size: var(--text-lg);
+  color: var(--ink-secondary);
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+/* Step indicators */
+.onboarding-dots {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-8);
+}
+
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--stroke);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.onboarding-dot.active {
+  width: 24px;
+  background: var(--masters);
+}
+
+/* Bottom actions */
+.onboarding-actions {
+  padding: var(--space-6);
+  padding-bottom: env(safe-area-inset-bottom, var(--space-6));
+  border-top: 1px solid var(--stroke-light);
+}
+
+.onboarding-button {
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--masters);
+  color: var(--cream);
+  font-family: var(--font-inter, system-ui, sans-serif);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.onboarding-button:hover {
+  background: var(--masters-dark);
+}
+
+.onboarding-skip {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: var(--space-3);
+  color: var(--ink-tertiary);
+  font-size: var(--text-sm);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-top: var(--space-2);
+}
+
+.onboarding-skip:hover {
+  color: var(--ink-secondary);
+}
+
+/* Feature carousel cards */
+.onboarding-card {
+  background: var(--canvas-raised);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  margin: var(--space-4);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.onboarding-card-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto var(--space-4);
+  background: var(--canvas-warm);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--masters);
+}
+
+.onboarding-card-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: var(--text-lg);
+  color: var(--ink);
+  margin-bottom: var(--space-2);
+}
+
+.onboarding-card-text {
+  font-size: var(--text-sm);
+  color: var(--ink-secondary);
+  line-height: 1.5;
+}
+
 /* ---- REDUCED MOTION ----
    Respect user preferences */
 
@@ -2258,7 +3021,26 @@ a,
   .animate-score-pop,
   .animate-victory,
   .animate-breathe,
-  .pulse-attention {
+  .pulse-attention,
+  .animate-float,
+  .animate-trophy-shine,
+  .animate-golfer-left,
+  .animate-golfer-right,
+  .animate-pulse-gentle,
+  .animate-pencil-write,
+  .animate-flag-wave,
+  .animate-ball-roll,
+  .animate-swing,
+  .animate-trajectory,
+  .animate-ball-fly,
+  .animate-rays-spin,
+  .animate-bounce-in,
+  .animate-sparkle>*,
+  .animate-confetti-burst>*,
+  .animate-confetti-fall>*,
+  .animate-podium-rise,
+  .animate-stagger-fade>*,
+  .animate-scores-fill {
     animation: none;
     opacity: 1;
     transform: none;
