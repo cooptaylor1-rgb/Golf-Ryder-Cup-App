@@ -2,7 +2,7 @@
  * Bottom Navigation Component (Enhanced)
  *
  * Mobile-first bottom tab bar.
- * Large touch targets, Spotify-inspired micro-interactions.
+ * Masters-inspired elegance with gold accents.
  */
 
 'use client';
@@ -50,8 +50,8 @@ export function BottomNavNew() {
                 'fixed bottom-0 left-0 right-0 z-50',
                 'flex items-stretch justify-around',
                 'h-16 px-2',
-                'bg-surface-raised/95 backdrop-blur-md',
-                'border-t border-surface-border',
+                'bg-surface-raised/95 backdrop-blur-xl',
+                'border-t border-surface-border/50',
                 'safe-bottom',
             )}
             aria-label="Main navigation"
@@ -67,11 +67,11 @@ export function BottomNavNew() {
                         className={cn(
                             'relative flex flex-col items-center justify-center',
                             'flex-1 min-w-[64px] py-2',
-                            'transition-colors duration-150',
+                            'transition-colors duration-200',
                             'focus-visible:outline-none focus-visible:bg-surface-highlight',
                             active
-                                ? 'text-augusta-green'
-                                : 'text-text-tertiary',
+                                ? 'text-gold'
+                                : 'text-text-tertiary hover:text-text-secondary',
                         )}
                         aria-current={active ? 'page' : undefined}
                     >
@@ -79,14 +79,14 @@ export function BottomNavNew() {
                         <div className="relative">
                             <Icon
                                 className={cn(
-                                    'w-6 h-6 transition-transform duration-150',
+                                    'w-5 h-5 transition-all duration-200',
                                     active && 'scale-110',
                                 )}
                             />
                             {/* Captain badge on More */}
                             {item.href === '/more' && isCaptainMode && (
                                 <Shield
-                                    className="absolute -top-1 -right-2 w-3 h-3 text-augusta-green"
+                                    className="absolute -top-1 -right-2 w-3 h-3 text-masters-green"
                                     aria-hidden="true"
                                 />
                             )}
@@ -95,19 +95,19 @@ export function BottomNavNew() {
                         {/* Label */}
                         <span
                             className={cn(
-                                'text-[10px] mt-1 font-medium',
+                                'text-[10px] mt-1.5 font-medium tracking-wide',
                                 active && 'font-semibold',
                             )}
                         >
                             {item.label}
                         </span>
 
-                        {/* Active indicator dot */}
+                        {/* Active indicator - elegant gold dot */}
                         {active && (
                             <span
                                 className={cn(
                                     'absolute bottom-1 left-1/2 -translate-x-1/2',
-                                    'w-1 h-1 rounded-full bg-augusta-green',
+                                    'w-1 h-1 rounded-full bg-gold',
                                 )}
                                 aria-hidden="true"
                             />

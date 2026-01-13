@@ -15,6 +15,13 @@ import { cn } from '@/lib/utils';
 import type { TeamStandings, MagicNumber, PlayerLeaderboard } from '@/lib/types/computed';
 import { Trophy, Medal, TrendingUp, Target, Award } from 'lucide-react';
 
+/**
+ * STANDINGS PAGE - Masters-inspired Championship View
+ *
+ * The hero moment: large, elegant score display
+ * Gold accents for winners and special achievements
+ */
+
 // Enhanced Team Standings Card component
 interface TeamStandingsCardProps {
   standings: TeamStandings;
@@ -40,22 +47,25 @@ function TeamStandingsCardNew({
   const canClinch = !hasClinched && (teamANeeded <= 3 || teamBNeeded <= 3);
 
   return (
-    <Card variant="elevated" className="overflow-hidden">
-      {/* Points to Win Banner */}
-      <div className="bg-augusta-green/10 px-4 py-2 text-center border-b border-augusta-green/20">
-        <span className="text-sm text-augusta-green font-medium">
+    <div className="relative overflow-hidden rounded-2xl bg-surface-card border border-surface-border">
+      {/* Subtle ambient glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-gold/5 rounded-full blur-3xl" />
+
+      {/* Points to Win Banner - elegant gold */}
+      <div className="relative bg-gradient-to-r from-gold/5 via-gold/10 to-gold/5 px-4 py-3 text-center border-b border-gold/10">
+        <span className="text-sm text-gold font-medium">
           {pointsToWin} points to win
         </span>
       </div>
 
       {/* Main Score Display */}
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-6">
+      <div className="relative p-6 lg:p-8">
+        <div className="flex items-center justify-between mb-8">
           {/* Team A */}
           <div className="text-center flex-1">
             <div className={cn(
-              'inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2',
-              'bg-team-usa/10',
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3',
+              'bg-team-usa/10 border border-team-usa/20',
             )}>
               <div className="h-2 w-2 rounded-full bg-team-usa" />
               <span className="text-xs font-semibold uppercase tracking-wider text-team-usa">
@@ -63,26 +73,25 @@ function TeamStandingsCardNew({
               </span>
             </div>
             <p className={cn(
-              'text-4xl font-bold font-mono',
-              teamAPoints > teamBPoints && 'text-team-usa',
-              teamAPoints <= teamBPoints && 'text-text-primary',
+              'font-mono text-5xl lg:text-6xl font-bold tracking-tight',
+              teamAPoints > teamBPoints ? 'text-team-usa' : 'text-magnolia',
             )}>
               {teamAPoints}
             </p>
           </div>
 
-          {/* VS */}
-          <div className="px-4">
-            <div className="h-12 w-12 rounded-full bg-surface-elevated flex items-center justify-center">
-              <span className="text-xs font-bold text-text-tertiary">VS</span>
+          {/* VS Divider - elegant */}
+          <div className="px-6">
+            <div className="h-14 w-14 rounded-full bg-surface-elevated border border-surface-border flex items-center justify-center">
+              <span className="text-xs font-bold text-text-tertiary tracking-wider">VS</span>
             </div>
           </div>
 
           {/* Team B */}
           <div className="text-center flex-1">
             <div className={cn(
-              'inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2',
-              'bg-team-europe/10',
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3',
+              'bg-team-europe/10 border border-team-europe/20',
             )}>
               <div className="h-2 w-2 rounded-full bg-team-europe" />
               <span className="text-xs font-semibold uppercase tracking-wider text-team-europe">
@@ -90,17 +99,16 @@ function TeamStandingsCardNew({
               </span>
             </div>
             <p className={cn(
-              'text-4xl font-bold font-mono',
-              teamBPoints > teamAPoints && 'text-team-europe',
-              teamBPoints <= teamAPoints && 'text-text-primary',
+              'font-mono text-5xl lg:text-6xl font-bold tracking-tight',
+              teamBPoints > teamAPoints ? 'text-team-europe' : 'text-magnolia',
             )}>
               {teamBPoints}
             </p>
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="h-3 rounded-full bg-surface-muted overflow-hidden flex">
+        {/* Progress Bar - refined */}
+        <div className="h-2 rounded-full bg-surface-elevated overflow-hidden flex">
           <div
             className="bg-team-usa transition-all duration-500"
             style={{ width: `${teamAPercent}%` }}
@@ -111,24 +119,24 @@ function TeamStandingsCardNew({
           />
         </div>
 
-        {/* Magic Number */}
+        {/* Magic Number / Victory State */}
         {(canClinch || hasClinched) && (
           <div className={cn(
-            'mt-4 p-3 rounded-lg text-center',
+            'mt-6 p-4 rounded-xl text-center',
             hasClinched
-              ? 'bg-augusta-green/10 text-augusta-green'
-              : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
+              ? 'bg-gradient-to-r from-gold/10 via-gold/15 to-gold/10 border border-gold/20'
+              : 'bg-masters-green/10 border border-masters-green/20',
           )}>
             {hasClinched ? (
-              <div className="flex items-center justify-center gap-2">
-                <Trophy className="h-5 w-5" />
-                <span className="font-semibold">
+              <div className="flex items-center justify-center gap-3">
+                <Trophy className="h-5 w-5 text-gold" />
+                <span className="font-serif text-lg text-gold">
                   {clinchingTeam === 'A' ? teamAName : teamBName} Wins!
                 </span>
               </div>
             ) : (
-              <p className="text-sm font-medium">
-                Magic Number: <span className="font-bold">
+              <p className="text-sm text-masters-green-light font-medium">
+                Magic Number: <span className="font-bold text-lg ml-1">
                   {leader === 'teamA' ? teamANeeded : teamBNeeded}
                 </span>
               </p>
@@ -136,11 +144,11 @@ function TeamStandingsCardNew({
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 }
 
-// Player Leaderboard Entry
+// Player Leaderboard Entry - Masters elegance
 interface LeaderboardEntryProps {
   entry: PlayerLeaderboard;
   rank: number;
@@ -150,15 +158,15 @@ interface LeaderboardEntryProps {
 function LeaderboardEntry({ entry, rank, isTeamA }: LeaderboardEntryProps) {
   return (
     <div className={cn(
-      'flex items-center gap-3 p-4',
-      rank <= 3 && 'bg-augusta-green/5',
+      'flex items-center gap-4 p-4',
+      rank <= 3 && 'bg-gold/3',
     )}>
-      {/* Rank Badge */}
+      {/* Rank Badge - Gold medals for top 3 */}
       <div className={cn(
         'h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0',
-        rank === 1 && 'bg-yellow-500 text-yellow-900',
-        rank === 2 && 'bg-gray-300 text-gray-700',
-        rank === 3 && 'bg-amber-600 text-amber-100',
+        rank === 1 && 'bg-gradient-to-br from-gold to-gold-dark text-surface-base',
+        rank === 2 && 'bg-gradient-to-br from-silver to-gray-400 text-gray-800',
+        rank === 3 && 'bg-gradient-to-br from-bronze to-amber-700 text-amber-100',
         rank > 3 && 'bg-surface-elevated text-text-secondary',
       )}>
         {rank}
@@ -166,7 +174,7 @@ function LeaderboardEntry({ entry, rank, isTeamA }: LeaderboardEntryProps) {
 
       {/* Player Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-text-primary truncate">
+        <p className="font-medium text-magnolia truncate">
           {entry.playerName}
         </p>
         <div className="flex items-center gap-2 mt-0.5">
@@ -180,9 +188,12 @@ function LeaderboardEntry({ entry, rank, isTeamA }: LeaderboardEntryProps) {
         </div>
       </div>
 
-      {/* Points */}
+      {/* Points - Gold accent */}
       <div className="text-right shrink-0">
-        <p className="text-xl font-bold text-augusta-green">
+        <p className={cn(
+          'text-xl font-bold',
+          rank <= 3 ? 'text-gold' : 'text-masters-green-light',
+        )}>
           {entry.points}
         </p>
         <p className="text-xs text-text-tertiary">
@@ -193,7 +204,7 @@ function LeaderboardEntry({ entry, rank, isTeamA }: LeaderboardEntryProps) {
   );
 }
 
-// Stat Card component
+// Stat Card component - refined
 interface StatCardProps {
   value: number;
   label: string;
@@ -202,15 +213,15 @@ interface StatCardProps {
 
 function StatCard({ value, label, highlight = false }: StatCardProps) {
   return (
-    <Card className="p-4 text-center">
+    <div className="p-5 rounded-xl bg-surface-card border border-surface-border text-center">
       <p className={cn(
-        'text-3xl font-bold font-mono',
-        highlight ? 'text-augusta-green' : 'text-text-primary',
+        'text-3xl font-mono font-bold',
+        highlight ? 'text-gold' : 'text-magnolia',
       )}>
         {value}
       </p>
-      <p className="text-xs text-text-secondary mt-1">{label}</p>
-    </Card>
+      <p className="text-xs text-text-tertiary mt-2">{label}</p>
+    </div>
   );
 }
 

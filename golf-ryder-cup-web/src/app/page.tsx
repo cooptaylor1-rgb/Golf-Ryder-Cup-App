@@ -18,14 +18,27 @@ import {
   Zap,
   Settings,
   ChevronDown,
+  Flag,
+  Users,
 } from 'lucide-react';
 import { cn, formatDate } from '@/lib/utils';
 
+/**
+ * THE MASTERS-INSPIRED HOME PAGE
+ *
+ * Design Philosophy:
+ * - Understated luxury, timeless elegance
+ * - The quiet confidence of a private club
+ * - Serif typography for headlines
+ * - Championship gold as premium accent
+ * - Generous whitespace
+ */
+
 // ============================================
-// PREMIUM COMMAND CARD
-// The dominant focal point of the entry experience
+// CHAMPIONSHIP CARD
+// The elegant focal point - Masters quality
 // ============================================
-interface CommandCardProps {
+interface ChampionshipCardProps {
   hasActiveTrip: boolean;
   activeTrip?: {
     id: string;
@@ -38,71 +51,68 @@ interface CommandCardProps {
   onCreate: () => void;
 }
 
-function CommandCard({ hasActiveTrip, activeTrip, onResume, onCreate }: CommandCardProps) {
+function ChampionshipCard({ hasActiveTrip, activeTrip, onResume, onCreate }: ChampionshipCardProps) {
   if (hasActiveTrip && activeTrip) {
     // ACTIVE TOURNAMENT STATE
     return (
-      <div className="command-card group relative overflow-hidden rounded-2xl">
-        {/* Layered background with depth */}
-        <div className="absolute inset-0 bg-gradient-to-br from-surface-elevated via-surface-raised to-surface-base" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-augusta-green/8 via-transparent to-transparent" />
+      <div className="command-card group relative overflow-hidden rounded-2xl bg-surface-card">
+        {/* Subtle gold accent border */}
+        <div className="absolute inset-0 rounded-2xl border border-gold/20" />
 
-        {/* Subtle animated glow */}
-        <div className="absolute -top-24 -right-24 w-48 h-48 bg-augusta-green/20 rounded-full blur-3xl animate-pulse-slow" />
+        {/* Ambient glow - understated */}
+        <div className="absolute -top-32 -right-32 w-64 h-64 bg-masters-green/10 rounded-full blur-3xl opacity-60" />
+        <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-gold/5 rounded-full blur-3xl" />
 
-        {/* Inner border for depth */}
-        <div className="absolute inset-[1px] rounded-2xl border border-white/5" />
-
-        <div className="relative p-6 lg:p-8">
-          {/* Status indicator */}
-          <div className="flex items-center gap-2 mb-6">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-augusta-green opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-augusta-green" />
+        <div className="relative p-8 lg:p-10">
+          {/* Status - elegant overline */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-masters-green opacity-60" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-masters-green" />
             </span>
-            <span className="text-xs font-medium text-augusta-green uppercase tracking-wider">
-              Tournament Active
+            <span className="text-overline text-masters-green-light">
+              Tournament in Progress
             </span>
           </div>
 
-          {/* Tournament name - DOMINANT */}
-          <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2 tracking-tight">
+          {/* Tournament name - Serif, elegant */}
+          <h1 className="font-serif text-3xl lg:text-4xl text-magnolia mb-3 tracking-tight">
             {activeTrip.name}
           </h1>
 
           {/* Location */}
           {activeTrip.location && (
-            <div className="flex items-center gap-2 text-text-secondary mb-6">
-              <MapPin className="h-4 w-4" />
-              <span className="text-sm">{activeTrip.location}</span>
+            <div className="flex items-center gap-2 text-text-secondary mb-4">
+              <MapPin className="h-4 w-4 text-gold" />
+              <span className="text-body">{activeTrip.location}</span>
             </div>
           )}
 
-          {/* Date range - subtle metadata */}
-          <div className="flex items-center gap-2 text-text-tertiary text-xs mb-8">
-            <Calendar className="h-3.5 w-3.5" />
-            <span>
+          {/* Date range */}
+          <div className="flex items-center gap-2 text-text-tertiary mb-10">
+            <Calendar className="h-4 w-4" />
+            <span className="text-footnote">
               {formatDate(activeTrip.startDate, 'short')} – {formatDate(activeTrip.endDate, 'short')}
             </span>
           </div>
 
-          {/* Primary action - BOLD */}
+          {/* Primary CTA - Gold accent */}
           <button
             onClick={onResume}
             className={cn(
               'group/btn relative inline-flex items-center gap-3',
-              'px-6 py-3.5 rounded-xl',
-              'bg-augusta-green text-white font-semibold',
-              'shadow-lg shadow-augusta-green/25',
-              'hover:shadow-xl hover:shadow-augusta-green/30',
-              'hover:bg-augusta-light',
+              'px-8 py-4 rounded-xl',
+              'bg-gradient-to-r from-masters-green to-masters-green-dark',
+              'text-white font-semibold text-headline',
+              'shadow-lg shadow-masters-green/20',
+              'hover:shadow-xl hover:shadow-masters-green/30',
+              'hover:from-masters-green-light hover:to-masters-green',
               'active:scale-[0.98]',
-              'transition-all duration-200',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-augusta-green focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base'
+              'transition-all duration-200'
             )}
           >
             <Play className="h-5 w-5" />
-            <span>Continue Scoring</span>
+            <span>Continue Tournament</span>
             <ChevronRight className="h-4 w-4 opacity-60 group-hover/btn:translate-x-0.5 transition-transform" />
           </button>
         </div>
@@ -110,59 +120,48 @@ function CommandCard({ hasActiveTrip, activeTrip, onResume, onCreate }: CommandC
     );
   }
 
-  // EMPTY STATE - "Ready to compete"
+  // EMPTY STATE - "The Course Awaits"
   return (
-    <div className="command-card group relative overflow-hidden rounded-2xl">
-      {/* Layered background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-surface-elevated via-surface-raised to-surface-base" />
-      <div className="absolute inset-0 bg-gradient-to-br from-augusta-green/5 via-transparent to-transparent" />
+    <div className="command-card group relative overflow-hidden rounded-2xl bg-surface-card">
+      {/* Elegant border */}
+      <div className="absolute inset-0 rounded-2xl border border-surface-border" />
 
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-augusta-green/10 to-transparent rounded-bl-full" />
+      {/* Subtle ambient glow */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gold/5 rounded-full blur-3xl opacity-50" />
 
-      {/* Inner border */}
-      <div className="absolute inset-[1px] rounded-2xl border border-white/5" />
-
-      <div className="relative p-6 lg:p-8">
-        {/* Trophy icon - refined */}
-        <div className={cn(
-          'inline-flex items-center justify-center',
-          'h-14 w-14 rounded-xl mb-6',
-          'bg-augusta-green/10 border border-augusta-green/20',
-          'group-hover:bg-augusta-green/15 transition-colors duration-300'
-        )}>
-          <Trophy className="h-7 w-7 text-augusta-green" />
+      <div className="relative p-8 lg:p-10 text-center lg:text-left">
+        {/* Icon - Flag, subtle */}
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-surface-elevated mb-6">
+          <Flag className="h-7 w-7 text-gold" />
         </div>
 
-        {/* Headline - confident, not instructional */}
-        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-3 tracking-tight">
-          The course awaits
+        {/* Headline - Serif elegance */}
+        <h1 className="font-serif text-3xl lg:text-4xl text-magnolia mb-3">
+          The Course Awaits
         </h1>
 
-        {/* Supporting text - one line, motivating */}
-        <p className="text-text-secondary text-base mb-8 max-w-sm">
-          Create your Ryder Cup tournament and start tracking every hole.
+        {/* Subhead */}
+        <p className="text-body-lg text-text-secondary mb-10 max-w-md">
+          Create your championship and invite your competitors.
         </p>
 
-        {/* Primary CTA - breathing glow effect */}
+        {/* Primary CTA - Gold gradient for premium feel */}
         <button
           onClick={onCreate}
           className={cn(
             'group/btn relative inline-flex items-center gap-3',
-            'px-6 py-3.5 rounded-xl',
-            'bg-augusta-green text-white font-semibold',
-            'shadow-lg shadow-augusta-green/25',
-            'hover:shadow-xl hover:shadow-augusta-green/30',
-            'hover:bg-augusta-light',
+            'px-8 py-4 rounded-xl',
+            'bg-gradient-to-r from-gold to-gold-dark',
+            'text-surface-base font-semibold text-headline',
+            'shadow-lg shadow-gold/20',
+            'hover:shadow-xl hover:shadow-gold/30 hover:shadow-glow-gold',
             'active:scale-[0.98]',
-            'transition-all duration-200',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-augusta-green focus-visible:ring-offset-2 focus-visible:ring-offset-surface-base',
-            // Breathing glow animation
-            'before:absolute before:inset-0 before:rounded-xl before:bg-augusta-green/50 before:blur-xl before:animate-pulse-slow before:-z-10'
+            'transition-all duration-200'
           )}
         >
           <Plus className="h-5 w-5" />
-          <span>Start Tournament</span>
+          <span>Create Tournament</span>
+          <ChevronRight className="h-4 w-4 opacity-60 group-hover/btn:translate-x-0.5 transition-transform" />
         </button>
       </div>
     </div>
@@ -170,8 +169,7 @@ function CommandCard({ hasActiveTrip, activeTrip, onResume, onCreate }: CommandC
 }
 
 // ============================================
-// SECONDARY TRIP CARD
-// Quiet, recedes visually
+// RECENT TRIP CARD - Understated elegance
 // ============================================
 interface RecentTripCardProps {
   trip: {
@@ -180,115 +178,118 @@ interface RecentTripCardProps {
     location?: string;
     startDate: Date | string;
     endDate: Date | string;
+    teamAName?: string;
+    teamBName?: string;
   };
-  onSelect: () => void;
+  onSelect: (id: string) => void;
 }
 
 function RecentTripCard({ trip, onSelect }: RecentTripCardProps) {
-  const startDate = new Date(trip.startDate);
-  const endDate = new Date(trip.endDate);
-  const now = new Date();
-
-  let status: 'active' | 'upcoming' | 'completed' = 'upcoming';
-  if (now > endDate) status = 'completed';
-  else if (now >= startDate) status = 'active';
-
   return (
     <button
-      onClick={onSelect}
+      onClick={() => onSelect(trip.id)}
       className={cn(
         'group w-full text-left',
-        'p-4 rounded-xl',
-        'bg-surface-raised/50 hover:bg-surface-raised',
-        'border border-surface-border/50 hover:border-surface-border',
-        'transition-all duration-200',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-augusta-green'
+        'p-5 rounded-xl',
+        'bg-surface-card border border-surface-border',
+        'hover:border-gold/30 hover:shadow-card-md',
+        'active:scale-[0.99]',
+        'transition-all duration-200'
       )}
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-medium text-text-primary truncate text-sm">
-              {trip.name}
-            </h3>
-            {status === 'active' && (
-              <Badge variant="success" size="sm" dot pulse>Live</Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-3 text-text-tertiary text-xs">
-            {trip.location && (
-              <span className="truncate">{trip.location}</span>
-            )}
-            <span>{formatDate(trip.startDate, 'short')}</span>
-          </div>
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-magnolia truncate mb-1">
+            {trip.name}
+          </h3>
+          {trip.location && (
+            <div className="flex items-center gap-1.5 text-text-tertiary">
+              <MapPin className="h-3.5 w-3.5" />
+              <span className="text-footnote truncate">{trip.location}</span>
+            </div>
+          )}
         </div>
-        <ChevronRight className="h-4 w-4 text-text-tertiary group-hover:text-text-secondary transition-colors flex-shrink-0" />
+        <ChevronRight className="h-5 w-5 text-text-tertiary opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+      </div>
+
+      <div className="flex items-center gap-4 text-caption text-text-tertiary">
+        <div className="flex items-center gap-1.5">
+          <Calendar className="h-3.5 w-3.5" />
+          <span>{formatDate(trip.startDate, 'short')}</span>
+        </div>
+        {trip.teamAName && trip.teamBName && (
+          <div className="flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5" />
+            <span className="truncate">{trip.teamAName} vs {trip.teamBName}</span>
+          </div>
+        )}
       </div>
     </button>
   );
 }
 
 // ============================================
-// DEVELOPER TOOLS SECTION
-// Hidden by default, whisper-quiet when shown
+// DEVELOPER TOOLS - Hidden accordion
 // ============================================
 interface DevToolsProps {
   onLoadDemo: () => void;
-  onClearData: () => void;
+  onClearDemo: () => void;
   isLoading: boolean;
 }
 
-function DevTools({ onLoadDemo, onClearData, isLoading }: DevToolsProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+function DevTools({ onLoadDemo, onClearDemo, isLoading }: DevToolsProps) {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-t border-surface-border/30 pt-4 mt-auto">
+    <div className="mt-12 border-t border-surface-border pt-8">
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={() => setIsOpen(!isOpen)}
         className={cn(
           'flex items-center gap-2 text-text-tertiary hover:text-text-secondary',
-          'text-xs transition-colors w-full justify-center'
+          'text-caption transition-colors'
         )}
       >
         <Settings className="h-3.5 w-3.5" />
         <span>Developer Tools</span>
         <ChevronDown className={cn(
-          'h-3 w-3 transition-transform',
-          isExpanded && 'rotate-180'
+          'h-3.5 w-3.5 transition-transform duration-200',
+          isOpen && 'rotate-180'
         )} />
       </button>
 
-      {isExpanded && (
-        <div className="mt-3 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-          <button
-            onClick={onLoadDemo}
-            disabled={isLoading}
-            className={cn(
-              'w-full px-3 py-2 rounded-lg text-xs',
-              'bg-surface-raised/50 hover:bg-surface-raised',
-              'text-text-secondary hover:text-text-primary',
-              'border border-surface-border/50',
-              'transition-all duration-150',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-              'flex items-center justify-center gap-2'
-            )}
-          >
-            <Zap className="h-3.5 w-3.5" />
-            {isLoading ? 'Loading...' : 'Load Demo Data'}
-          </button>
-          <button
-            onClick={onClearData}
-            className={cn(
-              'w-full px-3 py-2 rounded-lg text-xs',
-              'bg-transparent hover:bg-error/5',
-              'text-text-tertiary hover:text-error/70',
-              'border border-transparent hover:border-error/20',
-              'transition-all duration-150',
-              'flex items-center justify-center gap-2'
-            )}
-          >
-            Clear All Data
-          </button>
+      {isOpen && (
+        <div className="mt-4 p-4 rounded-lg bg-surface-elevated animate-fade-in-up">
+          <p className="text-caption text-text-tertiary mb-4">
+            Development utilities for testing
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={onLoadDemo}
+              disabled={isLoading}
+              className={cn(
+                'px-4 py-2 rounded-lg text-footnote font-medium',
+                'bg-masters-green/10 text-masters-green-light border border-masters-green/20',
+                'hover:bg-masters-green/20',
+                'disabled:opacity-50 disabled:cursor-not-allowed',
+                'transition-colors'
+              )}
+            >
+              {isLoading ? 'Loading...' : 'Load Demo Data'}
+            </button>
+            <button
+              onClick={onClearDemo}
+              disabled={isLoading}
+              className={cn(
+                'px-4 py-2 rounded-lg text-footnote font-medium',
+                'bg-azalea/10 text-azalea border border-azalea/20',
+                'hover:bg-azalea/20',
+                'disabled:opacity-50 disabled:cursor-not-allowed',
+                'transition-colors'
+              )}
+            >
+              Clear All Data
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -296,56 +297,24 @@ function DevTools({ onLoadDemo, onClearData, isLoading }: DevToolsProps) {
 }
 
 // ============================================
-// MAIN PAGE COMPONENT
+// MAIN HOME PAGE COMPONENT
 // ============================================
 export default function HomePage() {
   const router = useRouter();
   const { loadTrip } = useTripStore();
   const { showToast } = useUIStore();
-  const [isSeeding, setIsSeeding] = useState(false);
+
+  // Loading states
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // Get all trips
+  // Query trips from database
   const trips = useLiveQuery(
     () => db.trips.orderBy('startDate').reverse().toArray(),
     []
   );
 
-  const handleTripSelect = async (tripId: string) => {
-    await loadTrip(tripId);
-    router.push('/score');
-  };
-
-  const handleSeedData = async () => {
-    setIsSeeding(true);
-    try {
-      const tripId = await seedDemoData();
-      await loadTrip(tripId);
-      showToast('success', 'Demo data loaded');
-      router.push('/score');
-    } catch (error) {
-      showToast('error', 'Failed to load demo data');
-      console.error(error);
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
-  const handleClearData = async () => {
-    try {
-      await clearDemoData();
-      showToast('info', 'All data cleared');
-      setShowClearConfirm(false);
-    } catch (error) {
-      showToast('error', 'Failed to clear data');
-      console.error(error);
-    }
-  };
-
-  const isLoading = trips === undefined;
-  const hasTrips = trips && trips.length > 0;
-
-  // Find the most recent active trip, or the most recent trip
+  // Find active trip (in-progress or most recent)
   const activeTrip = trips?.find(t => {
     const now = new Date();
     const start = new Date(t.startDate);
@@ -353,137 +322,162 @@ export default function HomePage() {
     return now >= start && now <= end;
   }) || trips?.[0];
 
-  const otherTrips = trips?.filter(t => t.id !== activeTrip?.id) || [];
+  const recentTrips = trips?.filter(t => t.id !== activeTrip?.id).slice(0, 3);
+
+  // Handlers
+  const handleResumeTrip = async () => {
+    if (activeTrip) {
+      await loadTrip(activeTrip.id);
+      router.push('/standings');
+    }
+  };
+
+  const handleCreateTrip = () => {
+    router.push('/trip/new');
+  };
+
+  const handleSelectTrip = async (tripId: string) => {
+    await loadTrip(tripId);
+    router.push('/standings');
+  };
+
+  const handleLoadDemo = async () => {
+    setIsDemoLoading(true);
+    try {
+      await seedDemoData();
+      showToast('success', 'Demo tournament loaded');
+    } catch (error) {
+      showToast('error', 'Failed to load demo data');
+      console.error(error);
+    } finally {
+      setIsDemoLoading(false);
+    }
+  };
+
+  const handleClearDemo = async () => {
+    setIsDemoLoading(true);
+    try {
+      await clearDemoData();
+      showToast('info', 'All data cleared');
+    } catch (error) {
+      showToast('error', 'Failed to clear data');
+      console.error(error);
+    } finally {
+      setIsDemoLoading(false);
+      setShowClearConfirm(false);
+    }
+  };
 
   return (
-    <AppShellNew headerTitle="Ryder Cup" showNav={true}>
-      {/*
-        ASYMMETRIC LAYOUT
-        Desktop: Primary command card dominates left, secondary content right
-        Mobile: Stack with clear primary/secondary distinction
-      */}
-      <div className="min-h-[calc(100vh-3.5rem-5rem)] lg:min-h-[calc(100vh-3.5rem)] flex flex-col">
-        <div className="flex-1 p-4 lg:p-8">
-          <div className="max-w-6xl mx-auto">
-            {/* Desktop: Two-column asymmetric layout */}
-            <div className="grid lg:grid-cols-5 gap-6 lg:gap-8">
+    <AppShellNew>
+      <div className="min-h-screen bg-surface-base">
+        {/* Hero Section */}
+        <div className="relative">
+          {/* Ambient background effects - very subtle */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-masters-green/5 rounded-full blur-3xl" />
+            <div className="absolute -top-32 right-0 w-[400px] h-[400px] bg-gold/3 rounded-full blur-3xl" />
+          </div>
 
-              {/* PRIMARY AREA - Left (spans 3 columns) */}
-              <div className="lg:col-span-3 flex flex-col">
-                {/* Loading skeleton */}
-                {isLoading && (
-                  <div className="command-card relative overflow-hidden rounded-2xl bg-surface-raised animate-pulse">
-                    <div className="p-6 lg:p-8 space-y-4">
-                      <div className="h-3 w-24 bg-surface-highlight rounded" />
-                      <div className="h-8 w-64 bg-surface-highlight rounded" />
-                      <div className="h-4 w-48 bg-surface-highlight rounded" />
-                      <div className="h-12 w-40 bg-surface-highlight rounded-xl mt-6" />
-                    </div>
-                  </div>
-                )}
-
-                {/* Command Card */}
-                {!isLoading && (
-                  <CommandCard
-                    hasActiveTrip={hasTrips ?? false}
-                    activeTrip={activeTrip}
-                    onResume={() => activeTrip && handleTripSelect(activeTrip.id)}
-                    onCreate={() => router.push('/trip/new')}
-                  />
-                )}
-
-                {/* Mobile: Show other trips below command card */}
-                {!isLoading && otherTrips.length > 0 && (
-                  <div className="mt-6 lg:hidden">
-                    <h2 className="text-xs font-medium text-text-tertiary uppercase tracking-wider mb-3 px-1">
-                      Recent Tournaments
-                    </h2>
-                    <div className="space-y-2">
-                      {otherTrips.slice(0, 3).map(trip => (
-                        <RecentTripCard
-                          key={trip.id}
-                          trip={trip}
-                          onSelect={() => handleTripSelect(trip.id)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* SECONDARY AREA - Right (spans 2 columns) */}
-              <div className="hidden lg:flex lg:col-span-2 flex-col">
-                {/* Recent Trips Panel */}
-                <div className={cn(
-                  'flex-1 rounded-xl p-5',
-                  'bg-surface-raised/30 border border-surface-border/30'
-                )}>
-                  {!isLoading && otherTrips.length > 0 ? (
-                    <>
-                      <h2 className="text-xs font-medium text-text-tertiary uppercase tracking-wider mb-4">
-                        Recent Tournaments
-                      </h2>
-                      <div className="space-y-2">
-                        {otherTrips.slice(0, 4).map(trip => (
-                          <RecentTripCard
-                            key={trip.id}
-                            trip={trip}
-                            onSelect={() => handleTripSelect(trip.id)}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  ) : !isLoading ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
-                      <div className="h-10 w-10 rounded-lg bg-surface-highlight/50 flex items-center justify-center mb-3">
-                        <Trophy className="h-5 w-5 text-text-tertiary" />
-                      </div>
-                      <p className="text-text-tertiary text-sm">
-                        Your tournament history will appear here
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="animate-pulse space-y-3">
-                      <div className="h-3 w-32 bg-surface-highlight rounded" />
-                      <div className="h-16 bg-surface-highlight/50 rounded-xl" />
-                      <div className="h-16 bg-surface-highlight/50 rounded-xl" />
-                    </div>
-                  )}
-
-                  {/* Dev Tools - Desktop only, at bottom of secondary panel */}
-                  <DevTools
-                    onLoadDemo={handleSeedData}
-                    onClearData={() => setShowClearConfirm(true)}
-                    isLoading={isSeeding}
-                  />
+          {/* Content */}
+          <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16">
+            {/* Page header */}
+            <header className="mb-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-masters-green to-masters-green-dark flex items-center justify-center">
+                  <Trophy className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-overline text-text-tertiary">Ryder Cup Tracker</h2>
                 </div>
               </div>
-            </div>
+            </header>
+
+            {/* Championship Card - Primary focal point */}
+            <ChampionshipCard
+              hasActiveTrip={!!activeTrip}
+              activeTrip={activeTrip}
+              onResume={handleResumeTrip}
+              onCreate={handleCreateTrip}
+            />
+
+            {/* Recent Trips Section */}
+            {recentTrips && recentTrips.length > 0 && (
+              <section className="mt-12">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="font-serif text-xl text-magnolia">Previous Tournaments</h2>
+                </div>
+                <div className="space-y-3 stagger-children">
+                  {recentTrips.map((trip) => (
+                    <RecentTripCard
+                      key={trip.id}
+                      trip={trip}
+                      onSelect={handleSelectTrip}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Quick Actions */}
+            {activeTrip && (
+              <section className="mt-10">
+                <h2 className="font-serif text-xl text-magnolia mb-5">Quick Actions</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={async () => {
+                      await loadTrip(activeTrip.id);
+                      router.push('/standings');
+                    }}
+                    className={cn(
+                      'p-4 rounded-xl text-left',
+                      'bg-surface-card border border-surface-border',
+                      'hover:border-gold/20 hover:shadow-card',
+                      'transition-all duration-200'
+                    )}
+                  >
+                    <Trophy className="h-5 w-5 text-gold mb-2" />
+                    <span className="text-footnote font-medium text-magnolia">Standings</span>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await loadTrip(activeTrip.id);
+                      router.push('/matchups');
+                    }}
+                    className={cn(
+                      'p-4 rounded-xl text-left',
+                      'bg-surface-card border border-surface-border',
+                      'hover:border-gold/20 hover:shadow-card',
+                      'transition-all duration-200'
+                    )}
+                  >
+                    <Users className="h-5 w-5 text-masters-green-light mb-2" />
+                    <span className="text-footnote font-medium text-magnolia">Matchups</span>
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {/* Developer Tools - Hidden by default */}
+            <DevTools
+              onLoadDemo={handleLoadDemo}
+              onClearDemo={() => setShowClearConfirm(true)}
+              isLoading={isDemoLoading}
+            />
           </div>
         </div>
 
-        {/* Mobile Dev Tools - Footer */}
-        <div className="lg:hidden px-4 pb-4">
-          <DevTools
-            onLoadDemo={handleSeedData}
-            onClearData={() => setShowClearConfirm(true)}
-            isLoading={isSeeding}
-          />
-        </div>
+        {/* Clear Confirmation Dialog */}
+        <ConfirmDialog
+          isOpen={showClearConfirm}
+          onClose={() => setShowClearConfirm(false)}
+          onConfirm={handleClearDemo}
+          title="Clear All Data"
+          description="This will permanently delete all tournaments, players, and scores. This action cannot be undone."
+          confirmLabel="Clear Everything"
+          variant="danger"
+        />
       </div>
-
-      {/* Confirm Clear Dialog */}
-      <ConfirmDialog
-        isOpen={showClearConfirm}
-        onClose={() => setShowClearConfirm(false)}
-        onConfirm={handleClearData}
-        title="Clear all data?"
-        description="This will permanently delete all trips, players, matches, and scores. This action cannot be undone."
-        confirmLabel="Clear everything"
-        cancelLabel="Cancel"
-        variant="danger"
-        confirmText="DELETE"
-      />
     </AppShellNew>
   );
 }

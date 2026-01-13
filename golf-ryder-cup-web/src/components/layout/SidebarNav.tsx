@@ -1,8 +1,8 @@
 /**
  * Sidebar Navigation Component
  *
- * Palantir-inspired rail navigation for desktop.
- * Collapses to bottom nav on mobile.
+ * Masters-inspired rail navigation for desktop.
+ * Elegant with gold accents.
  */
 
 'use client';
@@ -65,7 +65,7 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
             className={cn(
                 'hidden lg:flex flex-col',
                 'h-full bg-surface-raised',
-                'border-r border-surface-border',
+                'border-r border-surface-border/50',
                 'transition-all duration-200',
                 isExpanded ? 'w-60' : 'w-16',
             )}
@@ -74,18 +74,18 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
             {/* Logo / Brand */}
             <div className={cn(
                 'h-14 flex items-center px-4',
-                'border-b border-surface-border',
+                'border-b border-surface-border/50',
             )}>
                 <div className={cn(
                     'flex items-center justify-center',
                     'h-8 w-8 rounded-lg',
-                    'bg-augusta-green text-white',
-                    'font-bold text-sm',
+                    'bg-gradient-to-br from-masters-green to-masters-green-dark',
+                    'text-white font-bold text-sm',
                 )}>
                     RC
                 </div>
                 {isExpanded && (
-                    <span className="ml-3 font-semibold text-text-primary truncate">
+                    <span className="ml-3 font-semibold text-magnolia truncate">
                         Ryder Cup
                     </span>
                 )}
@@ -95,13 +95,13 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
             {currentTrip && isExpanded && (
                 <div className={cn(
                     'px-3 py-3 mx-2 my-2',
-                    'bg-surface-elevated rounded-lg',
+                    'bg-surface-card rounded-lg',
                     'border border-surface-border',
                 )}>
-                    <p className="text-xs text-text-tertiary uppercase tracking-wider mb-1">
-                        Current Trip
+                    <p className="text-overline mb-1">
+                        Active Tournament
                     </p>
-                    <p className="text-sm font-medium text-text-primary truncate">
+                    <p className="text-sm font-medium text-magnolia truncate">
                         {currentTrip.name}
                     </p>
                 </div>
@@ -120,25 +120,25 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
                             className={cn(
                                 'relative flex items-center gap-3',
                                 'w-full px-4 py-3',
-                                'transition-colors duration-150',
+                                'transition-all duration-200',
                                 'focus-visible:outline-none focus-visible:ring-2',
-                                'focus-visible:ring-inset focus-visible:ring-augusta-green',
+                                'focus-visible:ring-inset focus-visible:ring-gold',
                                 active
-                                    ? 'text-augusta-green bg-augusta-green/10'
-                                    : 'text-text-secondary hover:text-text-primary hover:bg-surface-highlight',
+                                    ? 'text-gold bg-gold/5'
+                                    : 'text-text-secondary hover:text-magnolia hover:bg-surface-highlight/50',
                             )}
                             aria-current={active ? 'page' : undefined}
                         >
-                            {/* Active indicator bar */}
+                            {/* Active indicator bar - gold */}
                             {active && (
                                 <span
-                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-augusta-green rounded-r-full"
+                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-8 bg-gold rounded-r-full"
                                     aria-hidden="true"
                                 />
                             )}
 
                             <Icon className={cn(
-                                'w-5 h-5 flex-shrink-0',
+                                'w-5 h-5 flex-shrink-0 transition-transform',
                                 active && 'scale-110',
                             )} />
 
@@ -154,7 +154,7 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
                             {/* Captain badge */}
                             {item.tab === 'more' && isCaptainMode && (
                                 <Shield className={cn(
-                                    'w-3.5 h-3.5 text-augusta-green',
+                                    'w-3.5 h-3.5 text-masters-green',
                                     isExpanded ? 'ml-auto' : 'absolute top-2 right-2',
                                 )} />
                             )}
@@ -180,9 +180,9 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
                     onClick={onToggle}
                     className={cn(
                         'flex items-center justify-center',
-                        'h-12 border-t border-surface-border',
+                        'h-12 border-t border-surface-border/50',
                         'text-text-tertiary hover:text-text-secondary',
-                        'transition-colors duration-150',
+                        'transition-colors duration-200',
                     )}
                     aria-label={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
                 >
