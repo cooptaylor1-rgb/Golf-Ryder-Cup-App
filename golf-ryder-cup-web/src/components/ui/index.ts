@@ -101,9 +101,24 @@ export {
   CelebrationIllustration,
 } from './illustrations';
 
-// Onboarding
+// Onboarding & Discovery
 export {
   Onboarding,
   WelcomeBack,
   FeatureSpotlight,
 } from './Onboarding';
+
+export {
+  WhatsNew,
+  FeatureCard,
+  useWhatsNew,
+} from './WhatsNew';
+
+export {
+  QuickStartWizard,
+} from './QuickStartWizard';
+
+export {
+  LiveMatchBanner,
+  LiveMatchPill,
+} from './LiveMatchBanner';

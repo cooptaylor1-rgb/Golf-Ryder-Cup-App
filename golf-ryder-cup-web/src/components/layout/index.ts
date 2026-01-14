@@ -7,7 +7,7 @@
 // Core layout components
 export { AppShell } from './AppShell';
 export { Header } from './Header';
-export { BottomNav } from './BottomNav';
+export { BottomNav, type NavBadges } from './BottomNav';
 export { SidebarNav } from './SidebarNav';
 
 // Legacy aliases for backwards compatibility

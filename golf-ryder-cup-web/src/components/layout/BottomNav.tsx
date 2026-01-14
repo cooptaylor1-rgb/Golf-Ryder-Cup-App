@@ -8,6 +8,7 @@
  * - Large touch targets for outdoor use
  * - Clear active state without being loud
  * - Information hierarchy in color, not size
+ * - Notification badges for timely alerts
  */
 
 'use client';
@@ -28,17 +29,30 @@ interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  badgeKey?: 'home' | 'score' | 'matches' | 'standings' | 'more';
 }
 
 const navItems: NavItem[] = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/score', label: 'Score', icon: Target },
-  { href: '/matchups', label: 'Matches', icon: Users },
-  { href: '/standings', label: 'Standings', icon: Trophy },
-  { href: '/more', label: 'More', icon: Settings },
+  { href: '/', label: 'Home', icon: Home, badgeKey: 'home' },
+  { href: '/score', label: 'Score', icon: Target, badgeKey: 'score' },
+  { href: '/matchups', label: 'Matches', icon: Users, badgeKey: 'matches' },
+  { href: '/standings', label: 'Standings', icon: Trophy, badgeKey: 'standings' },
+  { href: '/more', label: 'More', icon: Settings, badgeKey: 'more' },
 ];
 
-export function BottomNav() {
+export interface NavBadges {
+  home?: number;
+  score?: number;
+  matches?: number;
+  standings?: number;
+  more?: number;
+}
+
+interface BottomNavProps {
+  badges?: NavBadges;
+}
+
+export function BottomNav({ badges = {} }: BottomNavProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { isCaptainMode } = useUIStore();
@@ -46,6 +60,11 @@ export function BottomNav() {
   const isActive = (item: NavItem) => {
     if (item.href === '/') return pathname === '/';
     return pathname.startsWith(item.href);
+  };
+
+  const getBadgeCount = (item: NavItem): number | undefined => {
+    if (!item.badgeKey) return undefined;
+    return badges[item.badgeKey];
   };
 
   return (
@@ -66,6 +85,7 @@ export function BottomNav() {
       {navItems.map((item) => {
         const active = isActive(item);
         const Icon = item.icon;
+        const badgeCount = getBadgeCount(item);
 
         return (
           <button
@@ -92,11 +112,26 @@ export function BottomNav() {
               />
             )}
 
-            {/* Icon */}
+            {/* Icon with badge */}
             <div className="relative">
               <Icon className={cn('w-5 h-5', active && 'scale-110')} />
-              {/* Captain badge on More */}
-              {item.href === '/more' && isCaptainMode && (
+
+              {/* Notification badge */}
+              {badgeCount !== undefined && badgeCount > 0 && (
+                <span
+                  className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold"
+                  style={{
+                    background: 'var(--error, #DC2626)',
+                    color: 'white',
+                  }}
+                  aria-label={`${badgeCount} notifications`}
+                >
+                  {badgeCount > 99 ? '99+' : badgeCount}
+                </span>
+              )}
+
+              {/* Captain badge on More (only if no notification badge) */}
+              {item.href === '/more' && isCaptainMode && !badgeCount && (
                 <Shield
                   className="absolute -top-0.5 -right-1.5 w-2.5 h-2.5"
                   style={{ color: 'var(--masters, #006747)' }}
