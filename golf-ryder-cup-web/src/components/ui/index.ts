@@ -133,3 +133,55 @@ export {
   SyncStatus,
   FloatingSyncStatus,
 } from './SyncStatus';
+
+// Celebrations & Delight
+export {
+  ConfettiProvider,
+  ConfettiBurst,
+  CelebrationParticles,
+  GoldShimmer,
+  useConfetti,
+  type ConfettiTheme,
+  type BurstPattern,
+} from './ConfettiCannon';
+
+export {
+  VictoryModal,
+  VictoryToast,
+  type MatchResult,
+  type TournamentResult,
+} from './VictoryModal';
+
+export {
+  AnimatedCounter,
+  RollingDigits,
+  ScoreTicker,
+  StatCounter,
+  Countdown,
+} from './AnimatedCounter';
+
+export {
+  CelebrationProvider,
+  ScoreBadge,
+  MatchStatusIndicator,
+  HoleResult,
+  useCelebration,
+  type CelebrationType,
+  type CelebrationEvent,
+} from './ScoreCelebration';
+
+// Micro Interactions
+export {
+  Pressable,
+  AnimatedReveal,
+  StaggeredList,
+  ShimmerSkeleton,
+  SuccessCheckmark,
+  ErrorShake,
+  BounceIndicator,
+  PulseDot,
+  TypingIndicator,
+  ProgressRing,
+  SwipeHint,
+  LongPressProgress,
+} from './MicroInteractions';
