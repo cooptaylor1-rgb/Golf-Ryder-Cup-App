@@ -1,0 +1,451 @@
+'use client';
+
+/**
+ * Availability Calendar
+ *
+ * Let players mark which sessions/days they can participate.
+ * Visual calendar with session overlay showing golf schedule.
+ */
+
+import { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Calendar,
+    Check,
+    X,
+    HelpCircle,
+    Sun,
+    Sunset,
+    ChevronLeft,
+    ChevronRight,
+    AlertCircle,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+// ============================================
+// TYPES
+// ============================================
+
+export interface TripSession {
+    id: string;
+    name: string;
+    date: string;
+    time: 'morning' | 'afternoon' | 'full';
+    format: string;
+}
+
+export interface AvailabilityStatus {
+    sessionId: string;
+    status: 'available' | 'unavailable' | 'maybe';
+    note?: string;
+}
+
+interface AvailabilityCalendarProps {
+    tripStartDate: string;
+    tripEndDate: string;
+    sessions: TripSession[];
+    onAvailabilityChange: (availability: AvailabilityStatus[]) => void;
+    initialAvailability?: AvailabilityStatus[];
+    className?: string;
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+const getDatesBetween = (start: string, end: string): Date[] => {
+    const dates: Date[] = [];
+    const current = new Date(start);
+    const endDate = new Date(end);
+
+    while (current <= endDate) {
+        dates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+    }
+
+    return dates;
+};
+
+const formatDayOfWeek = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { weekday: 'short' });
+};
+
+const formatDayOfMonth = (date: Date): number => {
+    return date.getDate();
+};
+
+const formatMonthYear = (date: Date): string => {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+};
+
+const isSameDay = (d1: Date, d2: Date): boolean => {
+    return d1.toDateString() === d2.toDateString();
+};
+
+// ============================================
+// COMPONENT
+// ============================================
+
+export function AvailabilityCalendar({
+    tripStartDate,
+    tripEndDate,
+    sessions,
+    onAvailabilityChange,
+    initialAvailability = [],
+    className,
+}: AvailabilityCalendarProps) {
+    const [availability, setAvailability] = useState<AvailabilityStatus[]>(
+        initialAvailability.length > 0
+            ? initialAvailability
+            : sessions.map(s => ({ sessionId: s.id, status: 'available' }))
+    );
+    const [expandedDay, setExpandedDay] = useState<string | null>(null);
+    const [noteModal, setNoteModal] = useState<{ sessionId: string; note: string } | null>(null);
+
+    const tripDays = useMemo(() => getDatesBetween(tripStartDate, tripEndDate), [tripStartDate, tripEndDate]);
+
+    const getSessionsForDay = (date: Date): TripSession[] => {
+        return sessions.filter(s => isSameDay(new Date(s.date), date));
+    };
+
+    const getAvailability = (sessionId: string): AvailabilityStatus => {
+        return availability.find(a => a.sessionId === sessionId) || {
+            sessionId,
+            status: 'available',
+        };
+    };
+
+    const toggleStatus = (sessionId: string) => {
+        const current = getAvailability(sessionId);
+        const statusOrder: AvailabilityStatus['status'][] = ['available', 'unavailable', 'maybe'];
+        const currentIndex = statusOrder.indexOf(current.status);
+        const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+
+        const newAvailability = availability.map(a =>
+            a.sessionId === sessionId ? { ...a, status: nextStatus } : a
+        );
+
+        // Add if not exists
+        if (!availability.find(a => a.sessionId === sessionId)) {
+            newAvailability.push({ sessionId, status: nextStatus });
+        }
+
+        setAvailability(newAvailability);
+        onAvailabilityChange(newAvailability);
+    };
+
+    const setAllAvailable = () => {
+        const newAvailability = sessions.map(s => ({ sessionId: s.id, status: 'available' as const }));
+        setAvailability(newAvailability);
+        onAvailabilityChange(newAvailability);
+    };
+
+    const updateNote = (sessionId: string, note: string) => {
+        const newAvailability = availability.map(a =>
+            a.sessionId === sessionId ? { ...a, note } : a
+        );
+        setAvailability(newAvailability);
+        onAvailabilityChange(newAvailability);
+        setNoteModal(null);
+    };
+
+    // Stats
+    const stats = useMemo(() => {
+        const available = availability.filter(a => a.status === 'available').length;
+        const unavailable = availability.filter(a => a.status === 'unavailable').length;
+        const maybe = availability.filter(a => a.status === 'maybe').length;
+        return { available, unavailable, maybe };
+    }, [availability]);
+
+    return (
+        <div className={cn('space-y-4', className)}>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h3 className="font-semibold text-surface-900 dark:text-white flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-masters" />
+                        Your Availability
+                    </h3>
+                    <p className="text-sm text-surface-500 mt-0.5">
+                        Mark which sessions you can play
+                    </p>
+                </div>
+                <button
+                    onClick={setAllAvailable}
+                    className="text-sm text-masters font-medium hover:text-masters/80 transition-colors"
+                >
+                    Mark all available
+                </button>
+            </div>
+
+            {/* Stats Summary */}
+            <div className="grid grid-cols-3 gap-2">
+                <div className="bg-green-50 dark:bg-green-900/10 rounded-xl p-3 text-center">
+                    <div className="text-xl font-bold text-green-600">{stats.available}</div>
+                    <div className="text-xs text-green-700 dark:text-green-400">Available</div>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-900/10 rounded-xl p-3 text-center">
+                    <div className="text-xl font-bold text-amber-600">{stats.maybe}</div>
+                    <div className="text-xs text-amber-700 dark:text-amber-400">Maybe</div>
+                </div>
+                <div className="bg-red-50 dark:bg-red-900/10 rounded-xl p-3 text-center">
+                    <div className="text-xl font-bold text-red-600">{stats.unavailable}</div>
+                    <div className="text-xs text-red-700 dark:text-red-400">Can&apos;t Play</div>
+                </div>
+            </div>
+
+            {/* Calendar Days */}
+            <div className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden">
+                {tripDays.map((day, dayIndex) => {
+                    const daySessions = getSessionsForDay(day);
+                    const isExpanded = expandedDay === day.toISOString();
+                    const dayKey = day.toISOString();
+
+                    return (
+                        <div
+                            key={dayKey}
+                            className={cn(
+                                'border-b border-surface-100 dark:border-surface-700 last:border-b-0',
+                                isExpanded && 'bg-surface-50 dark:bg-surface-800/50'
+                            )}
+                        >
+                            {/* Day Header */}
+                            <button
+                                onClick={() => setExpandedDay(isExpanded ? null : dayKey)}
+                                className="w-full p-4 flex items-center justify-between hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-xl bg-masters/10 flex flex-col items-center justify-center">
+                                        <span className="text-xs text-masters font-medium">
+                                            {formatDayOfWeek(day)}
+                                        </span>
+                                        <span className="text-lg font-bold text-masters">
+                                            {formatDayOfMonth(day)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-surface-900 dark:text-white text-left">
+                                            Day {dayIndex + 1}
+                                        </div>
+                                        <div className="text-sm text-surface-500">
+                                            {daySessions.length} session{daySessions.length !== 1 ? 's' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Status Pills */}
+                                <div className="flex items-center gap-2">
+                                    {daySessions.map(session => {
+                                        const status = getAvailability(session.id).status;
+                                        return (
+                                            <div
+                                                key={session.id}
+                                                className={cn(
+                                                    'w-6 h-6 rounded-full flex items-center justify-center',
+                                                    status === 'available' && 'bg-green-500',
+                                                    status === 'unavailable' && 'bg-red-500',
+                                                    status === 'maybe' && 'bg-amber-500'
+                                                )}
+                                            >
+                                                {status === 'available' && <Check className="w-3.5 h-3.5 text-white" />}
+                                                {status === 'unavailable' && <X className="w-3.5 h-3.5 text-white" />}
+                                                {status === 'maybe' && <HelpCircle className="w-3.5 h-3.5 text-white" />}
+                                            </div>
+                                        );
+                                    })}
+                                    <ChevronRight
+                                        className={cn(
+                                            'w-5 h-5 text-surface-400 transition-transform',
+                                            isExpanded && 'rotate-90'
+                                        )}
+                                    />
+                                </div>
+                            </button>
+
+                            {/* Expanded Sessions */}
+                            <AnimatePresence>
+                                {isExpanded && daySessions.length > 0 && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="px-4 pb-4 space-y-2">
+                                            {daySessions.map(session => {
+                                                const sessionAvailability = getAvailability(session.id);
+                                                return (
+                                                    <div
+                                                        key={session.id}
+                                                        className="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 p-3"
+                                                    >
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <div className="flex items-center gap-2">
+                                                                {session.time === 'morning' && (
+                                                                    <Sun className="w-4 h-4 text-amber-500" />
+                                                                )}
+                                                                {session.time === 'afternoon' && (
+                                                                    <Sunset className="w-4 h-4 text-orange-500" />
+                                                                )}
+                                                                {session.time === 'full' && (
+                                                                    <Calendar className="w-4 h-4 text-blue-500" />
+                                                                )}
+                                                                <span className="font-medium text-surface-900 dark:text-white">
+                                                                    {session.name}
+                                                                </span>
+                                                            </div>
+                                                            <span className="text-xs text-surface-500 px-2 py-1 bg-surface-100 dark:bg-surface-700 rounded-full">
+                                                                {session.format}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Status Buttons */}
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newAvailability = availability.map(a =>
+                                                                        a.sessionId === session.id
+                                                                            ? { ...a, status: 'available' as const }
+                                                                            : a
+                                                                    );
+                                                                    setAvailability(newAvailability);
+                                                                    onAvailabilityChange(newAvailability);
+                                                                }}
+                                                                className={cn(
+                                                                    'flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1',
+                                                                    sessionAvailability.status === 'available'
+                                                                        ? 'bg-green-500 text-white'
+                                                                        : 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
+                                                                )}
+                                                            >
+                                                                <Check className="w-4 h-4" />
+                                                                Yes
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newAvailability = availability.map(a =>
+                                                                        a.sessionId === session.id
+                                                                            ? { ...a, status: 'maybe' as const }
+                                                                            : a
+                                                                    );
+                                                                    setAvailability(newAvailability);
+                                                                    onAvailabilityChange(newAvailability);
+                                                                }}
+                                                                className={cn(
+                                                                    'flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1',
+                                                                    sessionAvailability.status === 'maybe'
+                                                                        ? 'bg-amber-500 text-white'
+                                                                        : 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400'
+                                                                )}
+                                                            >
+                                                                <HelpCircle className="w-4 h-4" />
+                                                                Maybe
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newAvailability = availability.map(a =>
+                                                                        a.sessionId === session.id
+                                                                            ? { ...a, status: 'unavailable' as const }
+                                                                            : a
+                                                                    );
+                                                                    setAvailability(newAvailability);
+                                                                    onAvailabilityChange(newAvailability);
+                                                                }}
+                                                                className={cn(
+                                                                    'flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1',
+                                                                    sessionAvailability.status === 'unavailable'
+                                                                        ? 'bg-red-500 text-white'
+                                                                        : 'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400'
+                                                                )}
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                                No
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Optional Note */}
+                                                        {sessionAvailability.status !== 'available' && (
+                                                            <button
+                                                                onClick={() => setNoteModal({
+                                                                    sessionId: session.id,
+                                                                    note: sessionAvailability.note || '',
+                                                                })}
+                                                                className="w-full mt-2 py-2 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 transition-colors flex items-center justify-center gap-1"
+                                                            >
+                                                                <AlertCircle className="w-3.5 h-3.5" />
+                                                                {sessionAvailability.note
+                                                                    ? `Note: ${sessionAvailability.note}`
+                                                                    : 'Add a note (optional)'}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Note Modal */}
+            <AnimatePresence>
+                {noteModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+                        onClick={() => setNoteModal(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white dark:bg-surface-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="p-4 border-b border-surface-200 dark:border-surface-700">
+                                <h3 className="font-semibold text-surface-900 dark:text-white">
+                                    Add a Note
+                                </h3>
+                                <p className="text-sm text-surface-500">
+                                    Let the captain know why
+                                </p>
+                            </div>
+                            <div className="p-4">
+                                <textarea
+                                    value={noteModal.note}
+                                    onChange={(e) => setNoteModal({ ...noteModal, note: e.target.value })}
+                                    placeholder="e.g., Flight arrives at 2pm"
+                                    rows={3}
+                                    className="w-full p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 text-surface-900 dark:text-white placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-masters/30"
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="flex gap-2 p-4 border-t border-surface-200 dark:border-surface-700">
+                                <button
+                                    onClick={() => setNoteModal(null)}
+                                    className="flex-1 py-2.5 rounded-lg border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-400 font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => updateNote(noteModal.sessionId, noteModal.note)}
+                                    className="flex-1 py-2.5 rounded-lg bg-masters text-white font-medium"
+                                >
+                                    Save Note
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+export default AvailabilityCalendar;

@@ -51,7 +51,7 @@ import {
     type PlayerInfo,
 } from '@/components/trip-setup';
 
-type WizardStep = 
+type WizardStep =
     | 'basics'
     | 'players'
     | 'sessions'
@@ -86,27 +86,27 @@ export interface TripSetupData {
     startDate: string;
     endDate: string;
     location: string;
-    
+
     // Teams
     teamColors: TeamColors;
     playersPerTeam: number;
     players: PlayerInfo[];
-    
+
     // Sessions
     totalDays: number;
     sessions: SessionConfig[];
-    
+
     // Courses
     courses: CourseInfo[];
-    
+
     // Scoring
     pointConfig: PointConfig;
     sessionPointOverrides: SessionPointOverride[];
     scoringSettings: ScoringSettings;
-    
+
     // Rules
     handicapSettings: HandicapSettings;
-    
+
     // Extras
     sideBets: SideBetConfig[];
     teeTimeSettings: TeeTimeSettings;
@@ -539,7 +539,7 @@ function ReviewStep({ data }: { data: TripSetupData }) {
                 <div className="p-3 flex justify-between">
                     <span className="text-surface-500">Handicap</span>
                     <span className="font-medium">
-                        {data.handicapSettings.useNetScoring 
+                        {data.handicapSettings.useNetScoring
                             ? `${data.handicapSettings.allowancePercent}% allowance`
                             : 'Gross scoring'}
                     </span>

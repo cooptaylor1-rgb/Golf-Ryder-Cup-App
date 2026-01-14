@@ -7,7 +7,7 @@ export { PlayerCountSelector } from './PlayerCountSelector';
 export { CourseSelection, type CourseInfo, type TeeBox } from './CourseSelection';
 export { HandicapRules, DEFAULT_HANDICAP_SETTINGS, type HandicapSettings } from './HandicapRules';
 
-// Phase 3: Competition customization  
+// Phase 3: Competition customization
 export { PointSystem, DEFAULT_POINT_CONFIG, type PointConfig, type SessionPointOverride } from './PointSystem';
 export { SideBetPresets, type SideBetConfig } from './SideBetPresets';
 export { ScoringFormatOptions, DEFAULT_SCORING_SETTINGS, type ScoringSettings, type ScoringFormat, type WinCondition } from './ScoringFormatOptions';

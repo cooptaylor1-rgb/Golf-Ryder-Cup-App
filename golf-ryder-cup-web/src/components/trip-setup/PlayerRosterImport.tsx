@@ -76,7 +76,7 @@ export function PlayerRosterImport({
     }, [players, onPlayersChange]);
 
     const updatePlayer = useCallback((playerId: string, updates: Partial<PlayerInfo>) => {
-        onPlayersChange(players.map(p => 
+        onPlayersChange(players.map(p =>
             p.id === playerId ? { ...p, ...updates } : p
         ));
     }, [players, onPlayersChange]);
@@ -91,10 +91,10 @@ export function PlayerRosterImport({
 
     const autoAssignTeams = useCallback(() => {
         // Sort by handicap and alternate assignment
-        const sortedPlayers = [...players].sort((a, b) => 
+        const sortedPlayers = [...players].sort((a, b) =>
             (a.handicap || 99) - (b.handicap || 99)
         );
-        
+
         const newPlayers = sortedPlayers.map((player, index) => ({
             ...player,
             team: (index % 2 === 0 ? 'A' : 'B') as PlayerInfo['team'],
@@ -109,7 +109,7 @@ export function PlayerRosterImport({
 
     const parseImport = useCallback(() => {
         setImportError(null);
-        
+
         if (!importText.trim()) {
             setImportError('Please paste player data');
             return;
