@@ -15,7 +15,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { WeatherWidget } from './WeatherWidget';
 import type { GolfCourseAPICourse, GolfCourseAPITee } from '@/lib/services/golfCourseAPIService';
-import { formatCourseLocation, getAllTees, inferTeeColor } from '@/lib/services/golfCourseAPIService';
+import { formatCourseLocation, getAllTees } from '@/lib/services/golfCourseAPIService';
 import {
     MapPin,
     Flag,
