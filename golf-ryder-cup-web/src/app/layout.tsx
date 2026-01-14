@@ -1,17 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { PWAProvider } from '@/components/PWAProvider';
 import { PWABanners } from '@/components/PWABanners';
 import { ToastContainer } from '@/components/ui/Toast';
 import { AppOnboardingProvider } from '@/components/AppOnboardingProvider';
 import { NotificationProvider } from '@/components/live-play';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
 
 export const metadata: Metadata = {
   title: 'Ryder Cup Tracker',
@@ -51,11 +44,20 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className="font-sans antialiased">
+        {/* Skip link for accessibility - keyboard users can skip to main content */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-3 focus:rounded-xl focus:bg-masters-green focus:text-white focus:font-semibold focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2"
+        >
+          Skip to main content
+        </a>
         <PWAProvider>
           <NotificationProvider>
             <AppOnboardingProvider>
-              {children}
+              <main id="main-content">
+                {children}
+              </main>
             </AppOnboardingProvider>
           </NotificationProvider>
           <ToastContainer />
