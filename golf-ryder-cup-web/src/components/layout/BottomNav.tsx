@@ -1,8 +1,14 @@
 /**
  * Bottom Navigation Component
  *
- * Mobile-first bottom tab bar for main navigation.
- * Large touch targets for outdoor use.
+ * Mobile-first bottom tab bar.
+ * Masters-inspired: restrained, functional, quietly confident.
+ *
+ * Design principles:
+ * - Large touch targets for outdoor use
+ * - Clear active state without being loud
+ * - Information hierarchy in color, not size
+ * - Notification badges for timely alerts
  */
 
 'use client';
@@ -11,80 +17,143 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/lib/stores';
 import {
-    Target,
-    Users,
-    Trophy,
-    MoreHorizontal,
-    Shield
+  Target,
+  Users,
+  Trophy,
+  Home,
+  Settings,
+  Shield,
 } from 'lucide-react';
 
 interface NavItem {
-    href: string;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    tab: 'score' | 'matchups' | 'standings' | 'more';
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badgeKey?: 'home' | 'score' | 'matches' | 'standings' | 'more';
 }
 
 const navItems: NavItem[] = [
-    { href: '/score', label: 'Score', icon: Target, tab: 'score' },
-    { href: '/matchups', label: 'Matchups', icon: Users, tab: 'matchups' },
-    { href: '/standings', label: 'Standings', icon: Trophy, tab: 'standings' },
-    { href: '/more', label: 'More', icon: MoreHorizontal, tab: 'more' },
+  { href: '/', label: 'Home', icon: Home, badgeKey: 'home' },
+  { href: '/score', label: 'Score', icon: Target, badgeKey: 'score' },
+  { href: '/matchups', label: 'Matches', icon: Users, badgeKey: 'matches' },
+  { href: '/standings', label: 'Standings', icon: Trophy, badgeKey: 'standings' },
+  { href: '/more', label: 'More', icon: Settings, badgeKey: 'more' },
 ];
 
-export function BottomNav() {
-    const router = useRouter();
-    const pathname = usePathname();
-    const { activeTab, setActiveTab, isCaptainMode } = useUIStore();
+export interface NavBadges {
+  home?: number;
+  score?: number;
+  matches?: number;
+  standings?: number;
+  more?: number;
+}
 
-    const handleNavClick = (item: NavItem) => {
-        setActiveTab(item.tab);
-        router.push(item.href);
-    };
+interface BottomNavProps {
+  badges?: NavBadges;
+}
 
-    return (
-        <nav className="bottom-nav" aria-label="Main navigation">
-            {navItems.map((item) => {
-                const isActive = pathname.startsWith(item.href) || activeTab === item.tab;
-                const Icon = item.icon;
+export function BottomNav({ badges = {} }: BottomNavProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { isCaptainMode } = useUIStore();
 
-                return (
-                    <button
-                        key={item.href}
-                        onClick={() => handleNavClick(item)}
-                        className={cn(
-                            'flex flex-col items-center justify-center',
-                            'min-w-[64px] py-2 px-3',
-                            'transition-colors duration-150',
-                            isActive
-                                ? 'text-augusta-green'
-                                : 'text-surface-500 hover:text-surface-700 dark:hover:text-surface-300'
-                        )}
-                        aria-current={isActive ? 'page' : undefined}
-                    >
-                        <div className="relative">
-                            <Icon className={cn(
-                                'w-6 h-6 transition-transform',
-                                isActive && 'scale-110'
-                            )} />
-                            {item.tab === 'more' && isCaptainMode && (
-                                <Shield className="absolute -top-1 -right-2 w-3 h-3 text-augusta-green" />
-                            )}
-                        </div>
-                        <span className={cn(
-                            'text-xs mt-1 font-medium',
-                            isActive && 'font-bold'
-                        )}>
-                            {item.label}
-                        </span>
-                        {isActive && (
-                            <div className="absolute bottom-0 w-12 h-0.5 bg-augusta-green rounded-full" />
-                        )}
-                    </button>
-                );
-            })}
-        </nav>
-    );
+  const isActive = (item: NavItem) => {
+    if (item.href === '/') return pathname === '/';
+    return pathname.startsWith(item.href);
+  };
+
+  const getBadgeCount = (item: NavItem): number | undefined => {
+    if (!item.badgeKey) return undefined;
+    return badges[item.badgeKey];
+  };
+
+  return (
+    <nav
+      className={cn(
+        'lg:hidden',
+        'fixed bottom-0 left-0 right-0 z-50',
+        'flex items-stretch justify-around',
+        'h-16 px-2',
+        'safe-bottom',
+      )}
+      style={{
+        background: 'var(--surface, #1A1814)',
+        borderTop: '1px solid var(--rule, rgba(58, 53, 48, 0.5))',
+      }}
+      aria-label="Main navigation"
+    >
+      {navItems.map((item) => {
+        const active = isActive(item);
+        const Icon = item.icon;
+        const badgeCount = getBadgeCount(item);
+
+        return (
+          <button
+            key={item.href}
+            onClick={() => router.push(item.href)}
+            className={cn(
+              'relative flex flex-col items-center justify-center',
+              'flex-1 min-w-[56px] py-2',
+              'transition-colors',
+              'focus-visible:outline-none',
+            )}
+            style={{
+              color: active ? 'var(--masters, #006747)' : 'var(--ink-tertiary, #807868)',
+              transitionDuration: '150ms',
+            }}
+            aria-current={active ? 'page' : undefined}
+          >
+            {/* Active indicator */}
+            {active && (
+              <span
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                style={{ background: 'var(--masters, #006747)' }}
+                aria-hidden="true"
+              />
+            )}
+
+            {/* Icon with badge */}
+            <div className="relative">
+              <Icon className={cn('w-5 h-5', active && 'scale-110')} />
+
+              {/* Notification badge */}
+              {badgeCount !== undefined && badgeCount > 0 && (
+                <span
+                  className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full text-[10px] font-bold"
+                  style={{
+                    background: 'var(--error, #DC2626)',
+                    color: 'white',
+                  }}
+                  aria-label={`${badgeCount} notifications`}
+                >
+                  {badgeCount > 99 ? '99+' : badgeCount}
+                </span>
+              )}
+
+              {/* Captain badge on More (only if no notification badge) */}
+              {item.href === '/more' && isCaptainMode && !badgeCount && (
+                <Shield
+                  className="absolute -top-0.5 -right-1.5 w-2.5 h-2.5"
+                  style={{ color: 'var(--masters, #006747)' }}
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+
+            {/* Label */}
+            <span
+              className={cn(
+                'text-[10px] mt-1 font-medium tracking-wide',
+                active && 'font-semibold',
+              )}
+            >
+              {item.label}
+            </span>
+          </button>
+        );
+      })}
+    </nav>
+  );
 }
 
 export default BottomNav;

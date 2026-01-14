@@ -23,12 +23,20 @@ import {
   Tv,
   Zap,
   TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { calculateTeamStandings } from '@/lib/services/tournamentEngine';
 import type { TeamStandings } from '@/lib/types/computed';
-import { NoTournamentsEmpty } from '@/components/ui';
+import {
+  NoTournamentsEmpty,
+  LiveMatchBanner,
+  WhatsNew,
+  QuickStartWizard,
+  FeatureCard,
+} from '@/components/ui';
+import { BottomNav, type NavBadges } from '@/components/layout';
 import { WeatherWidget } from '@/components/course';
 
 /**
@@ -44,6 +52,9 @@ export default function HomePage() {
   const router = useRouter();
   const { loadTrip, currentTrip } = useTripStore();
   const [standings, setStandings] = useState<TeamStandings | null>(null);
+  const [showQuickStart, setShowQuickStart] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [dismissedFeatureCard, setDismissedFeatureCard] = useState(false);
 
   const trips = useLiveQuery(
     () => db.trips.orderBy('startDate').reverse().toArray(),
@@ -71,6 +82,39 @@ export default function HomePage() {
     router.push('/standings');
   };
 
+  const handleQuickStartComplete = useCallback(async (tripData: {
+    name: string;
+    location: string;
+    startDate: string;
+    endDate: string;
+    teamAName: string;
+    teamBName: string;
+  }) => {
+    // Create the trip using db
+    const tripId = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    // Store team names in the notes field for now (can be extracted later)
+    const teamNotes = tripData.teamAName !== 'USA' || tripData.teamBName !== 'Europe'
+      ? `Teams: ${tripData.teamAName} vs ${tripData.teamBName}`
+      : undefined;
+
+    await db.trips.add({
+      id: tripId,
+      name: tripData.name,
+      location: tripData.location || undefined,
+      startDate: tripData.startDate,
+      endDate: tripData.endDate,
+      notes: teamNotes,
+      isCaptainModeEnabled: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    setShowQuickStart(false);
+    await loadTrip(tripId);
+    router.push('/players');
+  }, [loadTrip, router]);
+
   const hasTrips = trips && trips.length > 0;
   const pastTrips = trips?.filter(t => t.id !== activeTrip?.id) || [];
 
@@ -79,16 +123,73 @@ export default function HomePage() {
   const recentPhotosCount = 12;
   const unreadMessages = 5;
 
+  // Navigation badges
+  const navBadges: NavBadges = {
+    matches: liveMatchesCount > 0 ? liveMatchesCount : undefined,
+  };
+
   return (
     <div className="min-h-screen pb-nav page-enter" style={{ background: 'var(--canvas)' }}>
+      {/* Quick Start Wizard Modal */}
+      {showQuickStart && (
+        <QuickStartWizard
+          onComplete={handleQuickStartComplete}
+          onCancel={() => setShowQuickStart(false)}
+        />
+      )}
+
+      {/* What's New Modal (auto-shows for returning users) */}
+      <WhatsNew onDismiss={() => setShowWhatsNew(false)} />
+
       {/* Minimal Header */}
       <header className="header">
-        <div className="container-editorial">
+        <div className="container-editorial flex items-center justify-between">
           <span className="type-overline">Ryder Cup Tracker</span>
+          {hasTrips && (
+            <button
+              onClick={() => setShowWhatsNew(true)}
+              className="p-2 -mr-2 rounded-lg transition-colors"
+              style={{ color: 'var(--masters)' }}
+              aria-label="What's new"
+            >
+              <Sparkles className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </header>
 
       <main className="container-editorial">
+        {/* LIVE MATCH BANNER — Top priority when matches are happening */}
+        {activeTrip && liveMatchesCount > 0 && (
+          <section className="section-sm">
+            <LiveMatchBanner
+              matchCount={liveMatchesCount}
+              currentHole={7}
+              closestMatch={{
+                teamA: 'Smith & Jones',
+                teamB: 'Brown & Wilson',
+                score: '2 UP',
+              }}
+            />
+          </section>
+        )}
+
+        {/* Feature Discovery Card (for new users or after updates) */}
+        {hasTrips && !dismissedFeatureCard && !activeTrip && (
+          <section className="section-sm">
+            <FeatureCard
+              icon={<Tv className="w-5 h-5" />}
+              title="Try Live Jumbotron"
+              description="Watch live scoring on a big screen - perfect for the clubhouse!"
+              action={{
+                label: 'Learn more',
+                onClick: () => router.push('/live'),
+              }}
+              onDismiss={() => setDismissedFeatureCard(true)}
+            />
+          </section>
+        )}
+
         {/* LEAD — Active Tournament with Live Score */}
         {activeTrip && standings ? (
           <>
@@ -345,18 +446,21 @@ export default function HomePage() {
               {hasTrips ? 'Tournaments' : 'Get Started'}
             </h2>
             {hasTrips && (
-              <Link
-                href="/trip/new"
+              <button
+                onClick={() => setShowQuickStart(true)}
                 className="flex items-center gap-1"
                 style={{
                   color: 'var(--masters)',
                   fontWeight: 500,
-                  fontSize: 'var(--text-sm)'
+                  fontSize: 'var(--text-sm)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
                 }}
               >
                 <Plus size={16} strokeWidth={2} />
                 New
-              </Link>
+              </button>
             )}
           </div>
 
@@ -393,35 +497,14 @@ export default function HomePage() {
               ))}
             </div>
           ) : !activeTrip ? (
-            /* Premium Empty State */
-            <NoTournamentsEmpty onCreateTrip={() => router.push('/trip/new')} />
+            /* Premium Empty State with Quick Start option */
+            <NoTournamentsEmpty onCreateTrip={() => setShowQuickStart(true)} />
           ) : null}
         </section>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="bottom-nav">
-        <Link href="/" className="nav-item nav-item-active">
-          <Home size={22} strokeWidth={1.75} />
-          <span>Home</span>
-        </Link>
-        <Link href="/score" className="nav-item">
-          <Target size={22} strokeWidth={1.75} />
-          <span>Score</span>
-        </Link>
-        <Link href="/matchups" className="nav-item">
-          <Users size={22} strokeWidth={1.75} />
-          <span>Matches</span>
-        </Link>
-        <Link href="/standings" className="nav-item">
-          <Trophy size={22} strokeWidth={1.75} />
-          <span>Standings</span>
-        </Link>
-        <Link href="/more" className="nav-item">
-          <MoreHorizontal size={22} strokeWidth={1.75} />
-          <span>More</span>
-        </Link>
-      </nav>
+      {/* Bottom Navigation with Badges */}
+      <BottomNav badges={navBadges} />
     </div>
   );
 }

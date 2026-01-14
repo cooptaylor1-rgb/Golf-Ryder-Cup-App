@@ -1,5 +1,7 @@
 /**
  * UI Components barrel export
+ *
+ * Consolidated, world-class UI components.
  */
 
 // Core primitives
@@ -14,6 +16,12 @@ export { OfflineIndicator } from './OfflineIndicator';
 export { ToastContainer } from './Toast';
 export { UndoToast, useUndoToast } from './UndoToast';
 export { Tooltip, type TooltipProps } from './Tooltip';
+export {
+  ErrorBoundary,
+  ErrorFallback,
+  useErrorHandler,
+  withErrorBoundary,
+} from './ErrorBoundary';
 
 // Error handling
 export {
@@ -45,69 +53,152 @@ export { StandingsCard } from './StandingsCard';
 
 // Loading states
 export {
-    Skeleton,
-    SkeletonText,
-    MatchCardSkeleton,
-    StandingsCardSkeleton,
-    PlayerListSkeleton,
-    SessionCardSkeleton,
+  Skeleton,
+  SkeletonText,
+  MatchCardSkeleton,
+  StandingsCardSkeleton,
+  PlayerListSkeleton,
+  SessionCardSkeleton,
+  LiveMatchCardSkeleton,
+  AchievementCardSkeleton,
+  BetCardSkeleton,
+  CommentCardSkeleton,
+  PhotoGridSkeleton,
+  WeatherWidgetSkeleton,
+  DashboardSkeleton,
+  PageSkeleton,
 } from './Skeleton';
 
-// Empty states (legacy)
+// Empty states (consolidated - using Premium as primary)
 export {
-    EmptyState,
-    NoTripsEmpty,
-    NoMatchesEmpty,
-    NoSessionsEmpty,
-    NoPlayersEmpty,
-    NoStandingsEmpty,
-    NoCoursesEmpty,
+  EmptyState,
+  EmptyStatePremium,
+  NoTripsEmpty,
+  NoMatchesEmpty,
+  NoSessionsEmpty,
+  NoPlayersEmpty,
+  NoStandingsEmpty,
+  NoCoursesEmpty,
+  NoScoresEmpty,
+  NoSearchResultsEmpty,
+  TournamentCompleteEmpty,
+  OfflineEmpty,
+  ErrorEmpty,
 } from './EmptyState';
 
-// Empty states (new design)
-export {
-    EmptyStateNew,
-    NoTripsEmptyNew,
-    NoMatchesEmptyNew,
-    NoSessionsEmptyNew,
-    NoPlayersEmptyNew,
-    NoStandingsEmptyNew,
-    NoCoursesEmptyNew,
-    NoScoresEmptyNew,
-} from './EmptyStateNew';
+// Legacy aliases for backwards compatibility
+export { NoTripsEmpty as NoTournamentsEmpty } from './EmptyState';
+export { EmptyState as EmptyStateNew } from './EmptyState';
+export { NoTripsEmpty as NoTripsEmptyNew } from './EmptyState';
+export { NoMatchesEmpty as NoMatchesEmptyNew } from './EmptyState';
+export { NoSessionsEmpty as NoSessionsEmptyNew } from './EmptyState';
+export { NoPlayersEmpty as NoPlayersEmptyNew } from './EmptyState';
+export { NoStandingsEmpty as NoStandingsEmptyNew } from './EmptyState';
+export { NoCoursesEmpty as NoCoursesEmptyNew } from './EmptyState';
+export { NoScoresEmpty as NoScoresEmptyNew } from './EmptyState';
 
-// Empty states (premium v3)
-export {
-    EmptyStatePremium,
-    NoTournamentsEmpty,
-    NoMatchesEmpty as NoMatchesPremiumEmpty,
-    NoSessionsEmpty as NoSessionsPremiumEmpty,
-    NoPlayersEmpty as NoPlayersPremiumEmpty,
-    NoStandingsEmpty as NoStandingsPremiumEmpty,
-    NoCoursesEmpty as NoCoursesPremiumEmpty,
-    NoScoresEmpty as NoScoresPremiumEmpty,
-    NoSearchResultsEmpty,
-    TournamentCompleteEmpty,
-    OfflineEmpty,
-    ErrorEmpty,
-} from './EmptyStatePremium';
+// Premium aliases for backwards compatibility
+export { NoMatchesEmpty as NoMatchesPremiumEmpty } from './EmptyState';
+export { NoSessionsEmpty as NoSessionsPremiumEmpty } from './EmptyState';
+export { NoPlayersEmpty as NoPlayersPremiumEmpty } from './EmptyState';
+export { NoStandingsEmpty as NoStandingsPremiumEmpty } from './EmptyState';
+export { NoCoursesEmpty as NoCoursesPremiumEmpty } from './EmptyState';
+export { NoScoresEmpty as NoScoresPremiumEmpty } from './EmptyState';
 
 // Golf illustrations
 export {
-    GolfBallTee,
-    TrophyIllustration,
-    GolfersIllustration,
-    ScorecardIllustration,
-    GolfFlagIllustration,
-    CalendarIllustration,
-    PodiumIllustration,
-    GolfSwingIllustration,
-    CelebrationIllustration,
+  GolfBallTee,
+  TrophyIllustration,
+  GolfersIllustration,
+  ScorecardIllustration,
+  GolfFlagIllustration,
+  CalendarIllustration,
+  PodiumIllustration,
+  GolfSwingIllustration,
+  CelebrationIllustration,
 } from './illustrations';
 
-// Onboarding
+// Onboarding & Discovery
 export {
-    Onboarding,
-    WelcomeBack,
-    FeatureSpotlight,
+  Onboarding,
+  WelcomeBack,
+  FeatureSpotlight,
 } from './Onboarding';
+
+export {
+  WhatsNew,
+  FeatureCard,
+  useWhatsNew,
+} from './WhatsNew';
+
+export {
+  QuickStartWizard,
+} from './QuickStartWizard';
+
+export {
+  LiveMatchBanner,
+  LiveMatchPill,
+} from './LiveMatchBanner';
+
+// Performance & Offline
+export {
+  PullToRefresh,
+  usePullToRefresh,
+} from './PullToRefresh';
+
+export {
+  SyncStatus,
+  FloatingSyncStatus,
+} from './SyncStatus';
+
+// Celebrations & Delight
+export {
+  ConfettiProvider,
+  ConfettiBurst,
+  CelebrationParticles,
+  GoldShimmer,
+  useConfetti,
+  type ConfettiTheme,
+  type BurstPattern,
+} from './ConfettiCannon';
+
+export {
+  VictoryModal,
+  VictoryToast,
+  type MatchResult,
+  type TournamentResult,
+} from './VictoryModal';
+
+export {
+  AnimatedCounter,
+  RollingDigits,
+  ScoreTicker,
+  StatCounter,
+  Countdown,
+} from './AnimatedCounter';
+
+export {
+  CelebrationProvider,
+  ScoreBadge,
+  MatchStatusIndicator,
+  HoleResult,
+  useCelebration,
+  type CelebrationType,
+  type CelebrationEvent,
+} from './ScoreCelebration';
+
+// Micro Interactions
+export {
+  Pressable,
+  AnimatedReveal,
+  StaggeredList,
+  ShimmerSkeleton,
+  SuccessCheckmark,
+  ErrorShake,
+  BounceIndicator,
+  PulseDot,
+  TypingIndicator,
+  ProgressRing,
+  SwipeHint,
+  LongPressProgress,
+} from './MicroInteractions';
