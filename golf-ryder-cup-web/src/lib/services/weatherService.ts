@@ -366,3 +366,182 @@ export function formatTime(date: Date): string {
 export function getDaylightHours(sunrise: Date, sunset: Date): number {
     return (sunset.getTime() - sunrise.getTime()) / (1000 * 60 * 60);
 }
+
+// ============================================
+// SESSION WEATHER INTEGRATION
+// ============================================
+
+import type { SessionWeather, WeatherForecast, WeatherAlert } from '@/lib/types/captain';
+import type { RyderCupSession, UUID } from '@/lib/types/models';
+
+/**
+ * Get weather forecast for a specific session
+ */
+export async function getSessionWeather(
+    session: RyderCupSession,
+    latitude: number,
+    longitude: number
+): Promise<SessionWeather> {
+    try {
+        const weather = await getGolfWeather(latitude, longitude);
+
+        // Find forecast for session date/time
+        const sessionDate = session.scheduledDate ? new Date(session.scheduledDate) : new Date();
+        const isAM = session.timeSlot === 'AM';
+        const targetHour = isAM ? 9 : 14; // 9 AM or 2 PM
+
+        sessionDate.setHours(targetHour, 0, 0, 0);
+
+        // Find closest hourly forecast
+        const closestHourly = weather.hourly.reduce((closest, h) => {
+            const diff = Math.abs(h.time.getTime() - sessionDate.getTime());
+            const closestDiff = Math.abs(closest.time.getTime() - sessionDate.getTime());
+            return diff < closestDiff ? h : closest;
+        });
+
+        // Find daily forecast
+        const targetDateStr = sessionDate.toDateString();
+        const dailyForecast = weather.daily.find(d => d.date.toDateString() === targetDateStr);
+
+        const forecast: WeatherForecast = {
+            date: sessionDate.toISOString(),
+            timeSlot: session.timeSlot || 'AM',
+            temperature: {
+                high: dailyForecast?.temperatureMax || weather.current.temperature,
+                low: dailyForecast?.temperatureMin || weather.current.temperature - 10,
+                unit: 'F',
+            },
+            conditions: closestHourly.condition.description,
+            icon: closestHourly.condition.icon,
+            precipitation: {
+                chance: closestHourly.precipitationProbability,
+                type: closestHourly.precipitation > 0 ? 'rain' : undefined,
+            },
+            wind: {
+                speed: closestHourly.windSpeed,
+                direction: getWindDirection(weather.current.windDirection),
+                gusts: closestHourly.windGust,
+            },
+            humidity: weather.current.humidity,
+            uvIndex: weather.current.uvIndex,
+            sunrise: dailyForecast ? formatTime(dailyForecast.sunrise) : undefined,
+            sunset: dailyForecast ? formatTime(dailyForecast.sunset) : undefined,
+        };
+
+        // Generate alerts based on conditions
+        const alerts: WeatherAlert[] = [];
+
+        if (closestHourly.precipitationProbability > 70) {
+            alerts.push({
+                id: 'rain-likely',
+                type: 'advisory',
+                title: 'Rain Likely',
+                description: `${closestHourly.precipitationProbability}% chance of precipitation`,
+                severity: closestHourly.precipitationProbability > 90 ? 'severe' : 'moderate',
+                startTime: sessionDate.toISOString(),
+                endTime: new Date(sessionDate.getTime() + 4 * 60 * 60 * 1000).toISOString(),
+            });
+        }
+
+        if (closestHourly.windSpeed > 20) {
+            alerts.push({
+                id: 'high-wind',
+                type: 'advisory',
+                title: 'High Winds',
+                description: `Winds ${Math.round(closestHourly.windSpeed)} mph with gusts to ${Math.round(closestHourly.windGust)} mph`,
+                severity: closestHourly.windSpeed > 30 ? 'severe' : 'moderate',
+                startTime: sessionDate.toISOString(),
+                endTime: new Date(sessionDate.getTime() + 4 * 60 * 60 * 1000).toISOString(),
+            });
+        }
+
+        if (weather.current.uvIndex >= 8) {
+            alerts.push({
+                id: 'high-uv',
+                type: 'advisory',
+                title: 'High UV Index',
+                description: 'UV index is very high. Sun protection recommended.',
+                severity: 'minor',
+                startTime: sessionDate.toISOString(),
+                endTime: new Date(sessionDate.getTime() + 4 * 60 * 60 * 1000).toISOString(),
+            });
+        }
+
+        // Determine recommendation
+        let recommendation: SessionWeather['recommendation'] = 'go';
+        if (weather.golfConditions.score < 40) {
+            recommendation = 'delay';
+        } else if (weather.golfConditions.score < 60 || alerts.some(a => a.severity === 'severe')) {
+            recommendation = 'monitor';
+        }
+
+        return {
+            sessionId: session.id,
+            forecast,
+            alerts,
+            recommendation,
+            lastUpdated: new Date().toISOString(),
+        };
+    } catch (error) {
+        // Return default/empty weather on error
+        return {
+            sessionId: session.id,
+            forecast: {
+                date: new Date().toISOString(),
+                timeSlot: session.timeSlot || 'AM',
+                temperature: { high: 72, low: 55, unit: 'F' },
+                conditions: 'Unable to fetch weather',
+                icon: 'cloud',
+                precipitation: { chance: 0 },
+                wind: { speed: 0, direction: 'N' },
+                humidity: 50,
+                uvIndex: 5,
+            },
+            alerts: [],
+            recommendation: 'go',
+            lastUpdated: new Date().toISOString(),
+        };
+    }
+}
+
+/**
+ * Get weather summary text
+ */
+export function getWeatherSummary(forecast: WeatherForecast): string {
+    const parts: string[] = [];
+
+    parts.push(`${forecast.conditions}`);
+    parts.push(`${forecast.temperature.high}°/${forecast.temperature.low}°`);
+
+    if (forecast.precipitation.chance > 30) {
+        parts.push(`${forecast.precipitation.chance}% rain`);
+    }
+
+    if (forecast.wind.speed > 10) {
+        parts.push(`Wind ${Math.round(forecast.wind.speed)} mph`);
+    }
+
+    return parts.join(' • ');
+}
+
+/**
+ * Get weather recommendation text
+ */
+export function getWeatherRecommendation(recommendation: SessionWeather['recommendation']): {
+    text: string;
+    color: string;
+    icon: string;
+} {
+    switch (recommendation) {
+        case 'go':
+            return { text: 'Good to Go', color: 'green', icon: 'check-circle' };
+        case 'monitor':
+            return { text: 'Monitor Conditions', color: 'yellow', icon: 'alert-circle' };
+        case 'delay':
+            return { text: 'Consider Delay', color: 'orange', icon: 'clock' };
+        case 'cancel':
+            return { text: 'Cancellation Advised', color: 'red', icon: 'x-circle' };
+        default:
+            return { text: 'Unknown', color: 'gray', icon: 'help-circle' };
+    }
+}
