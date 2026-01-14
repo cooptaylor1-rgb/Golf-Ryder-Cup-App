@@ -54,8 +54,8 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
 
   // Calculate balances
   const balances = useMemo(() => {
-    return calculatePlayerBalances(tripId, sideGames, expenses);
-  }, [tripId, sideGames, expenses]);
+    return calculatePlayerBalances(expenses, players);
+  }, [expenses, players]);
 
   // Calculate settlements
   const settlements = useMemo(() => {
@@ -68,6 +68,7 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
     const game = createSideGame(
       tripId,
       newGameType,
+      `${newGameType.charAt(0).toUpperCase() + newGameType.slice(1)} Game`,
       newGameAmount,
       selectedPlayers
     );
@@ -83,7 +84,8 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
 
     const expense = createExpense(
       tripId,
-      newExpenseDescription,
+      'other',  // default category
+      newExpenseDescription || 'Expense',
       newExpenseAmount,
       newExpensePaidBy,
       newExpenseSplitBetween
@@ -106,7 +108,8 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
   };
 
   const getPlayerName = (playerId: string) => {
-    return players.find(p => p.id === playerId)?.name || 'Unknown';
+    const p = players.find(p => p.id === playerId);
+    return p ? `${p.firstName} ${p.lastName}` : 'Unknown';
   };
 
   const formatCurrency = (amount: number) => {
@@ -138,8 +141,8 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${activeTab === tab
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -204,11 +207,11 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
                       key={player.id}
                       onClick={() => togglePlayer(player.id, selectedPlayers, setSelectedPlayers)}
                       className={`px-3 py-1 rounded-full text-sm transition-colors ${selectedPlayers.includes(player.id)
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                         }`}
                     >
-                      {player.name}
+                      {player.firstName} {player.lastName}
                     </button>
                   ))}
                 </div>
@@ -246,15 +249,15 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
                       {game.type === 'nassau' && <Trophy className="w-4 h-4 text-yellow-500" />}
                       {game.type === 'kp' && <Target className="w-4 h-4 text-blue-500" />}
                       <span className="font-medium text-gray-900 dark:text-white capitalize">
-                        {game.type.replace('-', ' ')}
+                        {game.type.replace('_', ' ')}
                       </span>
                     </div>
                     <span className="text-green-600 dark:text-green-400 font-medium">
-                      ${game.amount}
+                      ${game.buyIn}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {game.participantIds.map(getPlayerName).join(', ')}
+                    {game.playerIds.map(getPlayerName).join(', ')}
                   </p>
                 </div>
               ))}
@@ -317,7 +320,7 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
                   >
                     <option value="">Select...</option>
                     {players.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
+                      <option key={p.id} value={p.id}>{p.firstName} {p.lastName}</option>
                     ))}
                   </select>
                 </div>
@@ -333,11 +336,11 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
                       key={player.id}
                       onClick={() => togglePlayer(player.id, newExpenseSplitBetween, setNewExpenseSplitBetween)}
                       className={`px-3 py-1 rounded-full text-sm transition-colors ${newExpenseSplitBetween.includes(player.id)
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                         }`}
                     >
-                      {player.name}
+                      {player.firstName} {player.lastName}
                     </button>
                   ))}
                 </div>
@@ -384,8 +387,8 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Paid by {getPlayerName(expense.paidByPlayerId)} •
-                    Split {expense.splitBetweenPlayerIds.length} ways
+                    Paid by {getPlayerName(expense.paidBy)} •
+                    Split {expense.splitAmong.length} ways
                   </p>
                 </div>
               ))}
@@ -418,10 +421,10 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
                       <Check className="w-4 h-4 text-gray-400" />
                     )}
                     <span className={`font-medium ${balance.netBalance > 0
-                        ? 'text-green-600 dark:text-green-400'
-                        : balance.netBalance < 0
-                          ? 'text-red-600 dark:text-red-400'
-                          : 'text-gray-500'
+                      ? 'text-green-600 dark:text-green-400'
+                      : balance.netBalance < 0
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-gray-500'
                       }`}>
                       {balance.netBalance >= 0 ? '+' : ''}{formatCurrency(balance.netBalance)}
                     </span>
@@ -442,8 +445,8 @@ export function SideBetsTracker({ tripId, players, onUpdate }: SideBetsTrackerPr
                   <div
                     key={idx}
                     className={`p-4 border rounded-lg flex items-center justify-between ${settlement.settled
-                        ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
-                        : 'dark:border-gray-700'
+                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                      : 'dark:border-gray-700'
                       }`}
                   >
                     <div className="flex items-center gap-3">

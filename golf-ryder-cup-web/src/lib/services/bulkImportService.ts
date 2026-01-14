@@ -17,6 +17,15 @@ import type {
 } from '@/lib/types/captain';
 import type { Player, UUID } from '@/lib/types/models';
 
+// Re-export types for convenience
+export type {
+    ImportSource,
+    PlayerImportRow,
+    ImportValidationResult,
+    BulkImportResult,
+    GHINLookupResult,
+} from '@/lib/types/captain';
+
 /**
  * Parse CSV text into player import rows
  */

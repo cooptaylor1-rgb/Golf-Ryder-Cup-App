@@ -383,7 +383,7 @@ export async function getSessionWeather(
     longitude: number
 ): Promise<SessionWeather> {
     try {
-        const weather = await getGolfWeather(latitude, longitude);
+        const weather = await getWeather(latitude, longitude);
 
         // Find forecast for session date/time
         const sessionDate = session.scheduledDate ? new Date(session.scheduledDate) : new Date();
@@ -393,15 +393,15 @@ export async function getSessionWeather(
         sessionDate.setHours(targetHour, 0, 0, 0);
 
         // Find closest hourly forecast
-        const closestHourly = weather.hourly.reduce((closest, h) => {
+        const closestHourly = weather.hourly.reduce((closest: typeof weather.hourly[0], h: typeof weather.hourly[0]) => {
             const diff = Math.abs(h.time.getTime() - sessionDate.getTime());
             const closestDiff = Math.abs(closest.time.getTime() - sessionDate.getTime());
             return diff < closestDiff ? h : closest;
-        });
+        }, weather.hourly[0]);
 
         // Find daily forecast
         const targetDateStr = sessionDate.toDateString();
-        const dailyForecast = weather.daily.find(d => d.date.toDateString() === targetDateStr);
+        const dailyForecast = weather.daily.find((d: typeof weather.daily[0]) => d.date.toDateString() === targetDateStr);
 
         const forecast: WeatherForecast = {
             date: sessionDate.toISOString(),

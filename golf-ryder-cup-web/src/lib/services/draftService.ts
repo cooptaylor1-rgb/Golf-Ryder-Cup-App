@@ -16,6 +16,14 @@ import type {
 } from '@/lib/types/captain';
 import type { Player, UUID } from '@/lib/types/models';
 
+// Re-export types for convenience
+export type {
+    DraftType,
+    DraftConfig,
+    DraftPick,
+    DraftState,
+} from '@/lib/types/captain';
+
 /**
  * Create a new draft configuration
  */

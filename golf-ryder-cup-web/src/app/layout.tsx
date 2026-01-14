@@ -5,6 +5,7 @@ import { PWAProvider } from '@/components/PWAProvider';
 import { PWABanners } from '@/components/PWABanners';
 import { ToastContainer } from '@/components/ui/Toast';
 import { AppOnboardingProvider } from '@/components/AppOnboardingProvider';
+import { NotificationProvider } from '@/components/live-play';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -52,9 +53,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <PWAProvider>
-          <AppOnboardingProvider>
-            {children}
-          </AppOnboardingProvider>
+          <NotificationProvider>
+            <AppOnboardingProvider>
+              {children}
+            </AppOnboardingProvider>
+          </NotificationProvider>
           <ToastContainer />
           <PWABanners />
         </PWAProvider>

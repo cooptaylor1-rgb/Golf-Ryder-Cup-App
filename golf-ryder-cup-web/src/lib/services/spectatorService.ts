@@ -225,9 +225,9 @@ function calculateMatchScore(
 }
 
 /**
- * Format score for display
+ * Format score for spectator display
  */
-export function formatMatchScore(
+export function formatSpectatorMatchScore(
     winner: 'teamA' | 'teamB' | 'halved',
     margin: number,
     holesRemaining: number

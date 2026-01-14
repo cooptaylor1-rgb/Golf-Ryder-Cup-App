@@ -18,6 +18,15 @@ import type {
 } from '@/lib/types/captain';
 import type { Player, Match, RyderCupSession, SessionType, UUID } from '@/lib/types/models';
 
+// Re-export types for convenience
+export type {
+    PairingHistoryEntry,
+    PairingConstraint,
+    PairingSuggestion,
+    SmartPairingConfig,
+    PairingAnalysis,
+} from '@/lib/types/captain';
+
 // Default configuration
 const DEFAULT_CONFIG: SmartPairingConfig = {
     avoidRepeatMatchups: true,

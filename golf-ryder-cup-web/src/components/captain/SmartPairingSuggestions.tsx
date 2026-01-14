@@ -5,15 +5,13 @@ import {
   generatePairingSuggestions,
   extractPairingHistory,
   analyzeSessionPairings,
-  calculateFairnessScore,
-  PairingHistoryEntry,
-  PairingSuggestion,
+  type PairingHistoryEntry,
+  type PairingSuggestion,
 } from '@/lib/services/smartPairingService';
-import { Player, Team, Session, Match } from '@/lib/types';
+import { Player, Team, RyderCupSession, Match } from '@/lib/types';
 import {
   Users,
   Lightbulb,
-  TrendingUp,
   AlertTriangle,
   CheckCircle,
   History,
@@ -25,7 +23,7 @@ import {
 interface SmartPairingSuggestionsProps {
   players: Player[];
   teams: Team[];
-  sessions: Session[];
+  sessions: RyderCupSession[];
   matches: Match[];
   currentSessionId?: string;
   onApplySuggestion?: (suggestion: PairingSuggestion) => void;
@@ -42,50 +40,115 @@ export function SmartPairingSuggestions({
   const [selectedFormat, setSelectedFormat] = useState<'fourball' | 'foursomes' | 'singles'>('fourball');
   const [showHistory, setShowHistory] = useState(false);
 
+  // Get current trip ID from first session
+  const tripId = sessions[0]?.tripId || '';
+
+  // Split players by team
+  const { teamAPlayers, teamBPlayers } = useMemo(() => {
+    if (teams.length < 2) {
+      // Default split if no teams defined
+      const half = Math.ceil(players.length / 2);
+      return {
+        teamAPlayers: players.slice(0, half),
+        teamBPlayers: players.slice(half),
+      };
+    }
+
+    // Get players assigned to each team from matches
+    const teamAIds = new Set<string>();
+    const teamBIds = new Set<string>();
+
+    matches.forEach(m => {
+      m.teamAPlayerIds?.forEach(id => teamAIds.add(id));
+      m.teamBPlayerIds?.forEach(id => teamBIds.add(id));
+    });
+
+    return {
+      teamAPlayers: players.filter(p => teamAIds.has(p.id) || (!teamBIds.has(p.id) && players.indexOf(p) % 2 === 0)),
+      teamBPlayers: players.filter(p => teamBIds.has(p.id) || (!teamAIds.has(p.id) && players.indexOf(p) % 2 === 1)),
+    };
+  }, [players, teams, matches]);
+
   // Extract pairing history from past matches
   const pairingHistory = useMemo(() => {
-    return extractPairingHistory(matches, players, sessions);
-  }, [matches, players, sessions]);
+    if (!tripId) return [];
+    return extractPairingHistory(matches, sessions, tripId);
+  }, [matches, sessions, tripId]);
+
+  // Get or create current session
+  const currentSession = useMemo(() => {
+    if (currentSessionId) {
+      return sessions.find(s => s.id === currentSessionId);
+    }
+    // Create a mock session for suggestions
+    return sessions[0] || {
+      id: 'temp',
+      tripId,
+      name: 'New Session',
+      sessionNumber: 1,
+      sessionType: selectedFormat,
+      status: 'scheduled' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }, [currentSessionId, sessions, tripId, selectedFormat]);
 
   // Generate suggestions
   const suggestions = useMemo(() => {
-    const teamPlayerMap = new Map<string, Player[]>();
-    teams.forEach(team => {
-      const teamPlayers = players.filter(p =>
-        matches.some(m =>
-          (m.team1PlayerIds?.includes(p.id) && m.team1Id === team.id) ||
-          (m.team2PlayerIds?.includes(p.id) && m.team2Id === team.id)
-        )
-      );
-      teamPlayerMap.set(team.id, teamPlayers.length > 0 ? teamPlayers : players.filter((_, i) => i % 2 === (team.name.includes('USA') ? 0 : 1)));
-    });
+    if (!currentSession || teamAPlayers.length === 0 || teamBPlayers.length === 0) {
+      return [];
+    }
+
+    // Create session with correct type
+    const sessionForSuggestions: RyderCupSession = {
+      ...currentSession,
+      sessionType: selectedFormat,
+    };
+
+    const matchCount = Math.min(
+      selectedFormat === 'singles' ? teamAPlayers.length : Math.floor(teamAPlayers.length / 2),
+      selectedFormat === 'singles' ? teamBPlayers.length : Math.floor(teamBPlayers.length / 2)
+    );
 
     return generatePairingSuggestions(
-      teams,
-      teamPlayerMap,
+      sessionForSuggestions,
+      teamAPlayers,
+      teamBPlayers,
       pairingHistory,
-      { format: selectedFormat }
+      [], // No constraints for now
+      matchCount
     );
-  }, [teams, players, matches, pairingHistory, selectedFormat]);
+  }, [currentSession, teamAPlayers, teamBPlayers, pairingHistory, selectedFormat]);
 
   // Analyze current session if provided
   const currentSessionAnalysis = useMemo(() => {
-    if (!currentSessionId) return null;
+    if (!currentSessionId || !currentSession) return null;
     const sessionMatches = matches.filter(m => m.sessionId === currentSessionId);
-    return analyzeSessionPairings(sessionMatches, pairingHistory);
-  }, [currentSessionId, matches, pairingHistory]);
+    if (sessionMatches.length === 0) return null;
+    return analyzeSessionPairings(
+      currentSession,
+      sessionMatches,
+      teamAPlayers,
+      teamBPlayers,
+      pairingHistory,
+      []
+    );
+  }, [currentSessionId, currentSession, matches, teamAPlayers, teamBPlayers, pairingHistory]);
 
-  // Calculate overall fairness
+  // Calculate overall fairness from suggestions average
   const overallFairness = useMemo(() => {
-    return calculateFairnessScore(pairingHistory, players.length);
-  }, [pairingHistory, players.length]);
+    if (suggestions.length === 0) return 0.7; // Default
+    const avgScore = suggestions.reduce((sum, s) => sum + s.fairnessScore, 0) / suggestions.length;
+    return avgScore / 100;
+  }, [suggestions]);
 
   const getPlayerName = (playerId: string) => {
-    return players.find(p => p.id === playerId)?.name || 'Unknown';
+    const player = players.find(p => p.id === playerId);
+    return player ? `${player.firstName} ${player.lastName}` : 'Unknown';
   };
 
-  const getTeamName = (teamId: string) => {
-    return teams.find(t => t.id === teamId)?.name || 'Unknown';
+  const getTeamName = (index: 0 | 1) => {
+    return teams[index]?.name || (index === 0 ? 'Team A' : 'Team B');
   };
 
   return (
@@ -106,8 +169,8 @@ export function SmartPairingSuggestions({
         <button
           onClick={() => setShowHistory(!showHistory)}
           className={`p-2 rounded-lg transition-colors ${showHistory
-              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
-              : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300'
+            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+            : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300'
             }`}
           title="View pairing history"
         >
@@ -125,10 +188,10 @@ export function SmartPairingSuggestions({
             </p>
           </div>
           <div className={`p-3 rounded-full ${overallFairness >= 0.8
-              ? 'bg-green-100 dark:bg-green-900/30'
-              : overallFairness >= 0.6
-                ? 'bg-yellow-100 dark:bg-yellow-900/30'
-                : 'bg-red-100 dark:bg-red-900/30'
+            ? 'bg-green-100 dark:bg-green-900/30'
+            : overallFairness >= 0.6
+              ? 'bg-yellow-100 dark:bg-yellow-900/30'
+              : 'bg-red-100 dark:bg-red-900/30'
             }`}>
             {overallFairness >= 0.8 ? (
               <CheckCircle className="w-6 h-6 text-green-600" />
@@ -159,8 +222,8 @@ export function SmartPairingSuggestions({
               key={format}
               onClick={() => setSelectedFormat(format)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedFormat === format
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
               {format.charAt(0).toUpperCase() + format.slice(1)}
@@ -187,27 +250,27 @@ export function SmartPairingSuggestions({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${suggestion.score >= 80
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        : suggestion.score >= 60
-                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                    <span className={`px-2 py-0.5 text-xs rounded-full ${suggestion.fairnessScore >= 80
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : suggestion.fairnessScore >= 60
+                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                        : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                       }`}>
-                      Score: {suggestion.score}
+                      Score: {suggestion.fairnessScore}
                     </span>
-                    {suggestion.score >= 80 && (
+                    {suggestion.fairnessScore >= 80 && (
                       <Star className="w-4 h-4 text-yellow-500" />
                     )}
                   </div>
 
-                  {/* Team 1 */}
+                  {/* Team A */}
                   <div className="mb-2">
                     <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">
-                      {getTeamName(suggestion.team1Id)}
+                      {getTeamName(0)}
                     </p>
                     <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                       <Users className="w-4 h-4 text-gray-400" />
-                      {suggestion.team1Players.map(getPlayerName).join(' & ')}
+                      {suggestion.teamAPlayers.map(getPlayerName).join(' & ')}
                     </div>
                   </div>
 
@@ -215,24 +278,43 @@ export function SmartPairingSuggestions({
                     <span className="text-sm text-gray-400">vs</span>
                   </div>
 
-                  {/* Team 2 */}
+                  {/* Team B */}
                   <div>
                     <p className="text-xs text-red-600 dark:text-red-400 mb-1">
-                      {getTeamName(suggestion.team2Id)}
+                      {getTeamName(1)}
                     </p>
                     <div className="flex items-center gap-2 text-gray-900 dark:text-white">
                       <Users className="w-4 h-4 text-gray-400" />
-                      {suggestion.team2Players.map(getPlayerName).join(' & ')}
+                      {suggestion.teamBPlayers.map(getPlayerName).join(' & ')}
                     </div>
                   </div>
 
-                  {/* Reason */}
-                  <div className="mt-3 flex items-start gap-2">
-                    <Info className="w-4 h-4 text-gray-400 mt-0.5" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {suggestion.reason}
-                    </p>
-                  </div>
+                  {/* Handicap Gap */}
+                  {suggestion.handicapGap > 0 && (
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      Handicap gap: {suggestion.handicapGap.toFixed(1)} strokes
+                    </div>
+                  )}
+
+                  {/* Reasoning */}
+                  {suggestion.reasoning.length > 0 && (
+                    <div className="mt-3 flex items-start gap-2">
+                      <Info className="w-4 h-4 text-gray-400 mt-0.5" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {suggestion.reasoning.join(' • ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Warnings */}
+                  {suggestion.warnings.length > 0 && (
+                    <div className="mt-2 flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5" />
+                      <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                        {suggestion.warnings.join(' • ')}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {onApplySuggestion && (
@@ -268,26 +350,26 @@ export function SmartPairingSuggestions({
                 <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0">
                   <tr>
                     <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">Players</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">Times</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">W-L-T</th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">Last</th>
+                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">Type</th>
+                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">Format</th>
+                    <th className="px-4 py-2 text-left font-medium text-gray-600 dark:text-gray-300">Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y dark:divide-gray-700">
                   {pairingHistory.slice(0, 20).map((entry, idx) => (
                     <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <td className="px-4 py-2 text-gray-900 dark:text-white">
-                        {entry.playerIds.map(getPlayerName).join(' & ')}
+                        {getPlayerName(entry.player1Id)} & {getPlayerName(entry.player2Id)}
                       </td>
-                      <td className="px-4 py-2 text-gray-600 dark:text-gray-300">
-                        {entry.timesPlayed}
+                      <td className="px-4 py-2 text-gray-600 dark:text-gray-300 capitalize">
+                        {entry.relationship}
                       </td>
-                      <td className="px-4 py-2 text-gray-600 dark:text-gray-300">
-                        {entry.wins}-{entry.losses}-{entry.ties}
+                      <td className="px-4 py-2 text-gray-600 dark:text-gray-300 capitalize">
+                        {entry.sessionType}
                       </td>
                       <td className="px-4 py-2 text-gray-500 dark:text-gray-400 text-xs">
-                        {entry.lastPlayedDate
-                          ? new Date(entry.lastPlayedDate).toLocaleDateString()
+                        {entry.timestamp
+                          ? new Date(entry.timestamp).toLocaleDateString()
                           : '-'}
                       </td>
                     </tr>
@@ -308,23 +390,30 @@ export function SmartPairingSuggestions({
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {currentSessionAnalysis.newPairings}
+                {currentSessionAnalysis.overallFairnessScore}%
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">New Pairings</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Fairness Score</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {currentSessionAnalysis.repeatPairings}
+                {currentSessionAnalysis.repeatMatchupCount}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Repeat Pairings</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Repeat Matchups</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {Math.round(currentSessionAnalysis.varietyScore * 100)}%
+                {currentSessionAnalysis.handicapBalance}%
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Variety Score</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Handicap Balance</p>
             </div>
           </div>
+          {currentSessionAnalysis.suggestions.length > 0 && (
+            <div className="mt-3 pt-3 border-t dark:border-gray-700">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                💡 {currentSessionAnalysis.suggestions[0]}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

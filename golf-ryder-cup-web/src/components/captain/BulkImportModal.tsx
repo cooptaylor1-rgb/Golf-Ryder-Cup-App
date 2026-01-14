@@ -5,10 +5,10 @@ import {
   parseCSV,
   parseClipboardText,
   validateImportRows,
-  executeBulkImport,
+  createPlayersFromImport,
   generateCSVTemplate,
-  PlayerImportRow,
-  BulkImportResult,
+  type PlayerImportRow,
+  type BulkImportResult,
 } from '@/lib/services/bulkImportService';
 import {
   Upload,
@@ -28,6 +28,7 @@ interface BulkImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImportComplete: (result: BulkImportResult) => void;
+  existingPlayers?: { firstName: string; lastName: string }[];
 }
 
 type ImportMethod = 'csv' | 'paste' | null;
@@ -37,6 +38,7 @@ export function BulkImportModal({
   isOpen,
   onClose,
   onImportComplete,
+  existingPlayers = [],
 }: BulkImportModalProps) {
   const [method, setMethod] = useState<ImportMethod>(null);
   const [pasteText, setPasteText] = useState('');
@@ -67,9 +69,12 @@ export function BulkImportModal({
       const text = await file.text();
       const rows = parseCSV(text);
       const validation = validateImportRows(rows);
+      const errors = validation
+        .filter(v => !v.isValid)
+        .flatMap(v => v.errors.map(e => `Row ${v.rowNumber}: ${e}`));
 
       setParsedRows(rows);
-      setValidationErrors(validation.errors);
+      setValidationErrors(errors);
     } catch (error) {
       setValidationErrors(['Failed to parse CSV file']);
     }
@@ -83,9 +88,12 @@ export function BulkImportModal({
 
     const rows = parseClipboardText(pasteText);
     const validation = validateImportRows(rows);
+    const errors = validation
+      .filter(v => !v.isValid)
+      .flatMap(v => v.errors.map(e => `Row ${v.rowNumber}: ${e}`));
 
     setParsedRows(rows);
-    setValidationErrors(validation.errors);
+    setValidationErrors(errors);
   };
 
   const handleImport = async () => {
@@ -93,7 +101,21 @@ export function BulkImportModal({
 
     setImporting(true);
     try {
-      const importResult = await executeBulkImport(tripId, parsedRows);
+      const validationResults = validateImportRows(parsedRows);
+      const players = createPlayersFromImport(validationResults, true);
+
+      const errorCount = validationResults.filter(v => !v.isValid).length;
+
+      const importResult: BulkImportResult = {
+        success: errorCount === 0 || players.length > 0,
+        totalRows: parsedRows.length,
+        importedCount: players.length,
+        skippedCount: parsedRows.length - players.length,
+        errorCount,
+        validationResults,
+        importedPlayers: players,
+      };
+
       setResult(importResult);
       onImportComplete(importResult);
     } catch (error) {
@@ -143,8 +165,8 @@ export function BulkImportModal({
             // Result View
             <div className="space-y-4">
               <div className={`p-4 rounded-lg ${result.success
-                  ? 'bg-green-50 dark:bg-green-900/20'
-                  : 'bg-yellow-50 dark:bg-yellow-900/20'
+                ? 'bg-green-50 dark:bg-green-900/20'
+                : 'bg-yellow-50 dark:bg-yellow-900/20'
                 }`}>
                 <div className="flex items-center gap-3 mb-2">
                   {result.success ? (
@@ -157,56 +179,61 @@ export function BulkImportModal({
                   </span>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Successfully imported {result.imported.length} player(s)
-                  {result.skipped.length > 0 && `, skipped ${result.skipped.length}`}
-                  {result.errors.length > 0 && `, ${result.errors.length} errors`}
+                  Successfully imported {result.importedCount} player(s)
+                  {result.skippedCount > 0 && `, skipped ${result.skippedCount}`}
+                  {result.errorCount > 0 && `, ${result.errorCount} errors`}
                 </p>
               </div>
 
-              {result.imported.length > 0 && (
+              {result.importedPlayers.length > 0 && (
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                     Imported Players
                   </h4>
                   <div className="space-y-1">
-                    {result.imported.map((name, idx) => (
+                    {result.importedPlayers.map((player, idx) => (
                       <div key={idx} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        {name}
+                        {player.firstName} {player.lastName}
+                        {player.handicapIndex !== undefined && ` (${player.handicapIndex})`}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {result.skipped.length > 0 && (
+              {result.skippedCount > 0 && (
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                    Skipped (Duplicates)
+                    Skipped ({result.skippedCount})
                   </h4>
                   <div className="space-y-1">
-                    {result.skipped.map((name, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                        <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                        {name}
-                      </div>
-                    ))}
+                    {result.validationResults
+                      .filter(v => !v.isValid)
+                      .map((v, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                          <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                          Row {v.rowNumber}: {v.row.firstName} {v.row.lastName}
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
 
-              {result.errors.length > 0 && (
+              {result.errorCount > 0 && (
                 <div>
                   <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                     Errors
                   </h4>
                   <div className="space-y-1">
-                    {result.errors.map((error, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
-                        <XCircle className="w-4 h-4" />
-                        {error}
-                      </div>
-                    ))}
+                    {result.validationResults
+                      .filter(v => !v.isValid)
+                      .flatMap((v, idx) => v.errors.map((error, eIdx) => (
+                        <div key={`${idx}-${eIdx}`} className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                          <XCircle className="w-4 h-4" />
+                          Row {v.rowNumber}: {error}
+                        </div>
+                      )))}
                   </div>
                 </div>
               )}
@@ -250,11 +277,13 @@ export function BulkImportModal({
                   </thead>
                   <tbody className="divide-y dark:divide-gray-700">
                     {parsedRows.map((row, idx) => (
-                      <tr key={idx} className={row.valid ? '' : 'bg-red-50 dark:bg-red-900/20'}>
-                        <td className="px-3 py-2 text-gray-900 dark:text-white">{row.name}</td>
+                      <tr key={idx}>
+                        <td className="px-3 py-2 text-gray-900 dark:text-white">
+                          {row.firstName} {row.lastName}
+                        </td>
                         <td className="px-3 py-2 text-gray-600 dark:text-gray-300">{row.email || '-'}</td>
                         <td className="px-3 py-2 text-gray-600 dark:text-gray-300">
-                          {row.handicap !== undefined ? row.handicap : '-'}
+                          {row.handicapIndex !== undefined ? row.handicapIndex : '-'}
                         </td>
                       </tr>
                     ))}

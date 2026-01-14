@@ -1,15 +1,35 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { runPreFlightCheck, getPreFlightSummary, PreFlightCheckResult } from '@/lib/services/preFlightValidationService';
+import { runPreFlightCheck, getPreFlightSummary, type PreFlightCheckResult } from '@/lib/services/preFlightValidationService';
+import type { Trip, Player, Team, TeamMember, RyderCupSession, Match, Course, TeeSet } from '@/lib/types';
 import { CheckCircle, XCircle, AlertTriangle, ChevronDown, ChevronUp, Loader2, RefreshCw, Rocket } from 'lucide-react';
 
 interface PreFlightChecklistProps {
   tripId: string;
+  trip?: Trip;
+  players?: Player[];
+  teams?: Team[];
+  teamMembers?: TeamMember[];
+  sessions?: RyderCupSession[];
+  matches?: Match[];
+  courses?: Course[];
+  teeSets?: TeeSet[];
   onAllClear?: () => void;
 }
 
-export function PreFlightChecklist({ tripId, onAllClear }: PreFlightChecklistProps) {
+export function PreFlightChecklist({
+  tripId,
+  trip,
+  players = [],
+  teams = [],
+  teamMembers = [],
+  sessions = [],
+  matches = [],
+  courses = [],
+  teeSets = [],
+  onAllClear
+}: PreFlightChecklistProps) {
   const [result, setResult] = useState<PreFlightCheckResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -17,19 +37,38 @@ export function PreFlightChecklist({ tripId, onAllClear }: PreFlightChecklistPro
   const runCheck = async () => {
     setLoading(true);
     try {
-      const checkResult = await runPreFlightCheck(tripId);
+      // Create a minimal trip object if not provided
+      const now = new Date().toISOString();
+      const tripData: Trip = trip || {
+        id: tripId,
+        name: 'Trip',
+        startDate: now,
+        endDate: now,
+        isCaptainModeEnabled: true,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const checkResult = runPreFlightCheck(
+        tripData,
+        players,
+        teams,
+        teamMembers,
+        sessions,
+        matches,
+        courses,
+        teeSets
+      );
       setResult(checkResult);
 
       // Auto-expand sections with issues
       const sectionsWithIssues = new Set<string>();
-      checkResult.checks.forEach(check => {
-        if (check.status !== 'pass') {
-          sectionsWithIssues.add(check.category);
-        }
+      [...checkResult.errors, ...checkResult.warnings].forEach(item => {
+        sectionsWithIssues.add(item.category);
       });
       setExpandedSections(sectionsWithIssues);
 
-      if (checkResult.allPassed && onAllClear) {
+      if (checkResult.isReady && onAllClear) {
         onAllClear();
       }
     } catch (error) {
@@ -95,28 +134,29 @@ export function PreFlightChecklist({ tripId, onAllClear }: PreFlightChecklistPro
   }
 
   const summary = getPreFlightSummary(result);
-  const categories = [...new Set(result.checks.map(c => c.category))];
+  const allItems = [...result.errors, ...result.warnings, ...result.info];
+  const categories = [...new Set(allItems.map(item => item.category))];
 
   return (
     <div className="space-y-4">
       {/* Summary Header */}
-      <div className={`rounded-xl p-6 border-2 ${result.allPassed
-          ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-700'
-          : 'bg-yellow-50 border-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700'
+      <div className={`rounded-xl p-6 border-2 ${result.isReady
+        ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-700'
+        : 'bg-yellow-50 border-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700'
         }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {result.allPassed ? (
+            {result.isReady ? (
               <Rocket className="w-10 h-10 text-green-600" />
             ) : (
               <AlertTriangle className="w-10 h-10 text-yellow-600" />
             )}
             <div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                {result.allPassed ? 'All Systems Go!' : 'Pre-Flight Review Needed'}
+                {result.isReady ? 'All Systems Go!' : 'Pre-Flight Review Needed'}
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                {summary}
+                {summary.icon} {summary.message}
               </p>
             </div>
           </div>
@@ -129,101 +169,127 @@ export function PreFlightChecklist({ tripId, onAllClear }: PreFlightChecklistPro
           </button>
         </div>
 
+        {/* Completion Percentage */}
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300 mb-2">
+            <span>Completion</span>
+            <span>{result.completionPercentage}%</span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full transition-all ${result.isReady ? 'bg-green-500' : 'bg-yellow-500'}`}
+              style={{ width: `${result.completionPercentage}%` }}
+            />
+          </div>
+        </div>
+
         {/* Stats */}
-        <div className="flex gap-6 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex gap-6 mt-4">
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-green-500" />
             <span className="text-sm text-gray-600 dark:text-gray-300">
-              {result.checks.filter(c => c.status === 'pass').length} Passed
+              {result.info.length} Info
             </span>
           </div>
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-yellow-500" />
             <span className="text-sm text-gray-600 dark:text-gray-300">
-              {result.checks.filter(c => c.status === 'warning').length} Warnings
+              {result.warnings.length} Warnings
             </span>
           </div>
           <div className="flex items-center gap-2">
             <XCircle className="w-4 h-4 text-red-500" />
             <span className="text-sm text-gray-600 dark:text-gray-300">
-              {result.checks.filter(c => c.status === 'fail').length} Failed
+              {result.errors.length} Errors
             </span>
           </div>
         </div>
       </div>
 
-      {/* Category Sections */}
-      {categories.map(category => {
-        const categoryChecks = result.checks.filter(c => c.category === category);
-        const allPassed = categoryChecks.every(c => c.status === 'pass');
-        const hasFails = categoryChecks.some(c => c.status === 'fail');
-        const isExpanded = expandedSections.has(category);
-
-        return (
-          <div key={category} className="border rounded-lg overflow-hidden dark:border-gray-700">
-            <button
-              onClick={() => toggleSection(category)}
-              className={`w-full flex items-center justify-between p-4 text-left transition-colors ${allPassed
-                  ? 'bg-gray-50 dark:bg-gray-800'
-                  : hasFails
-                    ? 'bg-red-50 dark:bg-red-900/20'
-                    : 'bg-yellow-50 dark:bg-yellow-900/20'
-                }`}
-            >
-              <div className="flex items-center gap-3">
-                {allPassed ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                ) : hasFails ? (
-                  <XCircle className="w-5 h-5 text-red-500" />
-                ) : (
-                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                )}
-                <span className="font-semibold text-gray-900 dark:text-white capitalize">
-                  {category}
-                </span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  ({categoryChecks.filter(c => c.status === 'pass').length}/{categoryChecks.length} passed)
-                </span>
-              </div>
-              {isExpanded ? (
-                <ChevronUp className="w-5 h-5 text-gray-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-400" />
-              )}
-            </button>
-
-            {isExpanded && (
-              <div className="p-4 space-y-3 bg-white dark:bg-gray-900">
-                {categoryChecks.map((check, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-3 rounded-lg border ${getStatusColor(check.status)}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      {getStatusIcon(check.status)}
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
-                          {check.label}
-                        </p>
-                        {check.details && (
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                            {check.details}
-                          </p>
-                        )}
-                        {check.fix && (
-                          <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
-                            <span className="font-medium">Fix:</span> {check.fix}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+      {/* Errors Section */}
+      {result.errors.length > 0 && (
+        <div className="border border-red-200 dark:border-red-800 rounded-lg overflow-hidden">
+          <div className="bg-red-50 dark:bg-red-900/20 px-4 py-3 flex items-center gap-2">
+            <XCircle className="w-5 h-5 text-red-500" />
+            <span className="font-semibold text-red-800 dark:text-red-200">
+              Errors ({result.errors.length})
+            </span>
           </div>
-        );
-      })}
+          <div className="p-4 space-y-2 bg-white dark:bg-gray-900">
+            {result.errors.map((item, idx) => (
+              <div key={idx} className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                <p className="font-medium text-red-800 dark:text-red-200">{item.title}</p>
+                {item.description && (
+                  <p className="text-sm text-red-600 dark:text-red-300 mt-1">{item.description}</p>
+                )}
+                {item.actionLabel && item.actionHref && (
+                  <a href={item.actionHref} className="text-sm text-blue-600 dark:text-blue-400 mt-2 inline-block">
+                    {item.actionLabel} →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Warnings Section */}
+      {result.warnings.length > 0 && (
+        <div className="border border-yellow-200 dark:border-yellow-800 rounded-lg overflow-hidden">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 px-4 py-3 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-500" />
+            <span className="font-semibold text-yellow-800 dark:text-yellow-200">
+              Warnings ({result.warnings.length})
+            </span>
+          </div>
+          <div className="p-4 space-y-2 bg-white dark:bg-gray-900">
+            {result.warnings.map((item, idx) => (
+              <div key={idx} className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                <p className="font-medium text-yellow-800 dark:text-yellow-200">{item.title}</p>
+                {item.description && (
+                  <p className="text-sm text-yellow-600 dark:text-yellow-300 mt-1">{item.description}</p>
+                )}
+                {item.actionLabel && item.actionHref && (
+                  <a href={item.actionHref} className="text-sm text-blue-600 dark:text-blue-400 mt-2 inline-block">
+                    {item.actionLabel} →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Info Section */}
+      {result.info.length > 0 && (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <button
+            onClick={() => toggleSection('info')}
+            className="w-full bg-gray-50 dark:bg-gray-800 px-4 py-3 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <span className="font-semibold text-gray-800 dark:text-gray-200">
+                Passed Checks ({result.info.length})
+              </span>
+            </div>
+            {expandedSections.has('info') ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+          {expandedSections.has('info') && (
+            <div className="p-4 space-y-2 bg-white dark:bg-gray-900">
+              {result.info.map((item, idx) => (
+                <div key={idx} className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <p className="text-green-800 dark:text-green-200">{item.title}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

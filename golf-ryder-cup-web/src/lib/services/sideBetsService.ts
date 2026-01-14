@@ -22,6 +22,28 @@ import type {
 } from '@/lib/types/captain';
 import type { Player, UUID, HoleResult, Match } from '@/lib/types/models';
 
+// Re-export types for convenience
+export type {
+    SideGame,
+    SideGameType,
+    SideGameScoringMode,
+    SideGameEntry,
+    SideGameStandings,
+    SkinsConfig,
+    NassauConfig,
+    TripExpense,
+    PlayerBalance,
+    SettlementSummary,
+};
+
+// Settlement type for individual settlements
+export interface Settlement {
+    fromPlayerId: UUID;
+    toPlayerId: UUID;
+    amount: number;
+    settled?: boolean;  // Optional flag to track if settlement is complete
+}
+
 // ============================================
 // SIDE GAME CONFIGURATION
 // ============================================
@@ -343,8 +365,8 @@ export function calculatePlayerBalances(
  */
 export function calculateSettlements(
     balances: PlayerBalance[]
-): { fromPlayerId: UUID; toPlayerId: UUID; amount: number }[] {
-    const settlements: { fromPlayerId: UUID; toPlayerId: UUID; amount: number }[] = [];
+): Settlement[] {
+    const settlements: Settlement[] = [];
 
     // Separate into creditors and debtors
     const creditors = balances.filter(b => b.netBalance > 0).sort((a, b) => b.netBalance - a.netBalance);

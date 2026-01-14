@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { getSessionWeather, WeatherData, WeatherConditions } from '@/lib/services/weatherService';
-import { Session, Course } from '@/lib/types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getSessionWeather } from '@/lib/services/weatherService';
+import { RyderCupSession, Course } from '@/lib/types';
+import { SessionWeather, WeatherForecast } from '@/lib/types/captain';
 import {
   Cloud,
   Sun,
@@ -15,23 +16,79 @@ import {
   ChevronDown,
   ChevronUp,
   Umbrella,
+  CloudSnow,
 } from 'lucide-react';
 
 interface SessionWeatherPanelProps {
-  session: Session;
+  session: RyderCupSession;
   course?: Course;
-  onWeatherUpdate?: (weather: WeatherData) => void;
+  /** Optional latitude for weather lookup (if not provided, will use course location for geocoding) */
+  latitude?: number;
+  /** Optional longitude for weather lookup */
+  longitude?: number;
+  onWeatherUpdate?: (weather: SessionWeather) => void;
 }
 
-export function SessionWeatherPanel({ session, course, onWeatherUpdate }: SessionWeatherPanelProps) {
-  const [weather, setWeather] = useState<WeatherData | null>(null);
+// Simple geocoding cache for location strings
+const geoCache = new Map<string, { lat: number; lng: number }>();
+
+// Known golf destinations for quick lookup (fallback)
+const KNOWN_LOCATIONS: Record<string, { lat: number; lng: number }> = {
+  'scottsdale': { lat: 33.4942, lng: -111.9261 },
+  'phoenix': { lat: 33.4484, lng: -112.0740 },
+  'pebble beach': { lat: 36.5684, lng: -121.9469 },
+  'st andrews': { lat: 56.3398, lng: -2.7967 },
+  'pinehurst': { lat: 35.1954, lng: -79.4700 },
+  'kiawah island': { lat: 32.6083, lng: -80.0845 },
+  'myrtle beach': { lat: 33.6891, lng: -78.8867 },
+  'palm springs': { lat: 33.8303, lng: -116.5453 },
+  'las vegas': { lat: 36.1699, lng: -115.1398 },
+  'orlando': { lat: 28.5383, lng: -81.3792 },
+};
+
+function getCoordinatesFromLocation(location: string): { lat: number; lng: number } | null {
+  const normalized = location.toLowerCase();
+
+  // Check cache
+  if (geoCache.has(normalized)) {
+    return geoCache.get(normalized)!;
+  }
+
+  // Check known locations
+  for (const [key, coords] of Object.entries(KNOWN_LOCATIONS)) {
+    if (normalized.includes(key)) {
+      geoCache.set(normalized, coords);
+      return coords;
+    }
+  }
+
+  return null;
+}
+
+export function SessionWeatherPanel({ session, course, latitude, longitude, onWeatherUpdate }: SessionWeatherPanelProps) {
+  const [weather, setWeather] = useState<SessionWeather | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchWeather = async () => {
-    if (!course?.location) {
-      setError('No course location available');
+  const fetchWeather = useCallback(async () => {
+    // Try to get coordinates
+    let lat = latitude;
+    let lng = longitude;
+
+    // If no explicit coordinates, try to derive from course location
+    if (!lat || !lng) {
+      if (course?.location) {
+        const coords = getCoordinatesFromLocation(course.location);
+        if (coords) {
+          lat = coords.lat;
+          lng = coords.lng;
+        }
+      }
+    }
+
+    if (!lat || !lng) {
+      setError('Location not available - add course location to enable weather');
       setLoading(false);
       return;
     }
@@ -41,9 +98,9 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
 
     try {
       const weatherData = await getSessionWeather(
-        session.id,
-        session.date,
-        course.location
+        session,
+        lat,
+        lng
       );
 
       if (weatherData) {
@@ -57,36 +114,43 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
     } finally {
       setLoading(false);
     }
-  };
+  }, [session, latitude, longitude, course?.location, onWeatherUpdate]);
 
   useEffect(() => {
     fetchWeather();
-  }, [session.id, session.date, course?.location]);
+  }, [fetchWeather]);
 
-  const getWeatherIcon = (conditions?: WeatherConditions) => {
-    if (!conditions) return <Cloud className="w-8 h-8 text-gray-400" />;
+  const getWeatherIcon = (forecast?: WeatherForecast) => {
+    if (!forecast) return <Cloud className="w-8 h-8 text-gray-400" />;
 
-    if (conditions.precipitation > 50) {
+    const iconName = forecast.icon?.toLowerCase() || '';
+
+    if (iconName.includes('snow') || forecast.precipitation?.type === 'snow') {
+      return <CloudSnow className="w-8 h-8 text-blue-300" />;
+    }
+    if (forecast.precipitation?.chance && forecast.precipitation.chance > 50) {
       return <CloudRain className="w-8 h-8 text-blue-500" />;
     }
-    if (conditions.cloudCover > 70) {
+    if (iconName.includes('cloud') || iconName.includes('overcast')) {
       return <Cloud className="w-8 h-8 text-gray-500" />;
     }
     return <Sun className="w-8 h-8 text-yellow-500" />;
   };
 
-  const getPlayabilityColor = (conditions?: WeatherConditions) => {
-    if (!conditions) return 'text-gray-500';
+  const getPlayabilityColor = (forecast?: WeatherForecast) => {
+    if (!forecast) return 'text-gray-500';
+
+    const temp = forecast.temperature?.high || 70;
+    const wind = forecast.wind?.speed || 0;
+    const precip = forecast.precipitation?.chance || 0;
 
     // Perfect conditions
-    if (conditions.temperature >= 60 && conditions.temperature <= 85 &&
-      conditions.windSpeed < 15 && conditions.precipitation < 20) {
+    if (temp >= 60 && temp <= 85 && wind < 15 && precip < 20) {
       return 'text-green-600 dark:text-green-400';
     }
 
     // Challenging but playable
-    if (conditions.temperature >= 45 && conditions.temperature <= 95 &&
-      conditions.windSpeed < 25 && conditions.precipitation < 50) {
+    if (temp >= 45 && temp <= 95 && wind < 25 && precip < 50) {
       return 'text-yellow-600 dark:text-yellow-400';
     }
 
@@ -94,24 +158,25 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
     return 'text-red-600 dark:text-red-400';
   };
 
-  const getRecommendation = (conditions?: WeatherConditions): string => {
-    if (!conditions) return 'Weather data unavailable';
+  const getRecommendationText = (sessionWeather?: SessionWeather): string => {
+    if (!sessionWeather?.forecast) return 'Weather data unavailable';
 
+    const forecast = sessionWeather.forecast;
     const issues: string[] = [];
 
-    if (conditions.precipitation > 60) {
+    if (forecast.precipitation?.chance && forecast.precipitation.chance > 60) {
       issues.push('Bring rain gear');
     }
-    if (conditions.windSpeed > 20) {
+    if (forecast.wind?.speed && forecast.wind.speed > 20) {
       issues.push('Club up in the wind');
     }
-    if (conditions.temperature > 85) {
+    if (forecast.temperature?.high && forecast.temperature.high > 85) {
       issues.push('Stay hydrated');
     }
-    if (conditions.temperature < 50) {
+    if (forecast.temperature?.low && forecast.temperature.low < 50) {
       issues.push('Dress in layers');
     }
-    if (conditions.uvIndex > 7) {
+    if (forecast.uvIndex && forecast.uvIndex > 7) {
       issues.push('Apply sunscreen');
     }
 
@@ -120,6 +185,26 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
     }
 
     return issues.join(' • ');
+  };
+
+  const getRecommendationBadge = (rec: SessionWeather['recommendation']) => {
+    switch (rec) {
+      case 'go':
+        return <span className="px-2 py-0.5 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs rounded-full">Good to Go</span>;
+      case 'monitor':
+        return <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs rounded-full">Monitor</span>;
+      case 'delay':
+        return <span className="px-2 py-0.5 bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 text-xs rounded-full">Consider Delay</span>;
+      case 'cancel':
+        return <span className="px-2 py-0.5 bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 text-xs rounded-full">Unfavorable</span>;
+    }
+  };
+
+  const formatSessionDate = () => {
+    if (session.scheduledDate) {
+      return new Date(session.scheduledDate).toLocaleDateString();
+    }
+    return 'Date TBD';
   };
 
   if (loading) {
@@ -155,6 +240,8 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
     );
   }
 
+  const forecast = weather?.forecast;
+
   return (
     <div className="border dark:border-gray-700 rounded-lg overflow-hidden">
       {/* Header */}
@@ -163,24 +250,18 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
         className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
       >
         <div className="flex items-center gap-4">
-          {getWeatherIcon(weather?.conditions)}
+          {getWeatherIcon(forecast)}
           <div className="text-left">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                {weather?.conditions?.temperature
-                  ? `${Math.round(weather.conditions.temperature)}°F`
+                {forecast?.temperature?.high
+                  ? `${Math.round(forecast.temperature.high)}°${forecast.temperature.unit || 'F'}`
                   : '--°F'}
               </span>
-              <span className={`text-sm font-medium ${getPlayabilityColor(weather?.conditions)}`}>
-                {weather?.conditions?.precipitation && weather.conditions.precipitation > 50
-                  ? 'Rain Expected'
-                  : weather?.conditions?.temperature && weather.conditions.temperature > 85
-                    ? 'Hot'
-                    : 'Good for Golf'}
-              </span>
+              {weather && getRecommendationBadge(weather.recommendation)}
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {session.name} • {new Date(session.date).toLocaleDateString()}
+              {session.name} • {formatSessionDate()}
             </p>
           </div>
         </div>
@@ -192,14 +273,39 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
       </button>
 
       {/* Expanded Details */}
-      {expanded && weather?.conditions && (
+      {expanded && forecast && (
         <div className="px-4 pb-4 space-y-4">
+          {/* Weather Alerts */}
+          {weather?.alerts && weather.alerts.length > 0 && (
+            <div className="space-y-2">
+              {weather.alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`p-3 rounded-lg ${alert.severity === 'severe'
+                      ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                      : alert.severity === 'moderate'
+                        ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800'
+                        : 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
+                    }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <AlertTriangle className={`w-4 h-4 ${alert.severity === 'severe' ? 'text-red-600' :
+                        alert.severity === 'moderate' ? 'text-orange-600' : 'text-yellow-600'
+                      }`} />
+                    <span className="font-medium text-sm">{alert.title}</span>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">{alert.description}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Weather Stats */}
           <div className="grid grid-cols-4 gap-4">
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <Wind className="w-5 h-5 text-blue-500 mx-auto mb-1" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {weather.conditions.windSpeed} mph
+                {forecast.wind?.speed ?? '--'} mph
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Wind</p>
             </div>
@@ -207,7 +313,7 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <Droplets className="w-5 h-5 text-cyan-500 mx-auto mb-1" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {weather.conditions.humidity}%
+                {forecast.humidity ?? '--'}%
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Humidity</p>
             </div>
@@ -215,7 +321,7 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <Umbrella className="w-5 h-5 text-purple-500 mx-auto mb-1" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {weather.conditions.precipitation}%
+                {forecast.precipitation?.chance ?? '--'}%
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Rain</p>
             </div>
@@ -223,32 +329,55 @@ export function SessionWeatherPanel({ session, course, onWeatherUpdate }: Sessio
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <Sun className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {weather.conditions.uvIndex}
+                {forecast.uvIndex ?? '--'}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">UV Index</p>
             </div>
           </div>
 
+          {/* Temperature Range */}
+          {forecast.temperature && (
+            <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
+              <Thermometer className="w-4 h-4" />
+              <span>
+                High: {forecast.temperature.high}°{forecast.temperature.unit} /
+                Low: {forecast.temperature.low}°{forecast.temperature.unit}
+              </span>
+            </div>
+          )}
+
           {/* Wind Direction */}
-          {weather.conditions.windDirection && (
+          {forecast.wind?.direction && (
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
               <Wind className="w-4 h-4" />
-              Wind from {weather.conditions.windDirection}
+              Wind from {forecast.wind.direction}
+              {forecast.wind.gusts && ` (gusts to ${forecast.wind.gusts} mph)`}
+            </div>
+          )}
+
+          {/* Sunrise/Sunset */}
+          {(forecast.sunrise || forecast.sunset) && (
+            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+              {forecast.sunrise && <span>☀️ Sunrise: {forecast.sunrise}</span>}
+              {forecast.sunset && <span>🌙 Sunset: {forecast.sunset}</span>}
             </div>
           )}
 
           {/* Recommendation */}
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-300">
-              💡 {getRecommendation(weather.conditions)}
+              💡 {getRecommendationText(weather ?? undefined)}
             </p>
           </div>
 
           {/* Refresh */}
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <span>
+              Updated: {weather?.lastUpdated ? new Date(weather.lastUpdated).toLocaleTimeString() : 'Unknown'}
+            </span>
             <button
               onClick={fetchWeather}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-1"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-1"
             >
               <RefreshCw className="w-3 h-3" />
               Refresh

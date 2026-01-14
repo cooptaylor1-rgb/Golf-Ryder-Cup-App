@@ -61,29 +61,40 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
 
     if (selectedMode === 'random') {
       // Immediate random assignment
-      const assignments = randomizeTeams(players, teams);
+      const result = randomizeTeams(players);
+      const assignments = new Map<string, string>();
+      result.teamA.forEach(p => assignments.set(p.id, teams[0]?.id || 'A'));
+      result.teamB.forEach(p => assignments.set(p.id, teams[1]?.id || 'B'));
       onDraftComplete(assignments);
       return;
     }
 
     if (selectedMode === 'balanced') {
       // Immediate balanced assignment
-      const assignments = balanceTeamsByHandicap(players, teams);
+      const result = balanceTeamsByHandicap(players);
+      const assignments = new Map<string, string>();
+      result.teamA.forEach(p => assignments.set(p.id, teams[0]?.id || 'A'));
+      result.teamB.forEach(p => assignments.set(p.id, teams[1]?.id || 'B'));
       onDraftComplete(assignments);
       return;
     }
 
     // Initialize draft for snake or auction
+    const captainIds = teams.map(t => t.id);
     const draftConfig = createDraftConfig(
-      teams.map(t => ({ id: t.id, name: t.name })),
-      players.map(p => p.id),
-      selectedMode === 'auction'
-        ? { draftType: 'auction', budget: 100 }
-        : { draftType: 'snake' }
+      'draft-trip', // Using placeholder trip ID
+      selectedMode === 'auction' ? 'auction' : 'snake',
+      captainIds,
+      players.length,
+      selectedMode === 'auction' ? { auctionBudget: 100 } : undefined
     );
 
     setConfig(draftConfig);
-    setDraftState(initializeDraftState(draftConfig));
+    setDraftState(initializeDraftState(
+      draftConfig,
+      players,
+      { teamA: teams[0]?.id || 'A', teamB: teams[1]?.id || 'B' }
+    ));
   };
 
   const handlePick = (playerId: string, teamId?: string) => {
@@ -92,13 +103,13 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
     const pickTeam = teamId || config.draftOrder[draftState.currentPick % config.draftOrder.length];
     const auctionPrice = mode === 'auction' ? currentBid : undefined;
 
-    const newState = makeDraftPick(draftState, config, playerId, pickTeam, auctionPrice);
+    const { newState } = makeDraftPick(draftState, playerId, auctionPrice);
     setDraftState(newState);
     setSelectedPlayer(null);
     setCurrentBid(0);
 
     // Check if draft is complete
-    if (newState.picks.length === players.length || !newState.remainingPlayers.length) {
+    if (newState.picks.length === players.length || newState.availablePlayers.length === 0) {
       const assignments = new Map<string, string>();
       newState.picks.forEach(pick => {
         assignments.set(pick.playerId, pick.teamId);
@@ -110,9 +121,9 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
   const handleAutoPick = () => {
     if (!draftState || !config) return;
 
-    const result = autoPickPlayer(draftState, config, players);
+    const result = autoPickPlayer(draftState);
     if (result) {
-      handlePick(result.playerId);
+      handlePick(result);
     }
   };
 
@@ -235,8 +246,8 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
       {/* Current Pick Banner */}
       {currentTeam && (
         <div className={`p-4 rounded-lg ${currentTeam.name.toLowerCase().includes('usa')
-            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+          : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
           } border`}>
           <div className="flex items-center justify-between">
             <div>
@@ -245,11 +256,11 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
                 {currentTeam.name}
               </p>
             </div>
-            {mode === 'auction' && draftState && (
+            {mode === 'auction' && config && (
               <div className="text-right">
                 <p className="text-sm text-gray-600 dark:text-gray-300">Budget</p>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
-                  ${draftState.budgets.get(currentTeam.id) || 0}
+                  ${config.auctionBudget}
                 </p>
               </div>
             )}
@@ -261,7 +272,10 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
       {mode === 'auction' && selectedPlayer && (
         <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
           <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-            Bidding on: <strong>{players.find(p => p.id === selectedPlayer)?.name}</strong>
+            Bidding on: <strong>{(() => {
+              const p = players.find(p => p.id === selectedPlayer);
+              return p ? `${p.firstName} ${p.lastName}` : 'Unknown';
+            })()}</strong>
           </p>
           <div className="flex items-center gap-3">
             <input
@@ -269,7 +283,7 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
               value={currentBid}
               onChange={(e) => setCurrentBid(parseInt(e.target.value) || 0)}
               min={1}
-              max={draftState?.budgets.get(currentTeam?.id || '') || 100}
+              max={config?.auctionBudget || 100}
               className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
             <button
@@ -309,10 +323,10 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
               >
                 <div className="flex items-center gap-3">
                   <User className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-900 dark:text-white">{player.name}</span>
+                  <span className="text-gray-900 dark:text-white">{player.firstName} {player.lastName}</span>
                 </div>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {player.handicap?.toFixed(1) || 'N/A'}
+                  {player.handicapIndex?.toFixed(1) || 'N/A'}
                 </span>
               </button>
             ))}
@@ -323,19 +337,19 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
         <div className="space-y-3">
           {teams.map(team => {
             const teamPlayers = getTeamPlayers(team.id);
-            const totalHandicap = teamPlayers.reduce((sum, p) => sum + (p.handicap || 0), 0);
+            const totalHandicap = teamPlayers.reduce((sum, p) => sum + (p.handicapIndex || 0), 0);
 
             return (
               <div
                 key={team.id}
                 className={`border rounded-lg overflow-hidden ${currentTeam?.id === team.id
-                    ? 'border-yellow-400 ring-2 ring-yellow-200 dark:ring-yellow-800'
-                    : 'dark:border-gray-700'
+                  ? 'border-yellow-400 ring-2 ring-yellow-200 dark:ring-yellow-800'
+                  : 'dark:border-gray-700'
                   }`}
               >
                 <div className={`px-4 py-2 ${team.name.toLowerCase().includes('usa')
-                    ? 'bg-blue-50 dark:bg-blue-900/30'
-                    : 'bg-red-50 dark:bg-red-900/30'
+                  ? 'bg-blue-50 dark:bg-blue-900/30'
+                  : 'bg-red-50 dark:bg-red-900/30'
                   }`}>
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-gray-900 dark:text-white">
@@ -359,10 +373,10 @@ export function DraftBoard({ players, teams, onDraftComplete }: DraftBoardProps)
                           className="flex items-center justify-between px-2 py-1 text-sm"
                         >
                           <span className="text-gray-700 dark:text-gray-300">
-                            {player.name}
+                            {player.firstName} {player.lastName}
                           </span>
                           <span className="text-gray-500 dark:text-gray-400">
-                            {player.handicap?.toFixed(1)}
+                            {player.handicapIndex?.toFixed(1)}
                           </span>
                         </div>
                       ))}

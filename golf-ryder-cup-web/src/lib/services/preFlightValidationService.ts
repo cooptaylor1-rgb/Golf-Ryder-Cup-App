@@ -24,6 +24,15 @@ import type {
     TeeSet,
 } from '@/lib/types/models';
 
+// Re-export types for convenience
+export type {
+    PreFlightCheckResult,
+    PreFlightChecklistConfig,
+    ValidationItem,
+    ValidationCategory,
+    ValidationSeverity,
+} from '@/lib/types/captain';
+
 // Default configuration
 const DEFAULT_CONFIG: PreFlightChecklistConfig = {
     requireBalancedTeams: true,

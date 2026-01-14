@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trip, Team, Player, Session, Match, Course } from '@/lib/types';
+import { Trip, Team, Player, RyderCupSession, Match, Course } from '@/lib/types';
 import { PreFlightChecklist } from './PreFlightChecklist';
 import { BulkImportModal } from './BulkImportModal';
 import { TeeTimeGenerator } from './TeeTimeGenerator';
@@ -27,7 +27,7 @@ interface CaptainToolkitProps {
   trip: Trip;
   teams: Team[];
   players: Player[];
-  sessions: Session[];
+  sessions: RyderCupSession[];
   matches: Match[];
   courses: Course[];
   onDataUpdate: () => void;
@@ -77,7 +77,7 @@ export function CaptainToolkit({
         // Check if all players are assigned to teams
         const unassignedPlayers = players.filter(p => {
           const isAssigned = matches.some(m =>
-            m.team1PlayerIds?.includes(p.id) || m.team2PlayerIds?.includes(p.id)
+            m.teamAPlayerIds?.includes(p.id) || m.teamBPlayerIds?.includes(p.id)
           );
           return !isAssigned;
         });
@@ -156,8 +156,12 @@ export function CaptainToolkit({
 
   const renderActiveSection = () => {
     const currentSession = sessions[0];
-    const currentCourse = courses.find(c => c.id === currentSession?.courseId);
     const sessionMatches = matches.filter(m => m.sessionId === currentSession?.id);
+    // Find a course from the matches if available
+    const firstMatchWithCourse = sessionMatches.find(m => m.courseId);
+    const currentCourse = firstMatchWithCourse
+      ? courses.find(c => c.id === firstMatchWithCourse.courseId)
+      : courses[0];
 
     switch (activeSection) {
       case 'preflight':
@@ -239,7 +243,12 @@ export function CaptainToolkit({
         return (
           <div className="space-y-4">
             {sessions.map(session => {
-              const course = courses.find(c => c.id === session.courseId);
+              // Find course from matches in this session
+              const sessionMatches = matches.filter(m => m.sessionId === session.id);
+              const matchWithCourse = sessionMatches.find(m => m.courseId);
+              const course = matchWithCourse
+                ? courses.find(c => c.id === matchWithCourse.courseId)
+                : courses[0];
               return (
                 <SessionWeatherPanel
                   key={session.id}
@@ -302,10 +311,10 @@ export function CaptainToolkit({
               className="p-4 bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all text-left flex items-center gap-4 group"
             >
               <div className={`p-3 rounded-lg ${item.status === 'needs-attention'
-                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600'
-                  : item.status === 'complete'
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-600'
-                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600'
+                : item.status === 'complete'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600'
+                  : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
                 }`}>
                 {item.icon}
               </div>

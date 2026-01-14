@@ -16,6 +16,14 @@ import type {
 } from '@/lib/types/captain';
 import type { Match, RyderCupSession, UUID } from '@/lib/types/models';
 
+// Re-export types for convenience
+export type {
+    TeeTimeMode,
+    TeeTimeSlot,
+    TeeTimeGeneratorConfig,
+    GeneratedTeeSheet,
+} from '@/lib/types/captain';
+
 /**
  * Default tee time intervals by session type
  */

@@ -1,12 +1,20 @@
 'use client';
 
-import { useEffect, useMemo, useState, TouchEvent } from 'react';
+import { useEffect, useMemo, useState, useCallback, TouchEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useScoringStore, useTripStore, useUIStore } from '@/lib/stores';
 import { useMatchState, useHaptic } from '@/lib/hooks';
 import { formatPlayerName } from '@/lib/utils';
-import { Undo2, ChevronLeft, ChevronRight, Check, AlertCircle } from 'lucide-react';
+import { Undo2, ChevronLeft, ChevronRight, Check, AlertCircle, Camera, Mic } from 'lucide-react';
 import type { HoleWinner } from '@/lib/types/models';
+import {
+  StickyUndoBanner,
+  QuickPhotoCapture,
+  VoiceScoring,
+  SideBetReminder,
+  WeatherAlerts,
+  type UndoAction,
+} from '@/components/live-play';
 
 /**
  * MATCH SCORING PAGE - Sacred Action Surface
@@ -17,7 +25,38 @@ import type { HoleWinner } from '@/lib/types/models';
  * - Clear score deltas
  * - Minimal decoration
  * - Undo is always visible
+ *
+ * Enhanced (v2.0):
+ * - Sticky undo banner with 5-second window
+ * - Quick photo capture
+ * - Voice scoring
+ * - Side bet reminders
+ * - Weather alerts
  */
+
+// Demo side bets for testing - in production these come from the bets store
+const DEMO_SIDE_BETS = [
+  {
+    id: 'ctp-7',
+    type: 'ctp' as const,
+    name: 'Closest to Pin #7',
+    holes: [7],
+    buyIn: 5,
+    pot: 40,
+    participants: [],
+    status: 'active' as const,
+  },
+  {
+    id: 'long-12',
+    type: 'long_drive' as const,
+    name: 'Long Drive #12',
+    holes: [12],
+    buyIn: 5,
+    pot: 40,
+    participants: [],
+    status: 'active' as const,
+  },
+];
 
 export default function MatchScoringPage() {
   const router = useRouter();
@@ -45,6 +84,9 @@ export default function MatchScoringPage() {
   // Swipe state
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Undo banner state
+  const [undoAction, setUndoAction] = useState<UndoAction | null>(null);
 
   // Live match state
   const liveMatchState = useMatchState(matchId);
@@ -127,14 +169,39 @@ export default function MatchScoringPage() {
 
     haptic.scorePoint();
     await scoreHole(winner);
+
+    // Show sticky undo banner
+    setUndoAction({
+      id: crypto.randomUUID(),
+      type: 'score',
+      description: `Hole ${currentHole} scored`,
+      metadata: {
+        holeNumber: currentHole,
+        result: winner === 'none' ? undefined : winner,
+        teamAName,
+        teamBName,
+      },
+      timestamp: Date.now(),
+      onUndo: handleUndo,
+    });
   };
 
-  const handleUndo = async () => {
+  const handleUndo = useCallback(async () => {
     if (undoStack.length === 0) return;
     haptic.warning();
     await undoLastHole();
-    showToast('info', 'Score undone');
-  };
+    setUndoAction(null);
+  }, [undoStack.length, haptic, undoLastHole]);
+
+  // Handle voice score
+  const handleVoiceScore = useCallback((winner: HoleWinner) => {
+    handleScore(winner);
+  }, []);
+
+  // Handle photo capture
+  const handlePhotoCapture = useCallback((photo: { id: string }) => {
+    showToast('success', 'Photo saved to gallery');
+  }, [showToast]);
 
   if (!activeMatch || !matchState) {
     return (
@@ -436,7 +503,60 @@ export default function MatchScoringPage() {
             </button>
           </section>
         )}
+
+        {/* Side Bet Reminders */}
+        {!isMatchComplete && (
+          <section className="section" style={{ paddingTop: 'var(--space-4)', paddingBottom: 'var(--space-4)' }}>
+            <SideBetReminder
+              currentHole={currentHole}
+              bets={DEMO_SIDE_BETS}
+              currentPlayerId={teamAPlayers[0]?.id}
+            />
+          </section>
+        )}
+
+        {/* Weather Alerts */}
+        <section className="section" style={{ paddingBottom: 'var(--space-4)' }}>
+          <WeatherAlerts showWeatherBar={true} />
+        </section>
       </main>
-    </div>
+
+      {/* Quick Photo Capture - Fixed position */}
+      {
+        !isMatchComplete && (
+          <div className="fixed bottom-24 left-4 z-40">
+            <QuickPhotoCapture
+              matchId={matchId}
+              holeNumber={currentHole}
+              teamAName={teamAName}
+              teamBName={teamBName}
+              onCapture={handlePhotoCapture}
+            />
+          </div>
+        )
+      }
+
+      {/* Voice Scoring - Fixed position */}
+      {
+        !isMatchComplete && (
+          <VoiceScoring
+            teamAName={teamAName}
+            teamBName={teamBName}
+            currentHole={currentHole}
+            onScoreConfirmed={handleVoiceScore}
+            floating={true}
+            position={{ bottom: 160, right: 16 }}
+          />
+        )
+      }
+
+      {/* Sticky Undo Banner */}
+      <StickyUndoBanner
+        action={undoAction}
+        duration={5000}
+        bottomOffset={80}
+        onDismiss={() => setUndoAction(null)}
+      />
+    </div >
   );
 }

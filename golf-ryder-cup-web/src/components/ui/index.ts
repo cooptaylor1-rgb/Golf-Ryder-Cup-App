@@ -19,25 +19,18 @@ export { Tooltip, type TooltipProps } from './Tooltip';
 export {
   ErrorBoundary,
   ErrorFallback,
+  MiniErrorFallback,
+  ErrorCard,
   useErrorHandler,
   withErrorBoundary,
 } from './ErrorBoundary';
 
-// Error handling
-export {
-    ErrorBoundary,
-    ErrorFallback,
-    MiniErrorFallback,
-    ErrorCard
-} from './ErrorBoundary';
-
 // Celebration & success
 export {
-    ConfettiBurst,
-    SuccessOverlay,
-    VictoryCelebration,
-    PointScored,
-    AchievementBadge,
+  SuccessOverlay,
+  VictoryCelebration,
+  PointScored,
+  AchievementBadge,
 } from './Celebration';
 
 // Navigation & organization

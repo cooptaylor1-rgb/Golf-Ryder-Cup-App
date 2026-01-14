@@ -6,17 +6,37 @@
  * Mobile: Header + content + bottom nav
  *
  * Masters-inspired: elegant, restrained, world-class.
+ *
+ * Enhanced with live play components (v2.0):
+ * - Floating "My Match" FAB
+ * - Quick standings overlay (swipe down)
+ * - Notification system
  */
 
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
-import { useUIStore } from '@/lib/stores';
+import dynamic from 'next/dynamic';
+import { useUIStore, useTripStore } from '@/lib/stores';
 import { cn } from '@/lib/utils';
 import { SidebarNav } from './SidebarNav';
 import { Header } from './Header';
 import { BottomNav } from './BottomNav';
 import { OfflineIndicator, ToastContainer } from '@/components/ui';
+
+// Dynamic imports for live play components to prevent SSR issues with IndexedDB
+const FloatingMyMatch = dynamic(
+  () => import('@/components/live-play/FloatingMyMatch').then(mod => mod.FloatingMyMatch),
+  { ssr: false }
+);
+const QuickStandingsOverlay = dynamic(
+  () => import('@/components/live-play/QuickStandingsOverlay').then(mod => mod.QuickStandingsOverlay),
+  { ssr: false }
+);
+const NotificationStack = dynamic(
+  () => import('@/components/live-play/NotificationSystem').then(mod => mod.NotificationStack),
+  { ssr: false }
+);
 
 interface AppShellProps {
   children: ReactNode;
@@ -40,6 +60,7 @@ export function AppShell({
   maxWidth = 'xl',
 }: AppShellProps) {
   const { isDarkMode, isGlobalLoading, globalLoadingMessage } = useUIStore();
+  const { currentTrip } = useTripStore();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [, setMobileMenuOpen] = useState(false);
 
@@ -111,6 +132,20 @@ export function AppShell({
       {/* Floating elements */}
       <OfflineIndicator />
       <ToastContainer />
+
+      {/* Live Play Components - Only show when in an active trip */}
+      {currentTrip && (
+        <>
+          {/* Floating "My Match" FAB - Quick access to your current match */}
+          <FloatingMyMatch bottomOffset={showNav ? 80 : 20} />
+
+          {/* Quick Standings Overlay - Pull down gesture */}
+          <QuickStandingsOverlay />
+
+          {/* Notification Stack - Real-time updates */}
+          <NotificationStack position="top-right" maxVisible={3} />
+        </>
+      )}
 
       {/* Global Loading Overlay */}
       {isGlobalLoading && (
