@@ -28,6 +28,7 @@ import {
   Info,
 } from 'lucide-react';
 import type { SessionType, RyderCupSession } from '@/lib/types';
+import type { ExtendedFormatType, ScoringMode } from '@/lib/types/scoringFormats';
 
 /**
  * NEW SESSION / LINEUP PAGE
@@ -36,21 +37,39 @@ import type { SessionType, RyderCupSession } from '@/lib/types';
  * Two-step flow:
  * 1. Session setup (name, type, date)
  * 2. Lineup builder (drag-drop player assignment)
+ *
+ * Supports multiple formats:
+ * - Match Play: Foursomes, Fourball, Singles
+ * - Side Games: Skins, Nassau
+ * - Individual: Stableford, Scramble
  */
 
-const SESSION_TYPES: Array<{
-  value: SessionType;
+type FormatCategory = 'match_play' | 'side_game' | 'individual';
+
+interface FormatOption {
+  value: string;
   label: string;
   description: string;
   playersPerTeam: number;
   defaultMatches: number;
-}> = [
+  category: FormatCategory;
+  isTeamBased: boolean;
+  scoringMode?: ScoringMode | 'both';
+  icon: string;
+  comingSoon?: boolean;
+}
+
+const ALL_FORMATS: FormatOption[] = [
+  // Match Play Formats (Team-based)
   {
     value: 'foursomes',
     label: 'Foursomes',
     description: 'Alternate shot - partners take turns hitting the same ball',
     playersPerTeam: 2,
     defaultMatches: 4,
+    category: 'match_play',
+    isTeamBased: true,
+    icon: '🔄',
   },
   {
     value: 'fourball',
@@ -58,6 +77,9 @@ const SESSION_TYPES: Array<{
     description: 'Best ball - each player plays their own ball, best score counts',
     playersPerTeam: 2,
     defaultMatches: 4,
+    category: 'match_play',
+    isTeamBased: true,
+    icon: '⚡',
   },
   {
     value: 'singles',
@@ -65,7 +87,73 @@ const SESSION_TYPES: Array<{
     description: '1v1 match play - head to head competition',
     playersPerTeam: 1,
     defaultMatches: 12,
+    category: 'match_play',
+    isTeamBased: true,
+    icon: '🎯',
   },
+  // Side Game Formats
+  {
+    value: 'skins',
+    label: 'Skins',
+    description: 'Hole-by-hole competition - win the hole, win the skin',
+    playersPerTeam: 1,
+    defaultMatches: 1,
+    category: 'side_game',
+    isTeamBased: false,
+    scoringMode: 'both',
+    icon: '💰',
+  },
+  {
+    value: 'nassau',
+    label: 'Nassau',
+    description: 'Three bets in one - front nine, back nine, and overall',
+    playersPerTeam: 1,
+    defaultMatches: 1,
+    category: 'side_game',
+    isTeamBased: true,
+    scoringMode: 'net',
+    icon: '🎲',
+  },
+  // Individual Formats
+  {
+    value: 'stableford',
+    label: 'Stableford',
+    description: 'Point-based scoring - earn points relative to par',
+    playersPerTeam: 1,
+    defaultMatches: 1,
+    category: 'individual',
+    isTeamBased: false,
+    scoringMode: 'net',
+    icon: '📊',
+  },
+  {
+    value: 'scramble',
+    label: 'Scramble',
+    description: 'Team best ball - everyone hits, pick the best shot',
+    playersPerTeam: 4,
+    defaultMatches: 2,
+    category: 'individual',
+    isTeamBased: true,
+    scoringMode: 'net',
+    icon: '🤝',
+  },
+];
+
+// Legacy type array for backward compatibility with existing SessionType
+const SESSION_TYPES = ALL_FORMATS
+  .filter(t => ['foursomes', 'fourball', 'singles'].includes(t.value))
+  .map(t => ({
+    value: t.value as SessionType,
+    label: t.label,
+    description: t.description,
+    playersPerTeam: t.playersPerTeam,
+    defaultMatches: t.defaultMatches,
+  }));
+
+const FORMAT_CATEGORIES: { value: FormatCategory; label: string; description: string }[] = [
+  { value: 'match_play', label: 'Match Play', description: 'Traditional Ryder Cup formats' },
+  { value: 'side_game', label: 'Side Games', description: 'Additional betting formats' },
+  { value: 'individual', label: 'Individual', description: 'Stroke-based formats' },
 ];
 
 type Step = 'setup' | 'lineup';
@@ -117,7 +205,7 @@ export default function NewLineupPage() {
     avatarUrl: p.avatarUrl,
   }));
 
-  const selectedType = SESSION_TYPES.find(t => t.value === sessionType)!;
+  const selectedType = ALL_FORMATS.find(t => t.value === sessionType) || ALL_FORMATS[0];
 
   // Session config for lineup builder
   const sessionConfig: SessionConfig = useMemo(() => ({
@@ -141,15 +229,19 @@ export default function NewLineupPage() {
     setMatchCount(typeInfo.defaultMatches);
   };
 
+  // All lineup players for fairness calculation
+  const allLineupPlayers = useMemo(() => [...lineupTeamA, ...lineupTeamB], [lineupTeamA, lineupTeamB]);
+
   // Calculate fairness
   const calculateFairness = useCallback((matches: MatchSlot[]): FairnessScore => {
     // Convert to format expected by fairness calculator
     const pairings = matches.map(match => ({
+      id: match.id,
       teamAPlayers: match.teamAPlayers,
       teamBPlayers: match.teamBPlayers,
     }));
-    return calculateFairnessScore(pairings);
-  }, []);
+    return calculateFairnessScore(pairings, allLineupPlayers);
+  }, [allLineupPlayers]);
 
   // Auto-fill lineup
   const handleAutoFill = useCallback((): MatchSlot[] => {
@@ -286,28 +378,86 @@ export default function NewLineupPage() {
               <label className="type-overline" style={{ display: 'block', marginBottom: 'var(--space-4)' }}>
                 Format
               </label>
-              <div className="space-y-3">
-                {SESSION_TYPES.map(type => (
-                  <button
-                    key={type.value}
-                    onClick={() => handleTypeChange(type.value)}
-                    className={`w-full text-left card transition-all ${sessionType === type.value ? 'ring-2 ring-masters' : ''}`}
-                    style={{ padding: 'var(--space-4)' }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="type-title-sm">{type.label}</p>
-                        <p className="type-caption" style={{ marginTop: '4px' }}>
-                          {type.description}
-                        </p>
-                      </div>
-                      {sessionType === type.value && (
-                        <CheckCircle2 size={20} style={{ color: 'var(--masters)' }} />
-                      )}
+
+              {/* Format Categories */}
+              {FORMAT_CATEGORIES.map(category => {
+                const categoryFormats = ALL_FORMATS.filter(f => f.category === category.value);
+                return (
+                  <div key={category.value} className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--ink-tertiary)' }}>
+                        {category.label}
+                      </p>
+                      <span className="text-xs" style={{ color: 'var(--ink-tertiary)', opacity: 0.7 }}>
+                        {category.description}
+                      </span>
                     </div>
-                  </button>
-                ))}
-              </div>
+                    <div className="space-y-2">
+                      {categoryFormats.map(format => {
+                        const isSelected = sessionType === format.value;
+                        const isMatchPlay = ['foursomes', 'fourball', 'singles'].includes(format.value);
+
+                        return (
+                          <button
+                            key={format.value}
+                            onClick={() => {
+                              if (isMatchPlay) {
+                                handleTypeChange(format.value as SessionType);
+                              } else {
+                                // For non-match-play formats, still update state but show coming soon
+                                setSessionType(format.value as SessionType);
+                                const formatInfo = ALL_FORMATS.find(f => f.value === format.value);
+                                if (formatInfo) setMatchCount(formatInfo.defaultMatches);
+                              }
+                            }}
+                            className={`w-full text-left card transition-all ${isSelected ? 'ring-2 ring-masters' : ''} ${!isMatchPlay ? 'opacity-70' : ''}`}
+                            style={{ padding: 'var(--space-4)' }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="text-xl">{format.icon}</span>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <p className="type-title-sm">{format.label}</p>
+                                    {!isMatchPlay && (
+                                      <span
+                                        className="px-2 py-0.5 rounded text-[10px] font-medium"
+                                        style={{
+                                          background: 'var(--canvas-sunken)',
+                                          color: 'var(--ink-tertiary)',
+                                        }}
+                                      >
+                                        Coming Soon
+                                      </span>
+                                    )}
+                                    {format.scoringMode && (
+                                      <span
+                                        className="px-2 py-0.5 rounded text-[10px] font-medium"
+                                        style={{
+                                          background: format.scoringMode === 'net' ? 'rgba(0, 103, 71, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                                          color: format.scoringMode === 'net' ? 'var(--masters)' : '#3b82f6',
+                                        }}
+                                      >
+                                        {format.scoringMode === 'net' ? 'Net' : format.scoringMode === 'both' ? 'Gross/Net' : 'Gross'}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="type-caption" style={{ marginTop: '4px' }}>
+                                    {format.description}
+                                  </p>
+                                </div>
+                              </div>
+                              {isSelected && (
+                                <CheckCircle2 size={20} style={{ color: 'var(--masters)' }} />
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </section>
 
             {/* Match Count */}

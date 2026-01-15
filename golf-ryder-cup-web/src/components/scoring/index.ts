@@ -5,6 +5,8 @@
  * - Press bet tracking
  * - Handicap stroke indicators
  * - Score displays
+ * - Gross/Net score visualization
+ * - Stroke alerts
  */
 
 export {
@@ -18,3 +20,26 @@ export {
   StrokeBadge,
   type HandicapStrokeIndicatorProps,
 } from './HandicapStrokeIndicator';
+
+export {
+  GrossNetScoreDisplay,
+  ScorecardRow,
+  ScoreLegend,
+  type GrossNetScoreDisplayProps,
+  type ScorecardRowProps,
+} from './GrossNetScoreDisplay';
+
+export {
+  StrokeAlertBanner,
+  CompactStrokeBadge,
+  StrokeHolesMiniMap,
+  type StrokeAlertBannerProps,
+  type CompactStrokeBadgeProps,
+  type StrokeHolesMiniMapProps,
+} from './StrokeAlertBanner';
+
+export {
+  MatchScorecard,
+  type MatchScorecardProps,
+  type PlayerScore,
+} from './MatchScorecard';

@@ -175,14 +175,18 @@ export default function SessionPage() {
     }
   };
 
+  // All lineup players for fairness calculation
+  const allLineupPlayers = useMemo(() => [...lineupTeamA, ...lineupTeamB], [lineupTeamA, lineupTeamB]);
+
   // Calculate fairness
   const calculateFairness = useCallback((matchSlots: MatchSlot[]): FairnessScore => {
     const pairings = matchSlots.map(match => ({
+      id: match.id,
       teamAPlayers: match.teamAPlayers,
       teamBPlayers: match.teamBPlayers,
     }));
-    return calculateFairnessScore(pairings);
-  }, []);
+    return calculateFairnessScore(pairings, allLineupPlayers);
+  }, [allLineupPlayers]);
 
   // Get player names for match display
   const getMatchPlayerNames = (playerIds: string[], team: 'A' | 'B') => {

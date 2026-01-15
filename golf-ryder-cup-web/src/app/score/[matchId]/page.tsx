@@ -15,7 +15,7 @@ import {
   WeatherAlerts,
   type UndoAction,
 } from '@/components/live-play';
-import { PressTracker, HandicapStrokeIndicator, type Press } from '@/components/scoring';
+import { PressTracker, HandicapStrokeIndicator, StrokeAlertBanner, type Press } from '@/components/scoring';
 
 /**
  * MATCH SCORING PAGE - Sacred Action Surface
@@ -666,6 +666,25 @@ export default function MatchScoringPage() {
         bottomOffset={80}
         onDismiss={() => setUndoAction(null)}
       />
+
+      {/* Stroke Alert Banner */}
+      {!isMatchComplete && (activeMatch.teamAHandicapAllowance > 0 || activeMatch.teamBHandicapAllowance > 0) && (
+        <StrokeAlertBanner
+          currentHole={currentHole}
+          teamAStrokes={activeMatch.teamAHandicapAllowance}
+          teamBStrokes={activeMatch.teamBHandicapAllowance}
+          holeHandicaps={holeHandicaps}
+          teamAName={teamAName}
+          teamBName={teamBName}
+          autoDismissMs={5000}
+          onAlertShown={(hole, aStrokes, bStrokes) => {
+            if (aStrokes > 0 || bStrokes > 0) {
+              haptic.tap();
+            }
+          }}
+          position="top"
+        />
+      )}
     </div >
   );
 }

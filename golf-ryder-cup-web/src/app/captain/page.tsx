@@ -298,9 +298,9 @@ export default function CaptainPage() {
               >
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                  style={{ background: `${action.color}15` }}
+                  style={{ background: `${action.color}15`, color: action.color }}
                 >
-                  <action.icon size={20} style={{ color: action.color }} />
+                  <action.icon size={20} />
                 </div>
                 <p className="type-title-sm">{action.label}</p>
                 <p className="type-micro" style={{ marginTop: '2px' }}>
