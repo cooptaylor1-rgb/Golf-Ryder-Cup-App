@@ -6,6 +6,8 @@ import { ToastContainer } from '@/components/ui/Toast';
 import { AppOnboardingProvider } from '@/components/AppOnboardingProvider';
 import { NotificationProvider } from '@/components/live-play';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { QuickScoreFAB } from '@/components/QuickScoreFAB';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 
 export const metadata: Metadata = {
   title: 'Ryder Cup Tracker',
@@ -63,6 +65,8 @@ export default function RootLayout({
               </AppOnboardingProvider>
             </NotificationProvider>
           </ErrorBoundary>
+          <QuickScoreFAB />
+          <OfflineIndicator />
           <ToastContainer />
           <PWABanners />
         </PWAProvider>
