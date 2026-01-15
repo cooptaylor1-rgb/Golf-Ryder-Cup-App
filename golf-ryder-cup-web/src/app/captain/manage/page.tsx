@@ -102,7 +102,7 @@ export default function CaptainManagePage() {
         return playerIds
             .map(id => players.find(p => p.id === id))
             .filter(Boolean)
-            .map(p => p!.name)
+            .map(p => p!.firstName)
             .join(' & ');
     };
 
