@@ -354,15 +354,21 @@ export function useMatchScoring({
             haptic.tap();
 
             try {
+                const holePar = par || coursePars[holeNumber - 1] || 4;
+                const winner: 'teamA' | 'teamB' | 'halved' =
+                    team1Score < team2Score ? 'teamA' :
+                        team2Score < team1Score ? 'teamB' : 'halved';
+
                 const holeResult = {
                     id: `${matchId}-hole-${holeNumber}`,
                     matchId,
                     holeNumber,
-                    team1Score,
-                    team2Score,
-                    par: par || coursePars[holeNumber - 1] || 4,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
+                    winner,
+                    teamAStrokes: team1Score,
+                    teamBStrokes: team2Score,
+                    teamAScore: team1Score,
+                    teamBScore: team2Score,
+                    timestamp: new Date().toISOString(),
                 };
 
                 // Optimistic update to local DB
@@ -377,7 +383,6 @@ export function useMatchScoring({
                 });
 
                 // Celebration haptic for birdie or better
-                const holePar = par || coursePars[holeNumber - 1] || 4;
                 if (team1Score <= holePar - 1 || team2Score <= holePar - 1) {
                     haptic.impact();
                 }
@@ -402,10 +407,16 @@ export function useMatchScoring({
 
             try {
                 const id = `${matchId}-hole-${holeNumber}`;
+                const winner: 'teamA' | 'teamB' | 'halved' = 
+                    team1Score < team2Score ? 'teamA' : 
+                    team2Score < team1Score ? 'teamB' : 'halved';
+                
                 await db.holeResults.update(id, {
-                    team1Score,
-                    team2Score,
-                    updatedAt: new Date().toISOString(),
+                    winner,
+                    teamAStrokes: team1Score,
+                    teamBStrokes: team2Score,
+                    teamAScore: team1Score,
+                    teamBScore: team2Score,
                 });
 
                 queueAction({
