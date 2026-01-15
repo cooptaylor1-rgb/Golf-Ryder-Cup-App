@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -11,15 +11,21 @@ import {
   Flag,
   MapPin,
   FileText,
+  Camera,
+  Sparkles,
 } from 'lucide-react';
 import { createCourseProfile } from '@/lib/services/courseLibraryService';
 import { useUIStore } from '@/lib/stores';
+import { HoleDataEditor, createDefaultHoles, ScorecardUpload, type HoleData } from '@/components/course';
 
 /**
  * NEW COURSE PAGE
  *
  * Create a new course profile for the course library.
- * Allows manual entry of course details and tee sets.
+ * Features:
+ * - Manual entry of course details and tee sets
+ * - Hole-by-hole data entry (par, handicap, yardage)
+ * - Scorecard photo/PDF upload with AI OCR extraction
  */
 
 interface TeeSetInput {
@@ -30,6 +36,7 @@ interface TeeSetInput {
   slope: string;
   par: string;
   totalYardage: string;
+  holes: HoleData[];
 }
 
 const TEE_COLORS = [
@@ -50,8 +57,9 @@ export default function NewCoursePage() {
   const [notes, setNotes] = useState('');
   const [teeSets, setTeeSets] = useState<TeeSetInput[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showScorecardUpload, setShowScorecardUpload] = useState(false);
 
-  const handleAddTeeSet = () => {
+  const handleAddTeeSet = useCallback(() => {
     const newTeeSet: TeeSetInput = {
       id: crypto.randomUUID(),
       name: '',
@@ -60,19 +68,67 @@ export default function NewCoursePage() {
       slope: '',
       par: '72',
       totalYardage: '',
+      holes: createDefaultHoles(),
     };
-    setTeeSets([...teeSets, newTeeSet]);
-  };
+    setTeeSets(prev => [...prev, newTeeSet]);
+  }, []);
 
-  const handleRemoveTeeSet = (id: string) => {
-    setTeeSets(teeSets.filter(ts => ts.id !== id));
-  };
+  const handleRemoveTeeSet = useCallback((id: string) => {
+    setTeeSets(prev => prev.filter(ts => ts.id !== id));
+  }, []);
 
-  const handleUpdateTeeSet = (id: string, field: keyof TeeSetInput, value: string) => {
-    setTeeSets(teeSets.map(ts =>
+  const handleUpdateTeeSet = useCallback((id: string, field: keyof TeeSetInput, value: string | HoleData[]) => {
+    setTeeSets(prev => prev.map(ts =>
       ts.id === id ? { ...ts, [field]: value } : ts
     ));
-  };
+  }, []);
+
+  const handleUpdateHoles = useCallback((teeSetId: string, holes: HoleData[]) => {
+    setTeeSets(prev => prev.map(ts => {
+      if (ts.id !== teeSetId) return ts;
+      // Update total par based on hole data
+      const totalPar = holes.reduce((sum, h) => sum + h.par, 0);
+      const totalYardage = holes.reduce((sum, h) => sum + (h.yardage || 0), 0);
+      return {
+        ...ts,
+        holes,
+        par: String(totalPar),
+        totalYardage: totalYardage > 0 ? String(totalYardage) : ts.totalYardage,
+      };
+    }));
+  }, []);
+
+  const handleScorecardData = useCallback((data: {
+    courseName?: string;
+    teeName?: string;
+    rating?: number;
+    slope?: number;
+    holes: HoleData[];
+  }) => {
+    // Update course name if provided and empty
+    if (data.courseName && !courseName) {
+      setCourseName(data.courseName);
+    }
+
+    // Create a new tee set with the extracted data
+    const totalPar = data.holes.reduce((sum, h) => sum + h.par, 0);
+    const totalYardage = data.holes.reduce((sum, h) => sum + (h.yardage || 0), 0);
+
+    const newTeeSet: TeeSetInput = {
+      id: crypto.randomUUID(),
+      name: data.teeName || 'Scanned Tees',
+      color: '#2563eb',
+      rating: data.rating ? String(data.rating) : '',
+      slope: data.slope ? String(data.slope) : '',
+      par: String(totalPar),
+      totalYardage: totalYardage > 0 ? String(totalYardage) : '',
+      holes: data.holes,
+    };
+
+    setTeeSets(prev => [...prev, newTeeSet]);
+    setShowScorecardUpload(false);
+    showToast('success', 'Scorecard data imported!');
+  }, [courseName, showToast]);
 
   const handleSubmit = async () => {
     if (!courseName.trim()) {
@@ -83,11 +139,6 @@ export default function NewCoursePage() {
     setIsSubmitting(true);
 
     try {
-      // Default 18-hole par array (assumes par 72 course)
-      const defaultHolePars = [4, 4, 3, 4, 5, 4, 3, 4, 5, 4, 4, 3, 4, 5, 4, 3, 4, 5];
-      // Default handicap ranks 1-18
-      const defaultHoleHandicaps = [1, 3, 17, 5, 7, 9, 15, 11, 13, 2, 4, 18, 6, 8, 10, 16, 12, 14];
-
       const teeSetData = teeSets
         .filter(ts => ts.name.trim())
         .map(ts => ({
@@ -96,8 +147,9 @@ export default function NewCoursePage() {
           rating: parseFloat(ts.rating) || 72.0,
           slope: parseInt(ts.slope) || 113,
           par: parseInt(ts.par) || 72,
-          holePars: defaultHolePars,
-          holeHandicaps: defaultHoleHandicaps,
+          holePars: ts.holes.map(h => h.par),
+          holeHandicaps: ts.holes.map(h => h.handicap),
+          yardages: ts.holes.map(h => h.yardage).filter((y): y is number => y !== null),
           totalYardage: parseInt(ts.totalYardage) || undefined,
         }));
 
@@ -121,6 +173,14 @@ export default function NewCoursePage() {
 
   return (
     <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>
+      {/* Scorecard Upload Modal */}
+      {showScorecardUpload && (
+        <ScorecardUpload
+          onDataExtracted={handleScorecardData}
+          onClose={() => setShowScorecardUpload(false)}
+        />
+      )}
+
       {/* Premium Header */}
       <header className="header-premium">
         <div className="container-editorial flex items-center justify-between">
@@ -168,6 +228,47 @@ export default function NewCoursePage() {
       </header>
 
       <main className="container-editorial">
+        {/* Scan Scorecard CTA */}
+        <section className="section">
+          <button
+            onClick={() => setShowScorecardUpload(true)}
+            className="w-full p-4 rounded-xl border-2 border-dashed transition-all hover:border-[var(--masters)] hover:bg-[var(--masters-soft)]"
+            style={{
+              borderColor: 'var(--masters)',
+              background: 'linear-gradient(135deg, var(--masters-soft) 0%, transparent 100%)',
+            }}
+          >
+            <div className="flex items-center justify-center gap-3">
+              <div
+                className="flex items-center justify-center"
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'var(--masters)',
+                }}
+              >
+                <Camera size={24} style={{ color: 'var(--color-accent)' }} />
+              </div>
+              <div className="text-left">
+                <div className="flex items-center gap-2">
+                  <span className="type-title-sm">Scan Scorecard</span>
+                  <Sparkles size={14} style={{ color: 'var(--masters)' }} />
+                </div>
+                <p className="type-caption" style={{ color: 'var(--ink-secondary)' }}>
+                  Upload a photo or PDF to auto-fill hole data
+                </p>
+              </div>
+            </div>
+          </button>
+        </section>
+
+        <div className="flex items-center gap-4 my-4">
+          <hr className="flex-1 border-t" style={{ borderColor: 'var(--rule)' }} />
+          <span className="type-micro" style={{ color: 'var(--ink-muted)' }}>OR ENTER MANUALLY</span>
+          <hr className="flex-1 border-t" style={{ borderColor: 'var(--rule)' }} />
+        </div>
+
         {/* Course Details */}
         <section className="section">
           <h2 className="type-overline" style={{ marginBottom: 'var(--space-4)' }}>Course Details</h2>
@@ -236,7 +337,7 @@ export default function NewCoursePage() {
           {teeSets.length === 0 ? (
             <div className="card text-center" style={{ padding: 'var(--space-6)' }}>
               <p className="type-caption" style={{ marginBottom: 'var(--space-3)' }}>
-                No tee sets added yet. Add tee sets to include rating and slope information.
+                No tee sets added yet. Scan a scorecard above or add tee sets manually.
               </p>
               <button onClick={handleAddTeeSet} className="btn btn-primary">
                 Add First Tee Set
@@ -323,6 +424,9 @@ export default function NewCoursePage() {
                         onChange={(e) => handleUpdateTeeSet(teeSet.id, 'par', e.target.value)}
                         className="input"
                         placeholder="72"
+                        readOnly
+                        style={{ background: 'var(--surface-elevated)', cursor: 'default' }}
+                        title="Calculated from hole data"
                       />
                     </div>
                     <div>
@@ -336,6 +440,12 @@ export default function NewCoursePage() {
                       />
                     </div>
                   </div>
+
+                  {/* Hole Data Editor */}
+                  <HoleDataEditor
+                    holes={teeSet.holes}
+                    onChange={(holes) => handleUpdateHoles(teeSet.id, holes)}
+                  />
                 </div>
               ))}
             </div>
