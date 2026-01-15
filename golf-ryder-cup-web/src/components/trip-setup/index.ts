@@ -2,6 +2,7 @@
 // Phase 1: Core flexibility
 export { SessionBuilder, type SessionConfig, type SessionType, type TimeSlot } from './SessionBuilder';
 export { PlayerCountSelector } from './PlayerCountSelector';
+export { FormatSelector } from './FormatSelector';
 
 // Phase 2: Golf-specific settings
 export { CourseSelection, type CourseInfo, type TeeBox } from './CourseSelection';
