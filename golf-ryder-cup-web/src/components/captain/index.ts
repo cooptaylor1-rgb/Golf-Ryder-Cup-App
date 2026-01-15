@@ -165,7 +165,6 @@ export {
   calculateMatchFairness,
   suggestSwaps as suggestLineupSwaps,
   type BalanceConfig,
-  type BalancedLineup,
 } from './lineup-builder';
 
 // Captain Dashboard v2
