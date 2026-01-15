@@ -152,6 +152,7 @@ export interface Trip {
     notes?: string;
     isCaptainModeEnabled: boolean;
     captainName?: string;
+    captainPin?: string;
     createdAt: ISODateString;
     updatedAt: ISODateString;
 }
