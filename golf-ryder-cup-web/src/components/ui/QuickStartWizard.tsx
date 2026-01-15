@@ -531,30 +531,24 @@ function StepConfirm({ tripData }: { tripData: TripData }) {
       </div>
 
       {/* Summary Card */}
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          background: 'var(--surface, #1A1814)',
-          border: '1px solid var(--rule, #3A3530)',
-        }}
-      >
+      <div className="card-premium rounded-xl overflow-hidden">
         <div
           className="px-4 py-3"
           style={{
-            background: 'var(--surface-raised, #1E1C18)',
-            borderBottom: '1px solid var(--rule, #3A3530)',
+            background: 'var(--canvas-sunken)',
+            borderBottom: '1px solid var(--rule)',
           }}
         >
           <h2
             className="font-bold"
-            style={{ color: 'var(--ink, #F5F1E8)' }}
+            style={{ color: 'var(--ink)' }}
           >
             {tripData.name}
           </h2>
           {tripData.location && (
             <p
               className="text-sm flex items-center gap-1 mt-1"
-              style={{ color: 'var(--ink-secondary, #B8B0A0)' }}
+              style={{ color: 'var(--ink-secondary)' }}
             >
               <MapPin className="w-3 h-3" />
               {tripData.location}
@@ -566,13 +560,13 @@ function StepConfirm({ tripData }: { tripData: TripData }) {
           <div className="flex items-center justify-between">
             <span
               className="text-sm"
-              style={{ color: 'var(--ink-secondary, #B8B0A0)' }}
+              style={{ color: 'var(--ink-secondary)' }}
             >
               Dates
             </span>
             <span
               className="text-sm font-medium"
-              style={{ color: 'var(--ink, #F5F1E8)' }}
+              style={{ color: 'var(--ink)' }}
             >
               {formatDate(tripData.startDate)} - {formatDate(tripData.endDate)}
             </span>
@@ -581,21 +575,21 @@ function StepConfirm({ tripData }: { tripData: TripData }) {
           <div className="flex items-center justify-between">
             <span
               className="text-sm"
-              style={{ color: 'var(--ink-secondary, #B8B0A0)' }}
+              style={{ color: 'var(--ink-secondary)' }}
             >
               Teams
             </span>
             <div className="flex items-center gap-2">
               <span
                 className="text-sm font-medium"
-                style={{ color: 'var(--team-usa, #B91C1C)' }}
+                style={{ color: 'var(--team-usa)' }}
               >
                 {tripData.teamAName}
               </span>
-              <span style={{ color: 'var(--ink-tertiary, #807868)' }}>vs</span>
+              <span style={{ color: 'var(--ink-tertiary)' }}>vs</span>
               <span
                 className="text-sm font-medium"
-                style={{ color: 'var(--team-europe, #1D4ED8)' }}
+                style={{ color: 'var(--team-europe)' }}
               >
                 {tripData.teamBName}
               </span>

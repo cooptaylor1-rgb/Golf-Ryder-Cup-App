@@ -325,7 +325,8 @@ export default function CourseLibraryPage() {
                 {/* Featured: Scan Scorecard with AI */}
                 <button
                     onClick={() => setShowScorecardUpload(true)}
-                    className="w-full p-4 bg-gradient-to-r from-masters-green to-masters-green/80 rounded-xl text-left transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
+                    className="w-full p-4 rounded-xl text-left transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
+                    style={{ background: 'linear-gradient(to right, #006747, #006747cc)' }}
                 >
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
