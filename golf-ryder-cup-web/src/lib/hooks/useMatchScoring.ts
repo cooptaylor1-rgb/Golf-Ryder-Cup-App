@@ -510,8 +510,10 @@ export function useMatchScoring({
             // Reset match status
             await db.matches.update(matchId, {
                 status: 'scheduled',
-                result: null,
-                winnerId: null,
+                result: 'notFinished',
+                margin: 0,
+                holesRemaining: 18,
+                currentHole: 1,
                 updatedAt: new Date().toISOString(),
             });
 
