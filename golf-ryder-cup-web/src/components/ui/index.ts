@@ -204,3 +204,16 @@ export {
   SwipeHint,
   LongPressProgress,
 } from './MicroInteractions';
+
+// Premium Components (v3.0)
+export {
+  PremiumLiveMatchBanner,
+  HoleProgressStrip,
+  PremiumProgressBar,
+  AnimatedScore,
+  PremiumStandingsCard,
+  PremiumMatchCard,
+  PageTransition,
+  PremiumSectionHeader,
+  PremiumEmptyState,
+} from './PremiumComponents';
