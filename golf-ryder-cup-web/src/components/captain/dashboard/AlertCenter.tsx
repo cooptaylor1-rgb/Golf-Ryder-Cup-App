@@ -513,7 +513,7 @@ export function AlertCenter({
             </div>
 
             {/* Summary Bar */}
-            <AlertSummaryBar 
+            <AlertSummaryBar
                 criticalCount={counts.critical}
                 highCount={counts.high}
                 mediumCount={counts.medium}
