@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/db';
 import { useTripStore, useUIStore } from '@/lib/stores';
 import {
   ChevronLeft,
@@ -20,6 +22,7 @@ import {
   Bell,
   Lock,
   Save,
+  Palette,
 } from 'lucide-react';
 
 /**
@@ -37,6 +40,21 @@ export default function CaptainSettingsPage() {
   const [startDate, setStartDate] = useState(currentTrip?.startDate || '');
   const [endDate, setEndDate] = useState(currentTrip?.endDate || '');
   const [location, setLocation] = useState(currentTrip?.location || '');
+  const [teamAName, setTeamAName] = useState('');
+  const [teamBName, setTeamBName] = useState('');
+
+  // Fetch teams for this trip
+  const teams = useLiveQuery(
+    async () => {
+      if (!currentTrip) return [];
+      return db.teams.where('tripId').equals(currentTrip.id).toArray();
+    },
+    [currentTrip?.id],
+    []
+  );
+
+  const teamA = teams.find(t => t.color === 'usa');
+  const teamB = teams.find(t => t.color === 'europe');
 
   useEffect(() => {
     if (!currentTrip) {
@@ -57,6 +75,11 @@ export default function CaptainSettingsPage() {
     }
   }, [currentTrip]);
 
+  useEffect(() => {
+    if (teamA) setTeamAName(teamA.name);
+    if (teamB) setTeamBName(teamB.name);
+  }, [teamA, teamB]);
+
   const handleSave = async () => {
     if (!currentTrip) return;
 
@@ -66,6 +89,14 @@ export default function CaptainSettingsPage() {
       endDate,
       location,
     });
+
+    // Update team names if changed
+    if (teamA && teamAName !== teamA.name) {
+      await db.teams.update(teamA.id, { name: teamAName, updatedAt: new Date().toISOString() });
+    }
+    if (teamB && teamBName !== teamB.name) {
+      await db.teams.update(teamB.id, { name: teamBName, updatedAt: new Date().toISOString() });
+    }
 
     showToast('success', 'Trip settings saved');
   };
@@ -182,6 +213,49 @@ export default function CaptainSettingsPage() {
                 />
               </div>
             </div>
+          </div>
+        </section>
+
+        <hr className="divider" />
+
+        {/* Team Names */}
+        <section className="section">
+          <h2 className="type-overline" style={{ marginBottom: 'var(--space-4)' }}>Team Names</h2>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="type-meta" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                  <Palette size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle', color: 'var(--team-usa)' }} />
+                  Team A
+                </label>
+                <input
+                  type="text"
+                  value={teamAName}
+                  onChange={(e) => setTeamAName(e.target.value)}
+                  className="input"
+                  placeholder="e.g., Team USA"
+                  style={{ borderColor: 'var(--team-usa)' }}
+                />
+              </div>
+              <div>
+                <label className="type-meta" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                  <Palette size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle', color: 'var(--team-europe)' }} />
+                  Team B
+                </label>
+                <input
+                  type="text"
+                  value={teamBName}
+                  onChange={(e) => setTeamBName(e.target.value)}
+                  className="input"
+                  placeholder="e.g., Team Europe"
+                  style={{ borderColor: 'var(--team-europe)' }}
+                />
+              </div>
+            </div>
+            <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>
+              Customize your team names. Changes will appear throughout the app.
+            </p>
           </div>
         </section>
 

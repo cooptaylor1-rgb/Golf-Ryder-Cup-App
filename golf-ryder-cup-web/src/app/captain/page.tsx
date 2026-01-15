@@ -29,6 +29,7 @@ import {
   Car,
   Phone,
   Sliders,
+  DollarSign,
 } from 'lucide-react';
 
 /**
@@ -63,6 +64,14 @@ const QUICK_ACTIONS: QuickAction[] = [
     icon: Sliders,
     href: '/captain/manage',
     color: '#ef4444',
+  },
+  {
+    id: 'bets',
+    label: 'Side Bets',
+    description: 'Create & manage bets',
+    icon: DollarSign,
+    href: '/captain/bets',
+    color: '#10b981',
   },
   {
     id: 'lineup',
