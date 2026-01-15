@@ -577,22 +577,35 @@ interface PlayerEditorProps {
 }
 
 function PlayerEditor({ player, isEditing, onEdit, onSave, onCancel }: PlayerEditorProps) {
-    const [handicap, setHandicap] = useState(player.handicap || 0);
-    const [name, setName] = useState(player.name);
+    const [handicap, setHandicap] = useState(player.handicapIndex || 0);
+    const [firstName, setFirstName] = useState(player.firstName);
+    const [lastName, setLastName] = useState(player.lastName);
 
     if (isEditing) {
         return (
             <div className="card" style={{ padding: 'var(--space-3)', background: 'var(--canvas-raised)', border: '2px solid var(--masters)' }}>
                 <div className="space-y-3">
-                    <div>
-                        <label className="type-micro" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="input"
-                            style={{ width: '100%' }}
-                        />
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                        <div style={{ flex: 1 }}>
+                            <label className="type-micro" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>First Name</label>
+                            <input
+                                type="text"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                className="input"
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <label className="type-micro" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>Last Name</label>
+                            <input
+                                type="text"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                className="input"
+                                style={{ width: '100%' }}
+                            />
+                        </div>
                     </div>
                     <div>
                         <label className="type-micro" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>Handicap Index</label>
@@ -623,7 +636,7 @@ function PlayerEditor({ player, isEditing, onEdit, onSave, onCancel }: PlayerEdi
                             Cancel
                         </button>
                         <button
-                            onClick={() => onSave({ name, handicap })}
+                            onClick={() => onSave({ firstName, lastName, handicapIndex: handicap })}
                             className="btn-premium press-scale"
                             style={{ padding: 'var(--space-2) var(--space-3)', display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}
                         >
@@ -644,9 +657,9 @@ function PlayerEditor({ player, isEditing, onEdit, onSave, onCancel }: PlayerEdi
         >
             <UserCheck size={18} style={{ color: 'var(--masters)' }} />
             <div style={{ flex: 1 }}>
-                <p style={{ fontWeight: 500 }}>{player.name}</p>
+                <p style={{ fontWeight: 500 }}>{player.firstName} {player.lastName}</p>
                 <p className="type-meta">
-                    Handicap: {player.handicap !== undefined && player.handicap !== null ? player.handicap : 'Not set'}
+                    Handicap: {player.handicapIndex !== undefined && player.handicapIndex !== null ? player.handicapIndex : 'Not set'}
                 </p>
             </div>
             <Edit3 size={16} style={{ color: 'var(--ink-tertiary)' }} />
