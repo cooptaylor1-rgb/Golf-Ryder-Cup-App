@@ -168,7 +168,8 @@ function CellInput({
                 background: hasError ? undefined : isDirty ? undefined : 'var(--surface)',
                 border: `1px solid ${isFocused ? teamColor : 'var(--rule)'}`,
                 color: 'var(--ink)',
-                ringColor: teamColor,
+                // Use CSS custom property for ring color
+                ['--tw-ring-color' as string]: teamColor,
             }}
         />
     );
