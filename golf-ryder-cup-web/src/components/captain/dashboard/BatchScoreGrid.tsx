@@ -501,7 +501,7 @@ export function BatchScoreGrid({
             return;
         }
 
-        haptic.heavy();
+        haptic.impact();
         setIsSaving(true);
 
         try {
