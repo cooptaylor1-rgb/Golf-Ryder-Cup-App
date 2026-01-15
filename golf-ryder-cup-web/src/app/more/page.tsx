@@ -25,6 +25,9 @@ import {
     User,
     LogIn,
     CalendarDays,
+    Sun,
+    Moon,
+    SunDim,
 } from 'lucide-react';
 
 /**
@@ -44,6 +47,8 @@ export default function MorePage() {
         scoringPreferences,
         updateScoringPreference,
         showToast,
+        theme,
+        setTheme,
     } = useUIStore();
 
     const [showCaptainModal, setShowCaptainModal] = useState(false);
@@ -226,6 +231,63 @@ export default function MorePage() {
                             <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
                         </Link>
                     )}
+                </section>
+
+                <hr className="divider" />
+
+                {/* Display / Theme */}
+                <section className="section">
+                    <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>Display</h2>
+                    <p className="type-meta" style={{ marginBottom: 'var(--space-3)' }}>
+                        Choose a theme optimized for your environment
+                    </p>
+                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                        <button
+                            onClick={() => setTheme('outdoor')}
+                            className="card-premium press-scale"
+                            style={{
+                                flex: 1,
+                                padding: 'var(--space-4)',
+                                textAlign: 'center',
+                                border: theme === 'outdoor' ? '2px solid var(--masters)' : '1px solid var(--rule)',
+                                background: theme === 'outdoor' ? 'var(--masters-subtle)' : 'var(--surface-card)',
+                            }}
+                        >
+                            <Sun size={24} style={{ margin: '0 auto var(--space-2)', color: theme === 'outdoor' ? 'var(--masters)' : 'var(--ink-secondary)' }} />
+                            <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Outdoor</p>
+                            <p className="type-micro" style={{ marginTop: '2px' }}>High contrast for sunlight</p>
+                        </button>
+                        <button
+                            onClick={() => setTheme('light')}
+                            className="card-premium press-scale"
+                            style={{
+                                flex: 1,
+                                padding: 'var(--space-4)',
+                                textAlign: 'center',
+                                border: theme === 'light' ? '2px solid var(--masters)' : '1px solid var(--rule)',
+                                background: theme === 'light' ? 'var(--masters-subtle)' : 'var(--surface-card)',
+                            }}
+                        >
+                            <SunDim size={24} style={{ margin: '0 auto var(--space-2)', color: theme === 'light' ? 'var(--masters)' : 'var(--ink-secondary)' }} />
+                            <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Indoor</p>
+                            <p className="type-micro" style={{ marginTop: '2px' }}>Warm, comfortable</p>
+                        </button>
+                        <button
+                            onClick={() => setTheme('dark')}
+                            className="card-premium press-scale"
+                            style={{
+                                flex: 1,
+                                padding: 'var(--space-4)',
+                                textAlign: 'center',
+                                border: theme === 'dark' ? '2px solid var(--masters)' : '1px solid var(--rule)',
+                                background: theme === 'dark' ? 'var(--masters-subtle)' : 'var(--surface-card)',
+                            }}
+                        >
+                            <Moon size={24} style={{ margin: '0 auto var(--space-2)', color: theme === 'dark' ? 'var(--masters)' : 'var(--ink-secondary)' }} />
+                            <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Dark</p>
+                            <p className="type-micro" style={{ marginTop: '2px' }}>Easy on the eyes</p>
+                        </button>
+                    </div>
                 </section>
 
                 <hr className="divider" />
