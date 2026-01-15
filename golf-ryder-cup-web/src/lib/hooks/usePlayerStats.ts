@@ -292,7 +292,8 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
     );
 
     // Fetch all matches for this player
-    const allMatches = useLiveQuery(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allMatches: any[] = useLiveQuery(
         async () => {
             if (!playerId) return [];
             // Would query matches where player participated
@@ -306,7 +307,7 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
         },
         [playerId],
         []
-    );
+    ) ?? [];
 
     // Filter for trip-specific matches if tripId provided
     const tripMatches = useMemo(() => {
@@ -597,7 +598,8 @@ export function useTripLeaderboard(tripId: string) {
  * Hook for comparing two players head-to-head
  */
 export function useHeadToHead(player1Id: string, player2Id: string) {
-    const matches = useLiveQuery(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const matches: any[] = useLiveQuery(
         async () => {
             if (!player1Id || !player2Id) return [];
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -613,7 +615,7 @@ export function useHeadToHead(player1Id: string, player2Id: string) {
         },
         [player1Id, player2Id],
         []
-    );
+    ) ?? [];
 
     const record = useMemo(() => {
         if (!matches) return { player1Wins: 0, player2Wins: 0, halved: 0 };
