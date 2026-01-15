@@ -179,7 +179,7 @@ export function QuickScoreFABv2({
     // Handle navigate to full scoring
     const handleNavigateToScoring = useCallback(() => {
         if (!activeMatchData) return;
-        haptic.navigation();
+        haptic.navigate();
         router.push(`/score/${activeMatchData.match.id}`);
         setIsExpanded(false);
     }, [activeMatchData, router, haptic]);
