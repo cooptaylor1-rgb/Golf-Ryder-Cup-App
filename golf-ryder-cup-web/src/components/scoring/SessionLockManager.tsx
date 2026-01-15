@@ -25,7 +25,7 @@ export function SessionLockManager({
     onLockChange,
     className = ''
 }: SessionLockManagerProps) {
-    const { activeTrip } = useTripStore();
+    const { currentTrip } = useTripStore();
     const [showLockModal, setShowLockModal] = useState(false);
     const [showUnlockModal, setShowUnlockModal] = useState(false);
     const [pinInput, setPinInput] = useState('');
@@ -33,7 +33,7 @@ export function SessionLockManager({
     const [isProcessing, setIsProcessing] = useState(false);
 
     const isLocked = session.isLocked ?? false;
-    const captainPin = activeTrip?.captainPin || '1234';
+    const captainPin = currentTrip?.captainPin || '1234';
 
     const handleLockSession = async () => {
         setIsProcessing(true);
