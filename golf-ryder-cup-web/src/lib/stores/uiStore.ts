@@ -14,6 +14,7 @@ import { DEFAULT_SCORING_PREFERENCES } from '@/lib/types/scoringPreferences';
 // ============================================
 
 type Tab = 'score' | 'matchups' | 'standings' | 'more';
+type Theme = 'light' | 'dark' | 'outdoor';
 
 interface Toast {
     id: string;
@@ -33,7 +34,9 @@ interface UIState {
     setActiveTab: (tab: Tab) => void;
 
     // Theme
+    theme: Theme;
     isDarkMode: boolean;
+    setTheme: (theme: Theme) => void;
     toggleDarkMode: () => void;
 
     // Captain Mode
@@ -84,16 +87,28 @@ export const useUIStore = create<UIState>()(
             activeTab: 'score',
             setActiveTab: (tab) => set({ activeTab: tab }),
 
-            // Theme (default to dark for outdoor visibility)
-            isDarkMode: true,
-            toggleDarkMode: () => {
-                const newMode = !get().isDarkMode;
-                set({ isDarkMode: newMode });
+            // Theme (default to outdoor for better visibility on the course)
+            theme: 'outdoor' as Theme,
+            isDarkMode: false,
 
-                // Update document class for Tailwind dark mode
+            setTheme: (theme: Theme) => {
+                set({ theme, isDarkMode: theme === 'dark' });
+
+                // Update document classes
                 if (typeof document !== 'undefined') {
-                    document.documentElement.classList.toggle('dark', newMode);
+                    document.documentElement.classList.remove('dark', 'outdoor');
+                    if (theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else if (theme === 'outdoor') {
+                        document.documentElement.classList.add('outdoor');
+                    }
                 }
+            },
+
+            toggleDarkMode: () => {
+                const currentTheme = get().theme;
+                const newTheme = currentTheme === 'dark' ? 'outdoor' : 'dark';
+                get().setTheme(newTheme);
             },
 
             // Captain Mode
@@ -216,6 +231,7 @@ export const useUIStore = create<UIState>()(
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
                 // Persist these settings
+                theme: state.theme,
                 isDarkMode: state.isDarkMode,
                 isCaptainMode: state.isCaptainMode,
                 captainPin: state.captainPin,

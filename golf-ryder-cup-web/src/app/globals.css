@@ -2075,6 +2075,88 @@ a,
   }
 }
 
+/* ============================================
+   OUTDOOR / HIGH-CONTRAST LIGHT MODE
+
+   Optimized for outdoor use in direct sunlight.
+   Maximum contrast, brighter surfaces, bold colors.
+   ============================================ */
+.outdoor {
+  /* ---- CANVAS (Outdoor) ----
+     Pure white backgrounds for maximum brightness */
+  --canvas: #FFFFFF;
+  --canvas-raised: #FFFFFF;
+  --canvas-sunken: #F5F5F5;
+  --canvas-warm: #FFFFFF;
+
+  /* ---- INK (Outdoor) ----
+     Maximum contrast text */
+  --ink: #000000;
+  --ink-secondary: #333333;
+  --ink-tertiary: #666666;
+  --ink-faint: #999999;
+
+  /* ---- RULE (Outdoor) ----
+     More visible dividers */
+  --rule: #CCCCCC;
+  --rule-strong: #999999;
+  --rule-faint: #E5E5E5;
+
+  /* ---- BRAND (Outdoor) ----
+     Deeper green for sunlight visibility */
+  --masters: #004D33;
+  --masters-hover: #006644;
+  --masters-deep: #003D29;
+
+  /* ---- SURFACE ---- */
+  --surface: #FFFFFF;
+  --surface-base: #F8F8F8;
+  --surface-elevated: #FFFFFF;
+  --surface-muted: #F0F0F0;
+  --surface-card: #FFFFFF;
+  --surface-highlight: #F5F5F5;
+
+  /* ---- SHADOWS (Outdoor) ----
+     Stronger shadows for depth in bright light */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 3px 10px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.18), 0 3px 8px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-glow-green: 0 0 12px rgba(0, 77, 51, 0.25);
+
+  /* ---- Premium colors (Outdoor) ---- */
+  --premium-gold: #B8860B;
+  --premium-gold-glow: rgba(184, 134, 11, 0.3);
+
+  color-scheme: light;
+}
+
+.outdoor .header-premium {
+  background: rgba(255, 255, 255, 0.98);
+  border-bottom: 2px solid rgba(0, 77, 51, 0.15);
+  backdrop-filter: blur(8px);
+}
+
+.outdoor .nav-premium {
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 2px solid rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+}
+
+.outdoor .card-premium {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.outdoor .btn-premium {
+  font-weight: 600;
+}
+
+.outdoor .texture-grain::before {
+  opacity: 0.02;
+}
+
 /* Dark theme support */
 @media (prefers-color-scheme: dark) {
   :root {

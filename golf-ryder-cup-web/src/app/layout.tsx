@@ -9,6 +9,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { QuickScoreFAB } from '@/components/QuickScoreFAB';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import { TripRehydrationProvider } from '@/components/TripRehydrationProvider';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
   title: 'Ryder Cup Tracker',
@@ -42,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="outdoor">
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
@@ -57,21 +58,23 @@ export default function RootLayout({
           Skip to main content
         </a>
         <PWAProvider>
-          <ErrorBoundary variant="fullscreen" showDetails={process.env.NODE_ENV === 'development'}>
-            <TripRehydrationProvider>
-              <NotificationProvider>
-                <AppOnboardingProvider>
-                  <main id="main-content">
-                    {children}
-                  </main>
-                </AppOnboardingProvider>
-              </NotificationProvider>
-            </TripRehydrationProvider>
-          </ErrorBoundary>
-          <QuickScoreFAB />
-          <OfflineIndicator />
-          <ToastContainer />
-          <PWABanners />
+          <ThemeProvider>
+            <ErrorBoundary variant="fullscreen" showDetails={process.env.NODE_ENV === 'development'}>
+              <TripRehydrationProvider>
+                <NotificationProvider>
+                  <AppOnboardingProvider>
+                    <main id="main-content">
+                      {children}
+                    </main>
+                  </AppOnboardingProvider>
+                </NotificationProvider>
+              </TripRehydrationProvider>
+            </ErrorBoundary>
+            <QuickScoreFAB />
+            <OfflineIndicator />
+            <ToastContainer />
+            <PWABanners />
+          </ThemeProvider>
         </PWAProvider>
       </body>
     </html>
