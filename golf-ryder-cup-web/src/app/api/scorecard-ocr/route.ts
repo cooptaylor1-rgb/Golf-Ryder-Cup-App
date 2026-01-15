@@ -18,12 +18,21 @@ interface HoleData {
   yardage: number | null;
 }
 
+interface TeeSetData {
+  name: string;
+  color?: string;
+  rating?: number;
+  slope?: number;
+  yardages: (number | null)[];
+}
+
 interface ScorecardData {
   courseName?: string;
   teeName?: string;
   rating?: number;
   slope?: number;
   holes: HoleData[];
+  teeSets?: TeeSetData[];
 }
 
 interface RequestBody {
@@ -65,7 +74,7 @@ export async function POST(request: NextRequest) {
     // Prepare the image URL for OpenAI
     const imageUrl = `data:${body.mimeType};base64,${body.image}`;
 
-    // Call OpenAI Vision API
+    // Call OpenAI Vision API with improved prompt
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -77,35 +86,60 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: `You are a golf scorecard analyzer. Extract course information from scorecard images.
+            content: `You are an expert golf scorecard data extractor. Your job is to carefully analyze scorecard images and extract ALL available data.
 
-Always respond with valid JSON in exactly this format:
+IMPORTANT: Golf scorecards typically show:
+- FRONT 9 (holes 1-9) and BACK 9 (holes 10-18) - you MUST extract ALL 18 holes
+- Multiple tee sets (rows) with different colors/names (e.g., Black, Blue, White, Gold, Red)
+- Each tee set has its own yardage for each hole
+- Par values for each hole (usually in a dedicated "Par" row)
+- Handicap/HCP values for each hole (usually in a "Handicap" or "HCP" row, numbered 1-18)
+- Course rating and slope for each tee set
+
+Look carefully at the ENTIRE scorecard. Many scorecards split into Front 9 and Back 9 sections.
+
+Respond with valid JSON in this exact format:
 {
-  "courseName": "string or null",
-  "teeName": "string or null (e.g., 'Blue', 'Championship', 'White')",
-  "rating": "number or null",
-  "slope": "number or null",
+  "courseName": "string or null - the golf course name",
   "holes": [
     { "par": number, "handicap": number, "yardage": number or null },
-    ... (18 holes total)
+    ... (MUST have exactly 18 holes, holes 1-18 in order)
+  ],
+  "teeSets": [
+    {
+      "name": "string - tee name (e.g., 'Blue', 'Championship', 'Men's')",
+      "color": "string or null - color if mentioned",
+      "rating": number or null,
+      "slope": number or null,
+      "yardages": [number or null, ... ] (18 yardages, one per hole)
+    },
+    ... (include ALL tee sets visible on the scorecard)
   ]
 }
 
-Rules:
-- Par values must be 3, 4, or 5
-- Handicap values must be 1-18, each appearing exactly once
-- Yardage can be null if not visible
-- If you can't read a value, use reasonable defaults (par 4, sequential handicaps)
-- Always return exactly 18 holes
-- Extract the tee name/color if visible (e.g., "Blue Tees", "Championship", "Men's")
-- Extract course rating and slope if visible`,
+CRITICAL RULES:
+1. ALWAYS return exactly 18 holes - look for both Front 9 AND Back 9 sections
+2. Par values must be 3, 4, or 5
+3. Handicap values should be 1-18, each used once (handicap indicates hole difficulty)
+4. Extract ALL tee sets shown (there are usually 3-6 different tees)
+5. If you can only see 9 holes, the scorecard likely continues - look for "Out" (front 9 total) and "In" (back 9 total) sections
+6. Yardages vary by tee set - longer tees (Black/Blue) have higher yardages than shorter tees (Red/Gold)
+7. If a value is unclear, make a reasonable estimate rather than omitting it`,
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: 'Please analyze this golf scorecard image and extract all hole data (par, handicap, yardage for each hole), course name, tee name, rating, and slope. Return the data as JSON.',
+                text: `Carefully analyze this golf scorecard image. Extract:
+1. Course name
+2. ALL 18 holes with par and handicap for each hole
+3. ALL tee sets visible (look for rows with different colors/names like Black, Blue, White, Gold, Red, etc.)
+4. Yardages for each hole from each tee set
+5. Rating and slope for each tee set if shown
+
+Remember: Most scorecards show Front 9 (holes 1-9) and Back 9 (holes 10-18) - make sure to get ALL 18 holes.
+Return complete JSON data.`,
               },
               {
                 type: 'image_url',
@@ -117,27 +151,7 @@ Rules:
             ],
           },
         ],
-        max_tokens: 2000,
-        temperature: 0.1,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
-      return NextResponse.json(
-        { error: 'Failed to analyze scorecard', details: error },
-        { status: 500 }
-      );
-    }
-
-    const result = await response.json();
-    const content = result.choices?.[0]?.message?.content;
-
-    if (!content) {
-      return NextResponse.json(
-        { error: 'No response from AI' },
-        { status: 500 }
+        max_tokens: 4000,
       );
     }
 
@@ -162,6 +176,7 @@ Rules:
     return NextResponse.json({
       success: true,
       data: cleanedData,
+      teeSets: cleanedData.teeSets, // Include all tee sets in response
     });
   } catch (error) {
     console.error('Scorecard OCR error:', error);
@@ -198,8 +213,11 @@ function validateAndCleanData(data: ScorecardData): ScorecardData {
     }
     usedHandicaps.add(handicap);
 
-    // Validate yardage
+    // Get yardage from first tee set if available, otherwise from hole data
     let yardage = hole?.yardage ?? null;
+    if (yardage === null && data.teeSets?.[0]?.yardages?.[i]) {
+      yardage = data.teeSets[0].yardages[i];
+    }
     if (yardage !== null && (yardage < 50 || yardage > 700)) {
       yardage = null;
     }
@@ -207,12 +225,42 @@ function validateAndCleanData(data: ScorecardData): ScorecardData {
     holes.push({ par, handicap, yardage });
   }
 
+  // Clean up tee sets
+  const teeSets: TeeSetData[] = [];
+  if (data.teeSets && data.teeSets.length > 0) {
+    for (const teeSet of data.teeSets) {
+      if (!teeSet.name) continue;
+
+      // Ensure 18 yardages
+      const yardages: (number | null)[] = [];
+      for (let i = 0; i < 18; i++) {
+        let yardage = teeSet.yardages?.[i] ?? null;
+        if (yardage !== null && (yardage < 50 || yardage > 700)) {
+          yardage = null;
+        }
+        yardages.push(yardage);
+      }
+
+      teeSets.push({
+        name: teeSet.name,
+        color: teeSet.color || undefined,
+        rating: teeSet.rating && teeSet.rating > 60 && teeSet.rating < 80 ? teeSet.rating : undefined,
+        slope: teeSet.slope && teeSet.slope > 55 && teeSet.slope < 155 ? teeSet.slope : undefined,
+        yardages,
+      });
+    }
+  }
+
+  // Get primary tee info from first tee set if not directly provided
+  const primaryTee = teeSets[0];
+
   return {
     courseName: data.courseName || undefined,
-    teeName: data.teeName || undefined,
-    rating: data.rating && data.rating > 60 && data.rating < 80 ? data.rating : undefined,
-    slope: data.slope && data.slope > 55 && data.slope < 155 ? data.slope : undefined,
+    teeName: data.teeName || primaryTee?.name || undefined,
+    rating: data.rating || primaryTee?.rating || undefined,
+    slope: data.slope || primaryTee?.slope || undefined,
     holes,
+    teeSets: teeSets.length > 0 ? teeSets : undefined,
   };
 }
 
@@ -241,6 +289,36 @@ function getMockScorecardData(): ScorecardData {
       { par: 3, handicap: 18, yardage: 148 },
       { par: 4, handicap: 14, yardage: 368 },
       { par: 5, handicap: 6, yardage: 518 },
+    ],
+    teeSets: [
+      {
+        name: 'Black',
+        color: '#000000',
+        rating: 74.2,
+        slope: 138,
+        yardages: [425, 402, 195, 588, 452, 485, 182, 418, 565, 442, 395, 205, 595, 435, 472, 168, 408, 558],
+      },
+      {
+        name: 'Blue',
+        color: '#1E40AF',
+        rating: 72.4,
+        slope: 128,
+        yardages: [385, 362, 175, 548, 412, 445, 162, 378, 525, 402, 355, 185, 555, 395, 432, 148, 368, 518],
+      },
+      {
+        name: 'White',
+        color: '#FFFFFF',
+        rating: 70.1,
+        slope: 118,
+        yardages: [355, 332, 155, 518, 382, 415, 142, 348, 495, 372, 325, 165, 525, 365, 402, 128, 338, 488],
+      },
+      {
+        name: 'Gold',
+        color: '#CA8A04',
+        rating: 68.5,
+        slope: 112,
+        yardages: [325, 302, 135, 488, 352, 385, 122, 318, 465, 342, 295, 145, 495, 335, 372, 108, 308, 458],
+      },
     ],
   };
 }
