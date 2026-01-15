@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Search, MapPin, Flag, Trash2, Copy, ChevronRight, Globe } from 'lucide-react';
+import { ArrowLeft, Plus, Search, MapPin, Flag, Trash2, Copy, ChevronRight, Globe, Camera, Sparkles } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { deleteCourseProfile, createCourseProfile } from '@/lib/services/courseLibraryService';
 import { isGolfCourseAPIConfigured } from '@/lib/services/golfCourseAPIService';
 import { CourseSearch } from '@/components/CourseSearch';
+import { ScorecardUpload, type HoleData } from '@/components/course';
 import type { CourseProfile, TeeSetProfile } from '@/lib/types/courseProfile';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/lib/stores';
@@ -129,6 +130,7 @@ export default function CourseLibraryPage() {
     const { showToast } = useUIStore();
     const [searchQuery, setSearchQuery] = useState('');
     const [showDatabaseSearch, setShowDatabaseSearch] = useState(false);
+    const [showScorecardUpload, setShowScorecardUpload] = useState(false);
 
     const apiConfigured = isGolfCourseAPIConfigured();
 
@@ -171,6 +173,43 @@ export default function CourseLibraryPage() {
             showToast('error', 'Could not delete course');
         }
     };
+
+    // Handle scorecard OCR data - creates a new course with the extracted tee set
+    const handleScorecardData = useCallback(async (data: {
+        courseName?: string;
+        teeName?: string;
+        rating?: number;
+        slope?: number;
+        holes: HoleData[];
+    }) => {
+        try {
+            const totalPar = data.holes.reduce((sum, h) => sum + h.par, 0);
+            const totalYardage = data.holes.reduce((sum, h) => sum + (h.yardage || 0), 0);
+
+            // Create course with the scanned tee set
+            await createCourseProfile(
+                {
+                    name: data.courseName || 'Scanned Course',
+                    location: '',
+                },
+                [{
+                    name: data.teeName || 'Scanned Tees',
+                    color: '#2563eb',
+                    rating: data.rating || 72,
+                    slope: data.slope || 113,
+                    par: totalPar,
+                    holePars: data.holes.map(h => h.par),
+                    holeHandicaps: data.holes.map(h => h.handicap),
+                    totalYardage: totalYardage > 0 ? totalYardage : undefined,
+                }]
+            );
+
+            showToast('success', `Course "${data.courseName || 'Scanned Course'}" created from scorecard!`);
+            setShowScorecardUpload(false);
+        } catch {
+            showToast('error', 'Could not create course from scorecard');
+        }
+    }, [showToast]);
 
     const handleImportFromDatabase = async (courseData: {
         name: string;
@@ -283,6 +322,30 @@ export default function CourseLibraryPage() {
                 </div>
 
                 {/* Quick Actions */}
+                {/* Featured: Scan Scorecard with AI */}
+                <button
+                    onClick={() => setShowScorecardUpload(true)}
+                    className="w-full p-4 bg-gradient-to-r from-masters-green to-masters-green/80 rounded-xl text-left transition-all hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                            <Camera className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <span className="font-semibold text-white text-lg">Scan Scorecard</span>
+                                <span className="flex items-center gap-1 px-2 py-0.5 bg-white/20 rounded-full text-xs text-white/90">
+                                    <Sparkles className="w-3 h-3" />
+                                    AI
+                                </span>
+                            </div>
+                            <div className="text-sm text-white/80 mt-1">
+                                Take a photo of any scorecard to auto-fill course data
+                            </div>
+                        </div>
+                    </div>
+                </button>
+
                 <div className="grid grid-cols-2 gap-3">
                     <button
                         onClick={() => setShowDatabaseSearch(true)}
@@ -308,6 +371,14 @@ export default function CourseLibraryPage() {
                         <div className="text-xs text-text-secondary mt-1">Enter course details</div>
                     </Link>
                 </div>
+
+                {/* Scorecard Upload Modal */}
+                {showScorecardUpload && (
+                    <ScorecardUpload
+                        onDataExtracted={handleScorecardData}
+                        onClose={() => setShowScorecardUpload(false)}
+                    />
+                )}
 
                 {/* Course List */}
                 {filteredCourses.length > 0 ? (
