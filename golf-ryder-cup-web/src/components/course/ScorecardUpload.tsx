@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { Upload, FileImage, Loader2, Check, AlertCircle, X, Camera, FileText } from 'lucide-react';
+import { Upload, FileImage, Loader2, Check, AlertCircle, X, Camera } from 'lucide-react';
 import type { HoleData } from './HoleDataEditor';
 
 /**
@@ -37,11 +37,19 @@ export function ScorecardUpload({ onDataExtracted, onClose }: ScorecardUploadPro
     setStatus('uploading');
     setError(null);
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
+    // Validate file type - now images only (PDF not supported by AI vision)
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+
+    // Check if PDF and show helpful message
+    if (file.type === 'application/pdf') {
+      setStatus('error');
+      setError('PDF files are not supported. Please take a photo of your scorecard or screenshot the PDF first.');
+      return;
+    }
+
     if (!validTypes.includes(file.type)) {
       setStatus('error');
-      setError('Please upload an image (JPEG, PNG) or PDF file');
+      setError('Please upload an image (JPEG, PNG, HEIC, or WebP)');
       return;
     }
 
@@ -170,7 +178,7 @@ export function ScorecardUpload({ onDataExtracted, onClose }: ScorecardUploadPro
             <div>
               <h3 className="type-title-sm">Scan Scorecard</h3>
               <p className="type-caption" style={{ color: 'var(--ink-tertiary)' }}>
-                Upload a photo or PDF
+                Upload a photo
               </p>
             </div>
           </div>
@@ -196,24 +204,20 @@ export function ScorecardUpload({ onDataExtracted, onClose }: ScorecardUploadPro
                 style={{ borderColor: 'var(--rule)', background: 'var(--surface-elevated)' }}
               >
                 <Upload size={48} className="mx-auto mb-4" style={{ color: 'var(--ink-tertiary)' }} />
-                <p className="type-body font-medium mb-2">Drop scorecard here</p>
+                <p className="type-body font-medium mb-2">Drop scorecard image here</p>
                 <p className="type-caption mb-4" style={{ color: 'var(--ink-tertiary)' }}>
                   or click to browse
                 </p>
                 <div className="flex items-center justify-center gap-4 text-xs" style={{ color: 'var(--ink-muted)' }}>
                   <span className="flex items-center gap-1">
                     <FileImage size={14} />
-                    JPEG, PNG
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <FileText size={14} />
-                    PDF
+                    JPEG, PNG, HEIC
                   </span>
                 </div>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  accept="image/jpeg,image/png,image/webp,image/heic"
                   onChange={handleFileSelect}
                   className="hidden"
                 />

@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
  * AI vision to extract hole data (par, handicap, yardage).
  *
  * Uses OpenAI's GPT-4 Vision API to analyze the scorecard.
+ *
+ * Note: PDF files are not directly supported by OpenAI Vision.
+ * For PDFs, users should convert to image or use image capture.
  */
 
 interface HoleData {
@@ -25,7 +28,7 @@ interface ScorecardData {
 
 interface RequestBody {
   image: string; // Base64 encoded image data
-  mimeType: string; // image/jpeg, image/png, application/pdf
+  mimeType: string; // image/jpeg, image/png, etc.
 }
 
 export async function POST(request: NextRequest) {
@@ -34,6 +37,17 @@ export async function POST(request: NextRequest) {
 
     if (!body.image) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
+    }
+
+    // Check if PDF - OpenAI Vision doesn't support PDFs directly
+    if (body.mimeType === 'application/pdf') {
+      return NextResponse.json(
+        {
+          error: 'PDF files are not supported directly. Please take a photo of your scorecard or convert the PDF to an image first.',
+          suggestion: 'Try using your phone camera to capture the scorecard, or screenshot the PDF.'
+        },
+        { status: 400 }
+      );
     }
 
     // Check for OpenAI API key
