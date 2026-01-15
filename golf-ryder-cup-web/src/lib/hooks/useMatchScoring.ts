@@ -464,10 +464,21 @@ export function useMatchScoring({
         setError(null);
 
         try {
+            // Convert matchResult to MatchResultType
+            let result: 'teamAWin' | 'teamBWin' | 'halved' | 'notFinished' = 'notFinished';
+            if (matchStatus.matchResult?.winner === 'team1') {
+                result = 'teamAWin';
+            } else if (matchStatus.matchResult?.winner === 'team2') {
+                result = 'teamBWin';
+            } else if (matchStatus.matchResult?.winner === 'halved') {
+                result = 'halved';
+            }
+
             await db.matches.update(matchId, {
                 status: 'completed',
-                result: matchStatus.matchResult?.result,
-                winnerId: matchStatus.matchResult?.winner,
+                result,
+                margin: matchStatus.leadAmount,
+                holesRemaining: matchStatus.holesRemaining,
                 updatedAt: new Date().toISOString(),
             });
 
