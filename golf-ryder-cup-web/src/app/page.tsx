@@ -516,9 +516,6 @@ export default function HomePage() {
                     gap: 'var(--space-4)',
                     border: 'none',
                     cursor: 'pointer',
-                    background: 'var(--surface-card)',
-                    borderRadius: 'var(--radius-xl)',
-                    boxShadow: 'var(--shadow-card)',
                     transition: 'all 0.2s ease',
                   }}
                 >
