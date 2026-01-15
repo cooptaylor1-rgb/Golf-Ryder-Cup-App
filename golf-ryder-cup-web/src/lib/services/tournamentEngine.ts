@@ -506,6 +506,121 @@ export function getSessionConfig(sessionType: SessionType): {
 }
 
 /**
+ * Get extended match configuration for any format.
+ * Uses the comprehensive FORMAT_CONFIGS from matchFormats.ts
+ *
+ * @param format - Match format type (from MatchFormat type)
+ * @param totalPlayers - Total players available (optional, for match count calculation)
+ * @returns Configuration for the format
+ */
+export function getExtendedFormatConfig(format: string, totalPlayers?: number): {
+    playersPerTeam: number;
+    matchCount: number;
+    pointsPerMatch: number;
+    description: string;
+    category: string;
+    scoringType: string;
+} {
+    // Import dynamically to avoid circular deps
+    const { FORMAT_CONFIGS } = require('../types/matchFormats');
+    const config = FORMAT_CONFIGS[format];
+
+    if (!config) {
+        // Fallback to legacy session type config
+        if (format === 'fourball' || format === 'foursomes' || format === 'singles') {
+            const legacyConfig = getSessionConfig(format as SessionType);
+            return {
+                ...legacyConfig,
+                category: 'matchPlay',
+                scoringType: 'matchPlay',
+            };
+        }
+        // Default fallback
+        return {
+            playersPerTeam: 2,
+            matchCount: 4,
+            pointsPerMatch: 1,
+            description: 'Custom format',
+            category: 'custom',
+            scoringType: 'hybrid',
+        };
+    }
+
+    // Calculate players per team
+    const playersPerTeam = typeof config.playersPerTeam === 'number'
+        ? config.playersPerTeam
+        : config.playersPerTeam[0]; // Use minimum
+
+    // Calculate match count based on available players
+    let matchCount = 4; // Default
+    if (totalPlayers) {
+        if (config.teamsRequired === 2) {
+            // vs format - calculate based on team size
+            matchCount = Math.floor((totalPlayers / 2) / playersPerTeam);
+        } else {
+            // Individual/team format - calculate groups
+            matchCount = Math.floor(totalPlayers / playersPerTeam);
+        }
+    }
+
+    return {
+        playersPerTeam,
+        matchCount: Math.max(1, Math.min(matchCount, 12)),
+        pointsPerMatch: 1,
+        description: config.description,
+        category: config.category,
+        scoringType: config.scoringType,
+    };
+}
+
+/**
+ * Calculate team handicap for any format using the format's handicap method.
+ *
+ * @param handicaps - Array of player handicaps
+ * @param format - Match format string
+ * @returns Calculated team handicap
+ */
+export function calculateFormatHandicap(handicaps: number[], format: string): number {
+    const { FORMAT_CONFIGS } = require('../types/matchFormats');
+    const config = FORMAT_CONFIGS[format];
+
+    if (!config || handicaps.length === 0) return 0;
+
+    switch (config.handicapMethod) {
+        case 'none':
+            return 0;
+
+        case 'full':
+            return Math.round(Math.min(...handicaps));
+
+        case 'low-ball':
+            return 0; // Strokes calculated relative to low handicapper
+
+        case 'percentage':
+            if (handicaps.length === 2) {
+                const sorted = [...handicaps].sort((a, b) => a - b);
+                return Math.round(sorted[0] * 0.6 + sorted[1] * 0.4);
+            }
+            return Math.round(handicaps.reduce((a, b) => a + b, 0) * 0.35);
+
+        case 'combined': {
+            const total = handicaps.reduce((a, b) => a + b, 0);
+            const percentages: Record<number, number> = { 2: 0.35, 3: 0.25, 4: 0.10 };
+            return Math.round(total * (percentages[handicaps.length] || 0.25));
+        }
+
+        case 'average':
+            return Math.round(
+                (handicaps.reduce((a, b) => a + b, 0) / handicaps.length) * 0.5
+            );
+
+        case 'custom':
+        default:
+            return Math.round(handicaps.reduce((a, b) => a + b, 0) * 0.25);
+    }
+}
+
+/**
  * Validate lineup for a session.
  *
  * @param sessionType - Type of session
@@ -578,6 +693,8 @@ export const TournamentEngine = {
 
     // Session helpers
     getSessionConfig,
+    getExtendedFormatConfig,
+    calculateFormatHandicap,
     validateSessionLineup,
 };
 

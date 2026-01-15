@@ -1,8 +1,14 @@
 /**
  * Hole Indicator Component
  *
- * Visual indicator showing hole result (won, lost, halved).
+ * Premium visual indicator showing hole result (won, lost, halved).
  * Used in scorecard and match overview.
+ *
+ * Features:
+ * - Premium gradient backgrounds for team wins
+ * - Subtle shadows and glow effects
+ * - Smooth animations on state changes
+ * - Current hole pulsing indicator
  */
 
 'use client';
@@ -38,13 +44,25 @@ export function HoleIndicator({
     const getWinnerClasses = () => {
         switch (winner) {
             case 'teamA':
-                return 'bg-team-usa text-white';
+                return cn(
+                    'text-white shadow-md',
+                    'bg-gradient-to-br from-[var(--team-usa)] to-[var(--team-usa-deep)]',
+                    'shadow-[var(--team-usa-glow)]'
+                );
             case 'teamB':
-                return 'bg-team-europe text-white';
+                return cn(
+                    'text-white shadow-md',
+                    'bg-gradient-to-br from-[var(--team-europe)] to-[var(--team-europe-deep)]',
+                    'shadow-[var(--team-europe-glow)]'
+                );
             case 'halved':
-                return 'bg-surface-400 text-white dark:bg-surface-500';
+                return cn(
+                    'text-white',
+                    'bg-gradient-to-br from-[var(--color-accent)] to-[#A38B2D]',
+                    'shadow-[var(--shadow-glow-gold)]'
+                );
             default:
-                return 'bg-surface-100 text-surface-500 dark:bg-surface-800 dark:text-surface-400';
+                return 'bg-[var(--canvas-sunken)] text-[var(--ink-tertiary)] dark:bg-[var(--surface-muted)]';
         }
     };
 
@@ -57,14 +75,21 @@ export function HoleIndicator({
                 'hole-indicator',
                 'flex flex-col items-center justify-center',
                 'rounded-xl font-medium',
-                'transition-transform duration-150 ease-out',
+                'transition-all duration-200 ease-out',
                 sizeClasses[size],
                 getWinnerClasses(),
-                isCurrentHole && 'ring-2 ring-augusta-green ring-offset-2',
+                // Current hole premium styling
+                isCurrentHole && [
+                    'ring-2 ring-[var(--masters)] ring-offset-2 ring-offset-[var(--canvas)]',
+                    'scale-110',
+                    'animate-[currentHolePulse_2s_ease-in-out_infinite]',
+                ],
                 // Enhanced interaction feedback
                 onClick && 'cursor-pointer hover:scale-105 active:scale-95',
-                onClick && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2',
-                !onClick && 'cursor-default'
+                onClick && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2',
+                !onClick && 'cursor-default',
+                // Premium hover effect
+                winner !== 'none' && onClick && 'hover:shadow-lg'
             )}
             aria-label={`Hole ${holeNumber}${par ? `, Par ${par}` : ''}${winner !== 'none' ? `, ${winner === 'halved' ? 'Halved' : `Won by ${winner}`}` : ''
                 }`}

@@ -43,9 +43,58 @@ export type MatchResultType =
 export type HoleWinner = 'teamA' | 'teamB' | 'halved' | 'none';
 
 /**
- * Session type for Ryder Cup format
+ * Session type for Ryder Cup format (legacy - match play only)
  */
 export type SessionType = 'foursomes' | 'fourball' | 'singles';
+
+/**
+ * Extended session type supporting all match formats
+ * For full configuration details, see matchFormats.ts
+ */
+export type ExtendedSessionType =
+    | SessionType
+    // Match Play Formats
+    | 'greensomes'
+    | 'pinehurst'
+    | 'bloodsome'
+    | 'modified-alternate'
+    // Team Scramble Formats
+    | 'scramble-2'
+    | 'scramble-3'
+    | 'scramble-4'
+    | 'texas-scramble'
+    | 'florida-scramble'
+    | 'shamble'
+    // Points/Scoring Formats
+    | 'stableford'
+    | 'modified-stableford'
+    | 'stroke-play'
+    | 'medal'
+    | 'par-competition'
+    // Multi-Player Games
+    | 'better-ball-3'
+    | 'better-ball-4'
+    | 'worst-ball'
+    | 'aggregate'
+    // Betting/Side Games
+    | 'skins'
+    | 'nassau'
+    | 'wolf'
+    | 'vegas'
+    | 'bingo-bango-bongo'
+    | 'dots'
+    | 'rabbit'
+    | 'snake'
+    // Rotating/Hybrid Formats
+    | 'six-six-six'
+    | 'round-robin'
+    | 'cha-cha-cha'
+    | 'irish-fourball'
+    | 'waltz'
+    // Custom
+    | 'custom';
+
+// Note: ScoringMode is exported from scoringFormats.ts to avoid duplication
 
 /**
  * Team mode (Ryder Cup = 2 teams)

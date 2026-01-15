@@ -6,3 +6,4 @@ export * from './models';
 export * from './events';
 export * from './computed';
 export * from './scoringFormats';
+export * from './matchFormats';
