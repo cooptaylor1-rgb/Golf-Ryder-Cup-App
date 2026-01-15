@@ -513,7 +513,12 @@ export function AlertCenter({
             </div>
 
             {/* Summary Bar */}
-            <AlertSummaryBar {...counts} />
+            <AlertSummaryBar 
+                criticalCount={counts.critical}
+                highCount={counts.high}
+                mediumCount={counts.medium}
+                lowCount={counts.low}
+            />
 
             {/* Filter Tabs */}
             <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: 'var(--surface)' }}>
