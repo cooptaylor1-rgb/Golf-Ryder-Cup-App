@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, MapPin, Flag, Trash2, Copy, ChevronRight, Globe, Camera, Sparkles } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, Flag, Trash2, Copy, ChevronRight, Globe, Camera, Sparkles, Plus } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { deleteCourseProfile, createCourseProfile } from '@/lib/services/courseLibraryService';
