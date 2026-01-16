@@ -376,7 +376,7 @@ export default function ProfilePage() {
 
             {/* Fixed Save Button (when editing) */}
             {isEditing && (
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-surface-200 p-4 pb-safe-area-inset-bottom">
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-surface-200 p-4" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
                     <div className="max-w-md mx-auto flex gap-3">
                         <Button
                             variant="secondary"

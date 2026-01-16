@@ -460,7 +460,7 @@ export default function CreateProfilePage() {
             </main>
 
             {/* Fixed Bottom Actions */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-surface-200 p-4 pb-safe-area-inset-bottom">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-surface-200 p-4" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
                 <div className="max-w-md mx-auto">
                     {/* Skip option for steps 2 and 3 */}
                     {step > 1 && (
