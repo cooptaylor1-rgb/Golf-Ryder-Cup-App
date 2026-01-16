@@ -278,10 +278,13 @@ export default function SchedulePage() {
       </header>
 
       {/* Tab Selector */}
-      <div className="container-editorial py-4">
+      <div className="container-editorial py-4" role="tablist" aria-label="Schedule views">
         <div className="flex gap-2">
           <button
             onClick={() => setSelectedTab('my')}
+            role="tab"
+            aria-selected={selectedTab === 'my'}
+            aria-controls="schedule-content"
             className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${selectedTab === 'my' ? 'text-white' : ''
               }`}
             style={{
@@ -294,6 +297,9 @@ export default function SchedulePage() {
           </button>
           <button
             onClick={() => setSelectedTab('all')}
+            role="tab"
+            aria-selected={selectedTab === 'all'}
+            aria-controls="schedule-content"
             className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${selectedTab === 'all' ? 'text-white' : ''
               }`}
             style={{
@@ -308,9 +314,25 @@ export default function SchedulePage() {
       </div>
 
       {/* Main Content */}
-      <main className="container-editorial pb-8">
+      <main className="container-editorial pb-8" id="schedule-content" role="tabpanel">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <div
+                key={i}
+                className="animate-pulse rounded-xl p-4"
+                style={{ background: 'var(--surface-card)' }}
+              >
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-3"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* No Profile Warning */}
-        {selectedTab === 'my' && !currentUserPlayer && (
+        {!isLoading && selectedTab === 'my' && !currentUserPlayer && (
           <div
             className="p-4 rounded-xl mb-6 flex items-start gap-3"
             style={{
@@ -339,7 +361,7 @@ export default function SchedulePage() {
         )}
 
         {/* No Matches for User */}
-        {selectedTab === 'my' && currentUserPlayer && !hasUserSchedule && (
+        {!isLoading && selectedTab === 'my' && currentUserPlayer && !hasUserSchedule && (
           <div className="text-center py-12">
             <Calendar size={48} className="mx-auto mb-4 opacity-30" />
             <p className="type-title-sm">No tee times yet</p>
@@ -358,7 +380,7 @@ export default function SchedulePage() {
         )}
 
         {/* Schedule Days */}
-        {displaySchedule.map((day) => (
+        {!isLoading && displaySchedule.map((day) => (
           <div key={day.date} className="mb-8">
             {/* Day Header */}
             <div className="flex items-center gap-3 mb-4">
