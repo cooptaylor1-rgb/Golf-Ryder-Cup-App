@@ -287,7 +287,20 @@ function BetCard({ bet, icon, getPlayer }: BetCardProps) {
   const winner = bet.winnerId ? getPlayer(bet.winnerId) : null;
 
   return (
-    <div className="card" style={{ padding: 'var(--space-4)' }}>
+    <button
+      className="card press-scale"
+      style={{
+        padding: 'var(--space-4)',
+        width: '100%',
+        textAlign: 'left',
+        border: 'none',
+        cursor: 'pointer',
+      }}
+      onClick={() => {
+        // TODO: Navigate to bet detail page when implemented
+        console.log('Bet clicked:', bet.id);
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>
         {/* Icon */}
         <div
@@ -346,7 +359,7 @@ function BetCard({ bet, icon, getPlayer }: BetCardProps) {
 
         <ChevronRight size={20} style={{ color: 'var(--ink-tertiary)' }} />
       </div>
-    </div>
+    </button>
   );
 }
 

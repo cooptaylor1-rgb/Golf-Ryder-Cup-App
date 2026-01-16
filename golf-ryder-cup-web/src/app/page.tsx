@@ -169,22 +169,40 @@ export default function HomePage() {
     const tripId = crypto.randomUUID();
     const now = new Date().toISOString();
 
-    // Store team names in the notes field for now (can be extracted later)
-    const teamNotes = tripData.teamAName !== 'USA' || tripData.teamBName !== 'Europe'
-      ? `Teams: ${tripData.teamAName} vs ${tripData.teamBName}`
-      : undefined;
-
     await db.trips.add({
       id: tripId,
       name: tripData.name,
       location: tripData.location || undefined,
       startDate: tripData.startDate,
       endDate: tripData.endDate,
-      notes: teamNotes,
       isCaptainModeEnabled: false,
       createdAt: now,
       updatedAt: now,
     });
+
+    // Create teams with custom names
+    const teamAId = crypto.randomUUID();
+    const teamBId = crypto.randomUUID();
+
+    await db.teams.bulkAdd([
+      {
+        id: teamAId,
+        tripId,
+        name: tripData.teamAName || 'USA',
+        color: 'usa' as const,
+        mode: 'ryderCup' as const,
+        createdAt: now,
+      },
+      {
+        id: teamBId,
+        tripId,
+        name: tripData.teamBName || 'Europe',
+        color: 'europe' as const,
+        mode: 'ryderCup' as const,
+        createdAt: now,
+      },
+    ]);
+
     setShowQuickStart(false);
     await loadTrip(tripId);
     router.push('/players');
@@ -751,13 +769,16 @@ interface SideBetRowProps {
 
 function SideBetRow({ type, status, icon }: SideBetRowProps) {
   return (
-    <div
-      className="card"
+    <Link
+      href="/bets"
+      className="card press-scale"
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 'var(--space-3)',
         padding: 'var(--space-3)',
+        cursor: 'pointer',
+        textDecoration: 'none',
       }}
     >
       <div style={{ color: 'var(--masters)' }}>{icon}</div>
@@ -766,6 +787,6 @@ function SideBetRow({ type, status, icon }: SideBetRowProps) {
         <p className="type-caption">{status}</p>
       </div>
       <ChevronRight size={16} style={{ color: 'var(--ink-tertiary)' }} />
-    </div>
+    </Link>
   );
 }
