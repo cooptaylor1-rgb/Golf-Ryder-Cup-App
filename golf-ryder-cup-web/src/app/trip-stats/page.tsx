@@ -10,7 +10,6 @@
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '@/lib/db';
 import { useTripStore } from '@/lib/stores/tripStore';
 import * as tripStatsService from '@/lib/services/tripStatsService';
 import type { UUID, Player } from '@/lib/types/models';
@@ -331,18 +330,9 @@ function CategoryLeaderboard({
 // ============================================
 
 export default function TripStatsPage() {
-    const { currentTrip } = useTripStore();
+    const { currentTrip, players } = useTripStore();
     const [activeCategory, setActiveCategory] = useState<TripStatCategory>('beverages');
     const [refreshKey, setRefreshKey] = useState(0);
-
-    const players = useLiveQuery(
-        async (): Promise<Player[]> => {
-            if (!currentTrip?.id) return [];
-            return db.players.where('tripId').equals(currentTrip.id).toArray();
-        },
-        [currentTrip?.id],
-        [] as Player[]
-    );
 
     const tripStats = useLiveQuery(
         (): Promise<PlayerTripStat[]> =>

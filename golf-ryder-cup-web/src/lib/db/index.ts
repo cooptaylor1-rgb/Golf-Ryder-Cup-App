@@ -136,6 +136,11 @@ export class GolfTripDB extends Dexie {
             tripStats: 'id, tripId, playerId, sessionId, statType, [tripId+playerId], [tripId+statType], [playerId+statType]',
             tripAwards: 'id, tripId, awardType, winnerId, [tripId+awardType]',
         });
+
+        // Schema version 5 - Add tripId index to players
+        this.version(5).stores({
+            players: 'id, tripId, name, handicapIndex',
+        });
     }
 }
 

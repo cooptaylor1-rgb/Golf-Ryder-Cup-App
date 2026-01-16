@@ -153,8 +153,8 @@ export default function CaptainPage() {
   const { currentTrip, sessions, teams, players, teamMembers } = useTripStore();
   const { isCaptainMode } = useUIStore();
 
-  // P0-7: State for expandable quick actions grid
-  const [showAllActions, setShowAllActions] = useState(false);
+  // P0-7: State for expandable quick actions grid - default to showing all
+  const [showAllActions, setShowAllActions] = useState(true);
 
   useEffect(() => {
     if (!currentTrip) {
