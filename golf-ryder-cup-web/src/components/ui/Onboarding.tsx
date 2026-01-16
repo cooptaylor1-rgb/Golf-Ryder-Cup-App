@@ -46,11 +46,11 @@ const steps: OnboardingStep[] = [
         subtitle: "The best way to track your golf buddies trip. Compete, score, and crown champions.",
     },
     {
-        illustration: <GolfersIllustration size="xl" animated />,
-        title: "USA vs Europe Format",
+        illustration: <GolfersIllustration size="xl" />,
+        title: "Ryder Cup Format",
         subtitle: "Split into two teams and compete in classic Ryder Cup style matches.",
         features: [
-            "Create custom team rosters",
+            "Create custom team names & rosters",
             "Track handicaps automatically",
             "Head-to-head matchups",
         ],
