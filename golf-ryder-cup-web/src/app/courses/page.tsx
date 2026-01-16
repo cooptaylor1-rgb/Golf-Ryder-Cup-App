@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Search, MapPin, Flag, Trash2, Copy, ChevronRight, Globe, Camera, Sparkles } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, Flag, Trash2, Copy, ChevronRight, Globe, Camera, Sparkles } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { deleteCourseProfile, createCourseProfile } from '@/lib/services/courseLibraryService';
@@ -283,12 +283,6 @@ export default function CourseLibraryPage() {
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <h1 className="font-serif text-lg font-semibold flex-1">Course Library</h1>
-                    <Link
-                        href="/courses/new"
-                        className="p-2 hover:bg-white/10 rounded-lg"
-                    >
-                        <Plus className="w-5 h-5" />
-                    </Link>
                 </div>
             </header>
 
