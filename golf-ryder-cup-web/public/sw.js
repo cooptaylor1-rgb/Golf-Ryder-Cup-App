@@ -5,8 +5,8 @@
  * and API responses. Critical for golf course usage without signal.
  */
 
-const CACHE_NAME = 'golf-ryder-cup-v1';
-const STATIC_CACHE = 'golf-ryder-cup-static-v1';
+const CACHE_NAME = 'golf-ryder-cup-v2';
+const STATIC_CACHE = 'golf-ryder-cup-static-v2';
 
 // App shell - always cache these for offline
 const APP_SHELL = [
@@ -114,7 +114,11 @@ async function cacheFirst(request) {
 
     try {
         const response = await fetch(request);
-        await putInCache(STATIC_CACHE, request, response);
+        if (response.ok) {
+            // Clone response BEFORE caching - body can only be consumed once
+            const responseToCache = response.clone();
+            putInCache(STATIC_CACHE, request, responseToCache);
+        }
         return response;
     } catch (error) {
         console.error('[SW] Cache-first fetch failed:', error);
