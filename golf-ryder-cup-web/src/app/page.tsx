@@ -729,31 +729,33 @@ export default function HomePage() {
           </div>
 
           {pastTrips.length > 0 ? (
-            <div className="stagger-fast" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <div className="stagger-fast" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
               {pastTrips.map((trip, index) => (
                 <button
                   key={trip.id}
                   onClick={() => handleSelectTrip(trip.id)}
-                  className="card-premium press-scale stagger-item"
+                  className="card-premium press-scale stagger-item active:scale-[0.98]"
                   style={{
                     width: '100%',
                     textAlign: 'left',
                     animationDelay: `${index * 50}ms`,
                     padding: 'var(--space-5)',
+                    minHeight: '80px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 'var(--space-4)',
                     border: 'none',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.15s ease',
+                    borderRadius: 'var(--radius-xl)',
                   }}
                 >
                   {/* Tournament Icon */}
                   <div
                     style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: 'var(--radius-lg)',
+                      width: '52px',
+                      height: '52px',
+                      borderRadius: 'var(--radius-xl)',
                       background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
                       display: 'flex',
                       alignItems: 'center',
@@ -761,13 +763,13 @@ export default function HomePage() {
                       flexShrink: 0,
                     }}
                   >
-                    <Trophy size={22} style={{ color: 'var(--color-accent)' }} />
+                    <Trophy size={24} style={{ color: 'var(--color-accent)' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p className="type-title" style={{ marginBottom: 'var(--space-2)', fontWeight: 600 }}>
+                    <p className="type-title" style={{ marginBottom: 'var(--space-2)', fontWeight: 700, fontSize: '17px' }}>
                       {trip.name}
                     </p>
-                    <div className="type-caption" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
+                    <div className="type-caption" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', fontSize: '14px' }}>
                       {trip.location && (
                         <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           <MapPin size={14} strokeWidth={1.5} style={{ color: 'var(--masters)', flexShrink: 0 }} />

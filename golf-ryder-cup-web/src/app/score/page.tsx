@@ -312,17 +312,21 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
     return (
         <button
             onClick={onClick}
-            className={`match-row row-interactive w-full text-left stagger-item ${teamRowClass}`}
+            className={`match-row row-interactive w-full text-left stagger-item ${teamRowClass} active:scale-[0.98]`}
             style={{
-                paddingLeft: 'var(--space-3)',
-                paddingRight: 'var(--space-3)',
-                marginLeft: 'calc(-1 * var(--space-3))',
-                marginRight: 'calc(-1 * var(--space-3))',
-                borderRadius: 'var(--radius-md)',
+                paddingLeft: 'var(--space-4)',
+                paddingRight: 'var(--space-4)',
+                paddingTop: 'var(--space-4)',
+                paddingBottom: 'var(--space-4)',
+                marginLeft: 'calc(-1 * var(--space-4))',
+                marginRight: 'calc(-1 * var(--space-4))',
+                borderRadius: 'var(--radius-lg)',
                 border: isUserMatch ? '2px solid var(--masters)' : undefined,
-                background: isUserMatch ? 'rgba(var(--masters-rgb), 0.05)' : undefined,
+                background: isUserMatch ? 'rgba(var(--masters-rgb), 0.08)' : undefined,
                 position: 'relative',
-                animationDelay: `${animationDelay}ms`
+                animationDelay: `${animationDelay}ms`,
+                minHeight: '72px',
+                transition: 'transform 0.1s ease, background 0.15s ease',
             }}
         >
             {/* Your Match Badge (P0-3) */}
@@ -330,18 +334,19 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
                 <div
                     style={{
                         position: 'absolute',
-                        top: '-8px',
+                        top: '-10px',
                         left: '50%',
                         transform: 'translateX(-50%)',
-                        padding: '2px 10px',
+                        padding: '3px 12px',
                         background: 'var(--masters)',
                         color: 'white',
-                        fontSize: '9px',
+                        fontSize: '10px',
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
                         borderRadius: 'var(--radius-full)',
                         whiteSpace: 'nowrap',
+                        boxShadow: '0 2px 4px rgba(0, 103, 71, 0.3)',
                     }}
                 >
                     Your Match
@@ -351,10 +356,10 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
             {/* Match number */}
             <span
                 style={{
-                    width: '28px',
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 600,
-                    color: isUserMatch ? 'var(--masters)' : 'var(--ink-tertiary)',
+                    width: '32px',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    color: isUserMatch ? 'var(--masters)' : 'var(--ink-secondary)',
                     textAlign: 'center'
                 }}
             >
@@ -366,13 +371,13 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
                 <div className="flex items-center gap-2">
                     <span className={`team-dot team-dot-usa ${status === 'inProgress' && isUSALeading ? 'team-dot-pulse' : ''}`} />
                     <span
-                        className="truncate type-body-sm"
-                        style={{ fontWeight: currentScore > 0 ? 600 : 400 }}
+                        className="truncate text-base"
+                        style={{ fontWeight: currentScore > 0 ? 700 : 500 }}
                     >
                         {formatPlayers(teamAPlayers)}
                     </span>
                     {currentScore > 0 && (
-                        <span className="team-badge team-badge-solid-usa" style={{ fontSize: '9px', padding: '2px 6px' }}>
+                        <span className="team-badge team-badge-solid-usa" style={{ fontSize: '10px', padding: '3px 8px', fontWeight: 700 }}>
                             UP
                         </span>
                     )}
@@ -380,13 +385,13 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
                 <div className="flex items-center gap-2" style={{ marginTop: 'var(--space-2)' }}>
                     <span className={`team-dot team-dot-europe ${status === 'inProgress' && isEuropeLeading ? 'team-dot-pulse' : ''}`} />
                     <span
-                        className="truncate type-body-sm"
-                        style={{ fontWeight: currentScore < 0 ? 600 : 400 }}
+                        className="truncate text-base"
+                        style={{ fontWeight: currentScore < 0 ? 700 : 500 }}
                     >
                         {formatPlayers(teamBPlayers)}
                     </span>
                     {currentScore < 0 && (
-                        <span className="team-badge team-badge-solid-europe" style={{ fontSize: '9px', padding: '2px 6px' }}>
+                        <span className="team-badge team-badge-solid-europe" style={{ fontSize: '10px', padding: '3px 8px', fontWeight: 700 }}>
                             UP
                         </span>
                     )}
@@ -394,10 +399,11 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
             </div>
 
             {/* Score */}
-            <div className="text-right" style={{ minWidth: '64px' }}>
+            <div className="text-right" style={{ minWidth: '70px' }}>
                 <span
-                    className="score-medium"
+                    className="text-2xl font-bold"
                     style={{
+                        fontFamily: "'Instrument Serif', Georgia, serif",
                         color: currentScore > 0 ? 'var(--team-usa)' :
                             currentScore < 0 ? 'var(--team-europe)' : 'var(--ink-secondary)'
                     }}
@@ -405,12 +411,12 @@ function MatchRow({ matchState, matchNumber, teamAPlayers, teamBPlayers, onClick
                     {displayScore}
                 </span>
                 {holesPlayed > 0 && (
-                    <p className="type-micro" style={{ marginTop: '4px' }}>
+                    <p className="text-sm font-medium" style={{ marginTop: '4px', color: 'var(--ink-secondary)' }}>
                         {status === 'completed' ? 'Final' : `thru ${holesPlayed}`}
                     </p>
                 )}
                 {status === 'scheduled' && holesPlayed === 0 && (
-                    <p className="type-micro">Not started</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--ink-tertiary)' }}>Not started</p>
                 )}
             </div>
 

@@ -133,11 +133,12 @@ export function QuickScoreFAB() {
                 onMouseDown={handleTouchStart}
                 onMouseUp={handleTouchEnd}
                 onMouseLeave={handleTouchEnd}
-                className="fixed bottom-24 right-4 z-40 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg animate-in slide-in-from-bottom-4 fade-in duration-300 press-scale"
+                className="fixed bottom-28 right-4 z-40 flex items-center gap-3 px-5 py-4 rounded-2xl shadow-xl animate-in slide-in-from-bottom-4 fade-in duration-300 active:scale-95 transition-transform"
                 style={{
                     background: 'var(--masters)',
                     color: 'white',
-                    boxShadow: '0 4px 20px rgba(0, 103, 71, 0.4)',
+                    boxShadow: '0 6px 24px rgba(0, 103, 71, 0.5)',
+                    minHeight: '56px',
                 }}
                 aria-label="Quick score - tap to enter score, hold for full scorecard"
             >

@@ -63,18 +63,19 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                     'disabled:hover:scale-100',
                     'select-none',
 
-                    // Size variants
-                    size === 'sm' && 'h-8 px-3 text-sm rounded-lg min-w-[64px]',
-                    size === 'md' && 'h-10 px-4 text-sm rounded-xl min-w-[80px]',
-                    size === 'lg' && 'h-12 px-6 text-base rounded-xl min-w-[96px]',
-                    size === 'icon' && 'h-10 w-10 rounded-xl p-0 min-w-0',
+                    // Size variants - iPhone optimized: minimum 44px touch targets per Apple HIG
+                    size === 'sm' && 'h-11 px-4 text-sm rounded-lg min-w-[72px]',
+                    size === 'md' && 'h-12 px-5 text-base rounded-xl min-w-[88px]',
+                    size === 'lg' && 'h-14 px-6 text-lg rounded-xl min-w-[100px]',
+                    size === 'icon' && 'h-12 w-12 rounded-xl p-0 min-w-0',
 
                     // Variant styles - Masters elegance
                     variant === 'primary' && [
-                        'bg-masters-green text-magnolia',
+                        'bg-masters-green text-white font-semibold',
                         'hover:bg-masters-green-light',
-                        'shadow-sm hover:shadow-lg',
-                        'active:shadow-inner',
+                        'shadow-md hover:shadow-lg',
+                        'active:shadow-inner active:bg-masters-green-dark',
+                        'border border-masters-green-dark/20',
                     ],
 
                     variant === 'secondary' && [

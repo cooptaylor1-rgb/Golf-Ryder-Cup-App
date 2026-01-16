@@ -170,44 +170,47 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                         </div>
 
                         {/* Header */}
-                        <div className="px-4 pb-4 flex items-center justify-between border-b border-border">
+                        <div className="px-5 pb-4 flex items-center justify-between border-b border-border">
                             <div>
-                                <h2 className="text-lg font-semibold">Quick Score</h2>
-                                <p className="text-sm text-muted-foreground">
+                                <h2 className="text-xl font-bold">Quick Score</h2>
+                                <p className="text-base text-muted-foreground font-medium">
                                     {matchState?.displayScore || 'All Square'}
                                 </p>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 rounded-full hover:bg-muted transition-colors"
+                                className="p-3 -mr-2 rounded-full hover:bg-muted transition-colors active:scale-90"
+                                aria-label="Close modal"
                             >
-                                <X size={20} />
+                                <X size={24} strokeWidth={2} />
                             </button>
                         </div>
 
                         {/* Hole Navigator */}
-                        <div className="px-4 py-4 flex items-center justify-center gap-4">
+                        <div className="px-5 py-5 flex items-center justify-center gap-6">
                             <button
                                 onClick={() => setCurrentHole(prev => Math.max(1, prev - 1))}
                                 disabled={currentHole === 1}
-                                className="p-2 rounded-full hover:bg-muted disabled:opacity-30 transition-colors"
+                                className="p-3 rounded-full hover:bg-muted disabled:opacity-30 transition-all active:scale-90"
+                                aria-label="Previous hole"
                             >
-                                <ChevronLeft size={24} />
+                                <ChevronLeft size={28} strokeWidth={2} />
                             </button>
 
-                            <div className="text-center">
-                                <div className="text-4xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+                            <div className="text-center min-w-[80px]">
+                                <div className="text-5xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
                                     {currentHole}
                                 </div>
-                                <div className="text-sm text-muted-foreground">Hole</div>
+                                <div className="text-sm text-muted-foreground font-medium mt-1">Hole</div>
                             </div>
 
                             <button
                                 onClick={() => setCurrentHole(prev => Math.min(18, prev + 1))}
                                 disabled={currentHole === 18}
-                                className="p-2 rounded-full hover:bg-muted disabled:opacity-30 transition-colors"
+                                className="p-3 rounded-full hover:bg-muted disabled:opacity-30 transition-all active:scale-90"
+                                aria-label="Next hole"
                             >
-                                <ChevronRight size={24} />
+                                <ChevronRight size={28} strokeWidth={2} />
                             </button>
                         </div>
 
@@ -222,36 +225,36 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                         )}
 
                         {/* Score Buttons */}
-                        <div className="px-4 py-6 space-y-3">
+                        <div className="px-5 py-6 space-y-4">
                             {/* Team A Wins */}
                             <button
                                 onClick={() => handleScore('teamA')}
                                 disabled={isSubmitting}
-                                className={`w-full py-5 px-4 rounded-2xl flex items-center justify-between transition-all active:scale-[0.98] ${currentResult?.winner === 'teamA'
+                                className={`w-full py-6 px-5 rounded-2xl flex items-center justify-between transition-all active:scale-[0.97] disabled:opacity-50 ${currentResult?.winner === 'teamA'
                                     ? 'ring-2 ring-offset-2 ring-[var(--team-usa)]'
                                     : ''
                                     }`}
                                 style={{
                                     background: 'var(--team-usa-light)',
-                                    borderLeft: '4px solid var(--team-usa)',
+                                    borderLeft: '5px solid var(--team-usa)',
                                 }}
                             >
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-4">
                                     <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                                        className="w-12 h-12 rounded-full flex items-center justify-center"
                                         style={{ background: 'var(--team-usa)' }}
                                     >
-                                        <Trophy size={18} className="text-white" />
+                                        <Trophy size={22} className="text-white" />
                                     </div>
                                     <div className="text-left">
-                                        <div className="font-semibold">{teamAName} Wins</div>
-                                        <div className="text-sm text-muted-foreground">
+                                        <div className="text-lg font-bold">{teamAName} Wins</div>
+                                        <div className="text-sm text-muted-foreground font-medium">
                                             {formatNames(teamAPlayers)}
                                         </div>
                                     </div>
                                 </div>
                                 {currentResult?.winner === 'teamA' && (
-                                    <Check size={24} style={{ color: 'var(--team-usa)' }} />
+                                    <Check size={28} style={{ color: 'var(--team-usa)' }} />
                                 )}
                             </button>
 
@@ -259,30 +262,30 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                             <button
                                 onClick={() => handleScore('halved')}
                                 disabled={isSubmitting}
-                                className={`w-full py-5 px-4 rounded-2xl flex items-center justify-between transition-all active:scale-[0.98] ${currentResult?.winner === 'halved'
+                                className={`w-full py-6 px-5 rounded-2xl flex items-center justify-between transition-all active:scale-[0.97] disabled:opacity-50 ${currentResult?.winner === 'halved'
                                     ? 'ring-2 ring-offset-2 ring-muted-foreground'
                                     : ''
                                     }`}
                                 style={{
                                     background: 'var(--canvas-sunken)',
-                                    borderLeft: '4px solid var(--rule-strong)',
+                                    borderLeft: '5px solid var(--rule-strong)',
                                 }}
                             >
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-4">
                                     <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center bg-muted"
+                                        className="w-12 h-12 rounded-full flex items-center justify-center bg-muted"
                                     >
-                                        <Minus size={18} className="text-muted-foreground" />
+                                        <Minus size={22} className="text-muted-foreground" />
                                     </div>
                                     <div className="text-left">
-                                        <div className="font-semibold">Halved</div>
-                                        <div className="text-sm text-muted-foreground">
+                                        <div className="text-lg font-bold">Halved</div>
+                                        <div className="text-sm text-muted-foreground font-medium">
                                             Both teams tied
                                         </div>
                                     </div>
                                 </div>
                                 {currentResult?.winner === 'halved' && (
-                                    <Check size={24} className="text-muted-foreground" />
+                                    <Check size={28} className="text-muted-foreground" />
                                 )}
                             </button>
 
@@ -290,31 +293,31 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                             <button
                                 onClick={() => handleScore('teamB')}
                                 disabled={isSubmitting}
-                                className={`w-full py-5 px-4 rounded-2xl flex items-center justify-between transition-all active:scale-[0.98] ${currentResult?.winner === 'teamB'
+                                className={`w-full py-6 px-5 rounded-2xl flex items-center justify-between transition-all active:scale-[0.97] disabled:opacity-50 ${currentResult?.winner === 'teamB'
                                     ? 'ring-2 ring-offset-2 ring-[var(--team-europe)]'
                                     : ''
                                     }`}
                                 style={{
                                     background: 'var(--team-europe-light)',
-                                    borderLeft: '4px solid var(--team-europe)',
+                                    borderLeft: '5px solid var(--team-europe)',
                                 }}
                             >
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-4">
                                     <div
-                                        className="w-10 h-10 rounded-full flex items-center justify-center"
+                                        className="w-12 h-12 rounded-full flex items-center justify-center"
                                         style={{ background: 'var(--team-europe)' }}
                                     >
-                                        <Trophy size={18} className="text-white" />
+                                        <Trophy size={22} className="text-white" />
                                     </div>
                                     <div className="text-left">
-                                        <div className="font-semibold">{teamBName} Wins</div>
-                                        <div className="text-sm text-muted-foreground">
+                                        <div className="text-lg font-bold">{teamBName} Wins</div>
+                                        <div className="text-sm text-muted-foreground font-medium">
                                             {formatNames(teamBPlayers)}
                                         </div>
                                     </div>
                                 </div>
                                 {currentResult?.winner === 'teamB' && (
-                                    <Check size={24} style={{ color: 'var(--team-europe)' }} />
+                                    <Check size={28} style={{ color: 'var(--team-europe)' }} />
                                 )}
                             </button>
                         </div>
@@ -326,16 +329,16 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                                     initial={{ opacity: 0, scale: 0.8 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.8 }}
-                                    className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-t-3xl"
+                                    className="absolute inset-0 flex items-center justify-center bg-background/90 rounded-t-3xl"
                                 >
-                                    <div className="flex flex-col items-center gap-2">
+                                    <div className="flex flex-col items-center gap-3">
                                         <div
-                                            className="w-16 h-16 rounded-full flex items-center justify-center"
+                                            className="w-20 h-20 rounded-full flex items-center justify-center shadow-lg"
                                             style={{ background: 'var(--masters)' }}
                                         >
-                                            <Check size={32} className="text-white" />
+                                            <Check size={40} className="text-white" strokeWidth={3} />
                                         </div>
-                                        <span className="font-semibold">Saved!</span>
+                                        <span className="text-xl font-bold">Saved!</span>
                                     </div>
                                 </motion.div>
                             )}

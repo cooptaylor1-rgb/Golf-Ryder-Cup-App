@@ -141,8 +141,8 @@ function ToastItem({ type, message, onDismiss, duration = 4000 }: ToastItemProps
   return (
     <div
       className={cn(
-        'relative flex items-center gap-3 px-4 py-3 pb-4 rounded-lg',
-        'min-w-[280px] max-w-[400px]',
+        'relative flex items-center gap-3 px-4 py-4 pb-5 rounded-xl',
+        'w-full',
         'transition-transform duration-150',
         isPaused && 'scale-[1.02]',
         isExiting ? 'toast-exit' : 'toast-enter'
@@ -150,7 +150,7 @@ function ToastItem({ type, message, onDismiss, duration = 4000 }: ToastItemProps
       style={{
         background: style.background,
         border: style.border,
-        boxShadow: 'var(--shadow-card-lg)',
+        boxShadow: 'var(--shadow-card-lg), 0 8px 32px rgba(0, 0, 0, 0.12)',
         color: 'var(--text-primary)',
       }}
       role="alert"
@@ -158,23 +158,25 @@ function ToastItem({ type, message, onDismiss, duration = 4000 }: ToastItemProps
       onMouseLeave={() => setIsPaused(false)}
     >
       <Icon
-        className="w-5 h-5 flex-shrink-0"
+        className="w-6 h-6 flex-shrink-0"
         style={{ color: style.iconColor }}
+        strokeWidth={2}
       />
-      <p className="flex-1 text-sm font-medium">{message}</p>
+      <p className="flex-1 text-base font-semibold">{message}</p>
       <button
         onClick={handleDismiss}
         className={cn(
-          'p-1.5 rounded-full',
+          'p-2.5 -mr-1 rounded-full',
           'transition-transform duration-150 ease-out',
           'hover:scale-110 active:scale-90',
           'hover:bg-surface-highlight',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold'
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold',
+          'min-w-[44px] min-h-[44px] flex items-center justify-center'
         )}
         style={{ color: 'var(--text-tertiary)' }}
         aria-label="Dismiss notification"
       >
-        <X className="w-4 h-4" />
+        <X className="w-5 h-5" />
       </button>
       {/* Progress indicator - pauses on hover */}
       <ToastProgress
@@ -194,7 +196,8 @@ export function ToastContainer() {
 
   return (
     <div
-      className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 lg:bottom-8"
+      className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-3 lg:bottom-8 px-4 w-full max-w-md"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       aria-live="polite"
       aria-label="Notifications"
     >

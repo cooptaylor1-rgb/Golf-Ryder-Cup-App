@@ -178,12 +178,12 @@ export function Modal({
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between gap-4 p-5 pb-0">
+          <div className="flex items-start justify-between gap-4 p-5 pb-3">
             <div className="flex-1 min-w-0">
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-lg font-semibold"
+                  className="text-xl font-bold"
                   style={{ color: 'var(--text-primary)' }}
                 >
                   {title}
@@ -192,7 +192,7 @@ export function Modal({
               {description && (
                 <p
                   id="modal-description"
-                  className="text-sm mt-1"
+                  className="text-base mt-2"
                   style={{ color: 'var(--text-secondary)' }}
                 >
                   {description}
@@ -204,16 +204,16 @@ export function Modal({
                 icon={<X />}
                 aria-label="Close dialog"
                 variant="ghost"
-                size="sm"
+                size="md"
                 onClick={handleClose}
-                className="-mr-1 -mt-1"
+                className="-mr-2 -mt-1"
               />
             )}
           </div>
         )}
 
         {/* Content */}
-        <div className="p-5">{children}</div>
+        <div className="p-5 pt-3">{children}</div>
       </div>
     </div>
   );

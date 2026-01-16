@@ -77,7 +77,7 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
         'lg:hidden',
         'fixed bottom-0 left-0 right-0 z-50',
         'flex items-stretch justify-around',
-        'h-16 px-2',
+        'h-20 px-1',
         'safe-bottom',
       )}
       style={{
@@ -99,9 +99,11 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
             onClick={() => router.push(item.href)}
             className={cn(
               'relative flex flex-col items-center justify-center',
-              'flex-1 min-w-[48px] py-2',
-              'transition-colors',
+              'flex-1 min-w-[56px] min-h-[56px] py-1.5',
+              'transition-all duration-150',
               'focus-visible:outline-none',
+              'active:scale-95 active:opacity-80',
+              'rounded-xl',
             )}
             style={{
               color: active ? 'var(--masters, #006747)' : 'var(--ink-tertiary, #807868)',
@@ -120,7 +122,7 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
 
             {/* Icon with badge */}
             <div className="relative">
-              <Icon className={cn('w-5 h-5', active && 'scale-110')} />
+              <Icon className={cn('w-6 h-6', active && 'scale-110')} strokeWidth={active ? 2 : 1.75} />
 
               {/* Notification badge */}
               {badgeCount !== undefined && badgeCount > 0 && (
@@ -149,8 +151,8 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
             {/* Label */}
             <span
               className={cn(
-                'text-[10px] mt-1 font-medium tracking-wide',
-                active && 'font-semibold',
+                'text-[11px] mt-0.5 font-medium tracking-wide',
+                active && 'font-bold',
               )}
             >
               {item.label}

@@ -105,16 +105,17 @@ export function YourMatchCard({
     return (
         <button
             onClick={onEnterScore}
-            className="w-full text-left press-scale card-premium"
+            className="w-full text-left card-premium active:scale-[0.98]"
             style={{
                 padding: 'var(--space-5)',
                 border: isLive ? '2px solid var(--masters)' : '1px solid var(--rule)',
                 background: isLive
-                    ? 'linear-gradient(135deg, rgba(var(--masters-rgb), 0.08) 0%, var(--canvas-raised) 100%)'
+                    ? 'linear-gradient(135deg, rgba(var(--masters-rgb), 0.1) 0%, var(--canvas-raised) 100%)'
                     : 'var(--canvas-raised)',
                 cursor: 'pointer',
                 borderRadius: 'var(--radius-xl)',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.15s ease',
+                boxShadow: isLive ? '0 4px 20px rgba(0, 103, 71, 0.15)' : undefined,
             }}
         >
             {/* Header: Badge + Status */}
@@ -125,17 +126,17 @@ export function YourMatchCard({
                             display: 'flex',
                             alignItems: 'center',
                             gap: 'var(--space-2)',
-                            padding: 'var(--space-1) var(--space-3)',
+                            padding: 'var(--space-2) var(--space-3)',
                             background: isLive ? 'var(--masters)' : 'var(--canvas-sunken)',
                             borderRadius: 'var(--radius-full)',
                             color: isLive ? 'white' : 'var(--ink-secondary)',
-                            fontSize: 'var(--text-xs)',
-                            fontWeight: 600,
+                            fontSize: '12px',
+                            fontWeight: 700,
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em',
                         }}
                     >
-                        <Target size={12} />
+                        <Target size={14} />
                         Your Match
                     </div>
                     {isLive && (
@@ -178,35 +179,35 @@ export function YourMatchCard({
                 </div>
 
                 {/* Players Display */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
                     {/* You (and partner) */}
                     <div style={{ flex: 1 }}>
-                        <p style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: '2px' }}>
+                        <p style={{ fontWeight: 700, color: 'var(--ink)', marginBottom: '4px', fontSize: '16px' }}>
                             You{partner && ` & ${formatPlayerName(partner.firstName, partner.lastName, 'short')}`}
                         </p>
-                        <p className="type-micro" style={{ color: userTeam === 'A' ? 'var(--team-usa)' : 'var(--team-europe)' }}>
+                        <p style={{ fontSize: '13px', fontWeight: 600, color: userTeam === 'A' ? 'var(--team-usa)' : 'var(--team-europe)' }}>
                             {userTeam === 'A' ? teamAName : teamBName}
                         </p>
                     </div>
 
                     {/* VS */}
                     <div style={{
-                        padding: 'var(--space-2) var(--space-3)',
+                        padding: 'var(--space-2) var(--space-4)',
                         background: 'var(--canvas-sunken)',
-                        borderRadius: 'var(--radius-md)',
-                        color: 'var(--ink-tertiary)',
-                        fontWeight: 600,
-                        fontSize: 'var(--text-xs)',
+                        borderRadius: 'var(--radius-lg)',
+                        color: 'var(--ink-secondary)',
+                        fontWeight: 700,
+                        fontSize: '13px',
                     }}>
                         VS
                     </div>
 
                     {/* Opponents */}
                     <div style={{ flex: 1, textAlign: 'right' }}>
-                        <p style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: '2px' }}>
+                        <p style={{ fontWeight: 700, color: 'var(--ink)', marginBottom: '4px', fontSize: '16px' }}>
                             {opponents.map(o => formatPlayerName(o.firstName, o.lastName, 'short')).join(' & ')}
                         </p>
-                        <p className="type-micro" style={{ color: userTeam === 'A' ? 'var(--team-europe)' : 'var(--team-usa)' }}>
+                        <p style={{ fontSize: '13px', fontWeight: 600, color: userTeam === 'A' ? 'var(--team-europe)' : 'var(--team-usa)' }}>
                             {userTeam === 'A' ? teamBName : teamAName}
                         </p>
                     </div>
@@ -248,18 +249,20 @@ export function YourMatchCard({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 'var(--space-2)',
-                    padding: 'var(--space-3)',
+                    gap: 'var(--space-3)',
+                    padding: 'var(--space-4)',
                     background: 'var(--masters)',
-                    borderRadius: 'var(--radius-lg)',
+                    borderRadius: 'var(--radius-xl)',
                     color: 'white',
-                    fontWeight: 600,
-                    fontSize: 'var(--text-sm)',
+                    fontWeight: 700,
+                    fontSize: '16px',
+                    minHeight: '52px',
+                    boxShadow: '0 2px 8px rgba(0, 103, 71, 0.3)',
                 }}
             >
-                <Zap size={16} />
+                <Zap size={20} />
                 <span>{isLive ? 'Continue Scoring' : 'Enter Score'}</span>
-                <ChevronRight size={16} />
+                <ChevronRight size={20} />
             </div>
         </button>
     );

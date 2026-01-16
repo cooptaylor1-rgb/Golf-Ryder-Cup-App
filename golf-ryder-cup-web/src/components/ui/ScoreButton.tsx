@@ -39,31 +39,31 @@ export function ScoreButton({
     };
 
     const sizeClasses = {
-        sm: 'h-12 min-w-[80px] text-base',
-        md: 'h-14 min-w-[100px] text-lg',
-        lg: 'h-16 min-w-[120px] text-xl',
+        sm: 'h-14 min-w-[100px] text-lg',
+        md: 'h-16 min-w-[120px] text-xl',
+        lg: 'h-20 min-w-[140px] text-2xl',
     };
 
     const getColorClasses = () => {
         if (winner === 'halved') {
             return isSelected
-                ? 'bg-surface-400 text-white border-surface-500'
-                : 'bg-surface-100 text-surface-600 border-surface-300 dark:bg-surface-800 dark:text-surface-300 dark:border-surface-600';
+                ? 'bg-surface-400 text-white border-surface-500 shadow-lg'
+                : 'bg-surface-100 text-surface-700 border-surface-400 dark:bg-surface-800 dark:text-surface-200 dark:border-surface-500 hover:bg-surface-200';
         }
 
         if (teamColor === 'usa') {
             return isSelected
-                ? 'bg-team-usa text-white border-team-usa shadow-lg shadow-team-usa/30'
-                : 'bg-team-usa/10 text-team-usa border-team-usa/30 hover:bg-team-usa/20';
+                ? 'bg-team-usa text-white border-team-usa shadow-xl shadow-team-usa/40 scale-[1.02]'
+                : 'bg-team-usa/15 text-team-usa border-team-usa/50 hover:bg-team-usa/25 hover:border-team-usa';
         }
 
         if (teamColor === 'europe') {
             return isSelected
-                ? 'bg-team-europe text-white border-team-europe shadow-lg shadow-team-europe/30'
-                : 'bg-team-europe/10 text-team-europe border-team-europe/30 hover:bg-team-europe/20';
+                ? 'bg-team-europe text-white border-team-europe shadow-xl shadow-team-europe/40 scale-[1.02]'
+                : 'bg-team-europe/15 text-team-europe border-team-europe/50 hover:bg-team-europe/25 hover:border-team-europe';
         }
 
-        return 'bg-surface-100 text-surface-700 border-surface-300';
+        return 'bg-surface-100 text-surface-800 border-surface-400';
     };
 
     return (

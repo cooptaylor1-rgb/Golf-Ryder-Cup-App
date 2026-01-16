@@ -40,10 +40,10 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
                     // Base styles
                     'rounded-xl transition-all duration-200',
 
-                    // Padding variants
+                    // Padding variants - iPhone optimized
                     padding === 'none' && 'p-0',
-                    padding === 'sm' && 'p-3',
-                    padding === 'md' && 'p-4',
+                    padding === 'sm' && 'p-4',
+                    padding === 'md' && 'p-5',
                     padding === 'lg' && 'p-6',
 
                     // Card variants - Masters elegance
@@ -80,7 +80,9 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
                         // Consistent gold focus ring
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2',
                         // Transition for smoothness
-                        'transition-transform duration-150 ease-out',
+                        'transition-all duration-150 ease-out',
+                        // Ensure minimum touch target
+                        'min-h-[56px]',
                     ],
 
                     // Selected state - gold highlight

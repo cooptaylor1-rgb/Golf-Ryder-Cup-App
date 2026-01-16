@@ -224,13 +224,27 @@ a,
   -webkit-tap-highlight-color: transparent;
   /* Prevent iOS text selection callout */
   -webkit-touch-callout: none;
+  /* Enable smooth touch feedback */
+  touch-action: manipulation;
 }
 
-/* Focused but not intrusive */
+/* Enhanced focus states for accessibility */
 :focus-visible {
-  outline: 2px solid var(--masters);
-  outline-offset: 3px;
-  border-radius: var(--radius-sm);
+  outline: 3px solid var(--masters);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* All interactive elements get consistent focus ring */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--masters);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(0, 102, 68, 0.15);
 }
 
 /* Selection */
@@ -506,19 +520,24 @@ a,
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-4);
-  min-width: 56px;
-  min-height: 48px;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  min-width: 60px;
+  min-height: 56px;
   color: var(--ink-tertiary);
-  font-size: var(--text-xs);
+  font-size: 11px;
   font-weight: 500;
   text-decoration: none;
-  transition: color var(--duration-normal) var(--ease-out);
-  border-radius: var(--radius-md);
+  transition: color var(--duration-normal) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+.nav-item:active {
+  transform: scale(0.95);
 }
 
 .nav-item:hover {
@@ -544,11 +563,12 @@ a,
 
 /* Page bottom padding for nav clearance */
 .pb-nav {
-  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ============================================
-   BUTTONS
+   BUTTONS - iPhone Optimized
+   Minimum 44px tap targets per Apple HIG
    ============================================ */
 
 .btn {
@@ -556,37 +576,48 @@ a,
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-4) var(--space-5);
   font-family: var(--font-inter, system-ui, sans-serif);
   font-size: var(--text-base);
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   border: none;
   cursor: pointer;
   transition: all var(--duration-normal) var(--ease-out);
-  min-height: 48px;
+  min-height: 52px;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.96);
+  opacity: 0.9;
 }
 
-/* Primary - Masters green */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Primary - Masters green - high contrast for outdoors */
 .btn-primary {
   background: var(--masters);
   color: white;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary:hover {
   background: var(--masters-hover);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-primary:active {
   background: var(--masters);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Secondary - Outlined */
@@ -624,31 +655,33 @@ a,
   color: white;
 }
 
-/* Small variant */
+/* Small variant - still meets 44px minimum */
 .btn-sm {
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   font-size: var(--text-sm);
-  min-height: 40px;
-  border-radius: var(--radius-md);
+  min-height: 44px;
+  border-radius: var(--radius-lg);
 }
 
 /* ============================================
-   FORM INPUTS
+   FORM INPUTS - iPhone Optimized
    ============================================ */
 
 .input {
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-4);
   font-family: var(--font-inter, system-ui, sans-serif);
-  font-size: var(--text-base);
+  font-size: 16px;
+  /* Prevents iOS zoom on focus */
   line-height: 1.5;
   color: var(--ink);
   background: var(--canvas-raised);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--rule);
+  border-radius: var(--radius-lg);
   transition: border-color var(--duration-fast) var(--ease-out),
     box-shadow var(--duration-fast) var(--ease-out);
-  min-height: 48px;
+  min-height: 52px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .input:hover {
@@ -658,7 +691,7 @@ a,
 .input:focus {
   outline: none;
   border-color: var(--masters);
-  box-shadow: var(--shadow-glow-masters);
+  box-shadow: var(--shadow-glow-masters), 0 0 0 3px rgba(0, 102, 68, 0.1);
 }
 
 .input::placeholder {
@@ -666,35 +699,44 @@ a,
 }
 
 /* ============================================
-   SCORING INTERFACE
+   SCORING INTERFACE - Outdoor Optimized
+   Large tap targets for gloved/outdoor use
    ============================================ */
 
-/* Score button - large tap target */
+/* Score button - extra large tap target for outdoor/gloved use */
 .score-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 88px;
-  min-width: 110px;
-  padding: var(--space-4) var(--space-5);
+  min-height: 100px;
+  min-width: 120px;
+  padding: var(--space-5) var(--space-6);
   border-radius: var(--radius-xl);
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  border: none;
+  border: 2px solid transparent;
   transition: transform var(--duration-fast) var(--ease-spring),
-    box-shadow var(--duration-fast) var(--ease-out);
+    box-shadow var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .score-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
+}
+
+.score-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--masters-glow);
 }
 
 .score-btn-label {
   font-family: var(--font-inter, system-ui, sans-serif);
-  font-size: var(--text-lg);
-  font-weight: 600;
+  font-size: var(--text-xl);
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
@@ -5423,4 +5465,178 @@ html.outdoor body {
   .hole-dot {
     transition: none;
   }
+}
+
+/* ============================================
+   IPHONE OPTIMIZATION UTILITIES
+   Production-ready utilities for outdoor iPhone use
+   ============================================ */
+
+/* Ensure minimum 44px tap targets per Apple HIG */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.tap-target-lg {
+  min-width: 52px;
+  min-height: 52px;
+}
+
+/* Press feedback for buttons */
+.press-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.press-feedback:active {
+  transform: scale(0.96);
+  opacity: 0.9;
+}
+
+/* High contrast text for outdoor readability */
+.outdoor-text {
+  color: var(--ink);
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+/* Thumb-reachable zone indicator (bottom 60% of screen) */
+.thumb-zone {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 100px);
+}
+
+/* Loading state with spinner */
+.loading-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--rule);
+  border-top-color: var(--masters);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Saving indicator */
+.saving-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--canvas-sunken);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--ink-secondary);
+}
+
+.saving-indicator::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--masters);
+  border-radius: 50%;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* Success flash */
+.success-flash {
+  animation: successFlash 0.3s ease-out;
+}
+
+@keyframes successFlash {
+  0% {
+    background-color: rgba(0, 102, 68, 0.2);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Error shake */
+.error-shake {
+  animation: errorShake 0.4s ease-out;
+}
+
+@keyframes errorShake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+
+/* Touch-optimized scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+
+.touch-scroll>* {
+  scroll-snap-align: start;
+}
+
+/* Safe area padding for notched iPhones */
+.safe-padding {
+  padding-left: max(var(--space-5), env(safe-area-inset-left));
+  padding-right: max(var(--space-5), env(safe-area-inset-right));
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Disabled state styling */
+.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+/* Action in progress */
+.is-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.is-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

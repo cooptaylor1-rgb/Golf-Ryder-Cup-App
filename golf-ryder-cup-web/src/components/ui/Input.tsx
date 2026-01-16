@@ -44,7 +44,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                     <label
                         htmlFor={inputId}
                         className={cn(
-                            'block text-sm font-medium text-text-secondary mb-1.5',
+                            'block text-base font-medium text-text-primary mb-2',
                             disabled && 'opacity-50',
                         )}
                     >
@@ -68,27 +68,28 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         disabled={disabled}
                         className={cn(
                             // Base styles
-                            'block w-full rounded-lg',
-                            'bg-surface-elevated border border-surface-border',
-                            'text-sm text-text-primary placeholder:text-text-tertiary',
-                            'transition-colors duration-150',
+                            'block w-full rounded-xl',
+                            'bg-surface-elevated border-2 border-surface-border',
+                            'text-base text-text-primary placeholder:text-text-tertiary',
+                            'transition-all duration-150',
 
-                            // Sizing
-                            'h-10 px-3',
-                            leftIcon && 'pl-10',
-                            rightIcon && 'pr-10',
+                            // Sizing - iPhone optimized minimum 44px height
+                            'h-12 px-4',
+                            leftIcon && 'pl-11',
+                            rightIcon && 'pr-11',
 
-                            // Focus state - Masters gold accent
-                            'focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold',
+                            // Focus state - Masters gold accent, high contrast
+                            'focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold',
+                            'focus:shadow-md',
 
-                            // Error state
+                            // Error state - high contrast for visibility
                             error && [
-                                'border-azalea focus:ring-azalea/50 focus:border-azalea',
-                                'text-azalea placeholder:text-azalea/60',
+                                'border-azalea focus:ring-azalea focus:border-azalea',
+                                'bg-azalea/5',
                             ],
 
                             // Disabled state
-                            disabled && 'opacity-50 cursor-not-allowed',
+                            disabled && 'opacity-50 cursor-not-allowed bg-surface-muted',
 
                             className
                         )}
