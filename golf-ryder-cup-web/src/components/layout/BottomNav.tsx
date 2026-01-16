@@ -29,7 +29,7 @@ import {
 interface NavItem {
   href: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   badgeKey?: 'home' | 'schedule' | 'score' | 'stats' | 'standings' | 'more';
 }
 
