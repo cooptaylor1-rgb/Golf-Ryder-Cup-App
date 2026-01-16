@@ -4369,17 +4369,29 @@ html.outdoor body {
 
 /* ============================================
    ONBOARDING FLOW
-   Welcome & first-run experiences
+   Premium welcome & first-run experience
+   Masters-inspired elegance
    ============================================ */
 
 .onboarding-overlay {
   position: fixed;
   inset: 0;
-  background: var(--canvas);
+  background: linear-gradient(180deg, var(--canvas) 0%, var(--canvas-warm) 100%);
   z-index: 100;
   display: flex;
   flex-direction: column;
   animation: fadeIn var(--duration-slow) var(--ease-out);
+}
+
+/* Subtle texture for premium feel */
+.onboarding-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.02;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .onboarding-content {
@@ -4390,35 +4402,87 @@ html.outdoor body {
   justify-content: center;
   padding: var(--space-8);
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .onboarding-illustration {
-  margin-bottom: var(--space-8);
-  animation: bounce-in var(--duration-slow) var(--ease-spring);
+  margin-bottom: var(--space-6);
+  animation: onboarding-float 3s var(--ease-smooth) infinite;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.08));
+}
+
+@keyframes onboarding-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 .onboarding-title {
   font-family: 'Instrument Serif', Georgia, serif;
-  font-size: var(--text-3xl);
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
   font-weight: 400;
   color: var(--ink);
-  margin-bottom: var(--space-4);
-  line-height: 1.1;
+  margin-bottom: var(--space-3);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .onboarding-subtitle {
   font-family: var(--font-inter, system-ui, sans-serif);
-  font-size: var(--text-lg);
+  font-size: var(--text-base);
   color: var(--ink-secondary);
-  max-width: 320px;
-  line-height: 1.5;
+  max-width: 300px;
+  line-height: 1.6;
+  margin: 0 auto;
 }
 
-/* Step indicators */
+/* Feature list items */
+.onboarding-content ul {
+  margin-top: var(--space-5);
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding-content li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--ink-secondary);
+  padding: var(--space-2) 0;
+}
+
+.onboarding-content li span:first-child {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(22, 101, 52, 0.25);
+}
+
+/* Step indicators - premium pill style */
 .onboarding-dots {
   display: flex;
   gap: var(--space-2);
-  margin-top: var(--space-8);
+  margin-top: var(--space-6);
+  padding: var(--space-2) var(--space-3);
+  background: var(--canvas-raised);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
 }
 
 .onboarding-dot {
@@ -4426,37 +4490,69 @@ html.outdoor body {
   height: 8px;
   border-radius: var(--radius-full);
   background: var(--stroke);
-  transition: all var(--duration-normal) var(--ease-out);
+  transition: all var(--duration-normal) var(--ease-spring);
+  cursor: pointer;
+}
+
+.onboarding-dot:hover {
+  background: var(--ink-muted);
 }
 
 .onboarding-dot.active {
   width: 24px;
-  background: var(--masters);
+  background: linear-gradient(90deg, var(--masters) 0%, var(--masters-deep) 100%);
+  box-shadow: 0 2px 8px rgba(22, 101, 52, 0.3);
 }
 
-/* Bottom actions */
+/* Bottom actions - frosted glass effect */
 .onboarding-actions {
-  padding: var(--space-6);
-  padding-bottom: env(safe-area-inset-bottom, var(--space-6));
+  padding: var(--space-5) var(--space-6);
+  padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom, 0px));
+  background: rgba(253, 252, 250, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-top: 1px solid var(--stroke-light);
+  position: relative;
+  z-index: 1;
+}
+
+.dark .onboarding-actions {
+  background: rgba(15, 13, 10, 0.85);
 }
 
 .onboarding-button {
   width: 100%;
   padding: var(--space-4);
-  background: var(--masters);
+  background: linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%);
   color: var(--cream);
   font-family: var(--font-inter, system-ui, sans-serif);
-  font-size: var(--text-lg);
+  font-size: var(--text-base);
   font-weight: 600;
   border: none;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-out);
+  box-shadow: 0 4px 14px rgba(22, 101, 52, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.onboarding-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .onboarding-button:hover {
-  background: var(--masters-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(22, 101, 52, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.onboarding-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(22, 101, 52, 0.25);
 }
 
 .onboarding-skip {
@@ -4466,36 +4562,40 @@ html.outdoor body {
   padding: var(--space-3);
   color: var(--ink-tertiary);
   font-size: var(--text-sm);
+  font-weight: 500;
   background: none;
   border: none;
   cursor: pointer;
   margin-top: var(--space-2);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .onboarding-skip:hover {
   color: var(--ink-secondary);
 }
 
-/* Feature carousel cards */
+/* Feature spotlight cards - premium treatment */
 .onboarding-card {
   background: var(--canvas-raised);
   border-radius: var(--radius-xl);
-  padding: var(--space-6);
+  padding: var(--space-5);
   margin: var(--space-4);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   text-align: center;
+  border: 1px solid var(--stroke-light);
 }
 
 .onboarding-card-icon {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   margin: 0 auto var(--space-4);
-  background: var(--canvas-warm);
+  background: linear-gradient(135deg, var(--masters-soft) 0%, var(--canvas-warm) 100%);
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--masters);
+  box-shadow: 0 2px 8px rgba(22, 101, 52, 0.15);
 }
 
 .onboarding-card-title {
@@ -4503,12 +4603,13 @@ html.outdoor body {
   font-size: var(--text-lg);
   color: var(--ink);
   margin-bottom: var(--space-2);
+  font-weight: 400;
 }
 
 .onboarding-card-text {
   font-size: var(--text-sm);
   color: var(--ink-secondary);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ============================================

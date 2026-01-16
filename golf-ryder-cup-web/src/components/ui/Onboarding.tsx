@@ -209,7 +209,12 @@ export function Onboarding({ onComplete, onSkip, className }: OnboardingProps) {
                     {!isFirstStep && (
                         <button
                             onClick={handlePrev}
-                            className="flex-shrink-0 p-4 bg-surface-100 text-ink-secondary rounded-xl hover:bg-surface-200 transition-colors press-scale-sm"
+                            className="flex-shrink-0 p-4 rounded-xl transition-all press-scale-sm"
+                            style={{
+                                background: 'var(--canvas-raised)',
+                                color: 'var(--ink-secondary)',
+                                border: '1px solid var(--stroke-light)'
+                            }}
                             aria-label="Previous step"
                         >
                             <ChevronLeft className="w-6 h-6" />
