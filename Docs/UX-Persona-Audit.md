@@ -615,11 +615,13 @@ App Launch → Empty State → "Join a Trip" → Enter 6-char code → Trip load
 ### Link Improvements
 
 Settings page links now use anchor fragments to scroll to the right section on More page:
+
 - Theme & Display → `/more#display`
-- Notifications → `/more#preferences`  
+- Notifications → `/more#preferences`
 - Data & Storage → `/more#data`
 
 More page sections now have IDs for anchor navigation:
+
 - `id="captain"` on Captain Mode section
 - `id="display"` on Display section
 - `id="preferences"` on Scoring Preferences section
