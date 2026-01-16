@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { useTripStore } from '@/lib/stores';
+import { useTripStore, useUIStore } from '@/lib/stores';
 import { NoBetsEmpty } from '@/components/ui';
-import type { Player, SideBet, SideBetType } from '@/lib/types/models';
+import type { Player, SideBet, SideBetType, Match } from '@/lib/types/models';
 import {
   ChevronLeft,
   Home,
@@ -24,6 +24,8 @@ import {
   Clock,
   Crown,
   CalendarDays,
+  X,
+  Flag,
 } from 'lucide-react';
 
 /**
@@ -35,8 +37,16 @@ import {
 
 export default function BetsPage() {
   const router = useRouter();
-  const { currentTrip, players } = useTripStore();
+  const { currentTrip, players, sessions } = useTripStore();
+  const { showToast } = useUIStore();
   const [selectedTab, setSelectedTab] = useState<'active' | 'completed'>('active');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [newBetType, setNewBetType] = useState<SideBetType>('skins');
+  const [newBetName, setNewBetName] = useState('');
+  const [newBetPot, setNewBetPot] = useState('20');
+  const [newBetPerHole, setNewBetPerHole] = useState('5');
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
 
   useEffect(() => {
     if (!currentTrip) {
@@ -51,6 +61,25 @@ export default function BetsPage() {
       return db.sideBets
         .where('tripId')
         .equals(currentTrip.id)
+        .toArray();
+    },
+    [currentTrip?.id],
+    []
+  );
+
+  // Get matches for linking bets to specific matches
+  const matches = useLiveQuery(
+    async () => {
+      if (!currentTrip) return [];
+      const tripSessions = await db.sessions
+        .where('tripId')
+        .equals(currentTrip.id)
+        .toArray();
+      if (tripSessions.length === 0) return [];
+      const sessionIds = tripSessions.map(s => s.id);
+      return db.matches
+        .where('sessionId')
+        .anyOf(sessionIds)
         .toArray();
     },
     [currentTrip?.id],
@@ -79,24 +108,24 @@ export default function BetsPage() {
     }
   };
 
+  const betNames: Record<SideBetType, string> = {
+    skins: 'Skins Game',
+    ctp: 'Closest to Pin',
+    longdrive: 'Long Drive',
+    nassau: 'Nassau',
+    custom: 'Custom Bet',
+  };
+
+  const betDescriptions: Record<SideBetType, string> = {
+    skins: '$5 per hole, carry-overs',
+    ctp: 'Par 3 challenge',
+    longdrive: 'Longest drive wins',
+    nassau: 'Front 9, Back 9, Overall',
+    custom: 'Custom side bet',
+  };
+
   const createQuickBet = async (type: SideBetType) => {
     if (!currentTrip) return;
-
-    const betNames: Record<SideBetType, string> = {
-      skins: 'Skins Game',
-      ctp: 'Closest to Pin',
-      longdrive: 'Long Drive',
-      nassau: 'Nassau',
-      custom: 'Custom Bet',
-    };
-
-    const betDescriptions: Record<SideBetType, string> = {
-      skins: '$5 per hole, carry-overs',
-      ctp: 'Par 3 challenge',
-      longdrive: 'Longest drive wins',
-      nassau: 'Front 9, Back 9, Overall',
-      custom: 'Custom side bet',
-    };
 
     const newBet: SideBet = {
       id: crypto.randomUUID(),
@@ -106,11 +135,63 @@ export default function BetsPage() {
       description: betDescriptions[type],
       status: 'active',
       pot: 20,
+      perHole: type === 'skins' ? 5 : undefined,
       participantIds: players.map(p => p.id),
       createdAt: new Date().toISOString(),
     };
 
     await db.sideBets.add(newBet);
+    showToast('success', `${betNames[type]} created!`);
+  };
+
+  const openCreateModal = () => {
+    setNewBetType('skins');
+    setNewBetName('');
+    setNewBetPot('20');
+    setNewBetPerHole('5');
+    setSelectedMatch(null);
+    setSelectedParticipants(players.map(p => p.id));
+    setShowCreateModal(true);
+  };
+
+  const createCustomBet = async () => {
+    if (!currentTrip) return;
+
+    const name = newBetName.trim() || betNames[newBetType];
+    const participantIds = selectedMatch
+      ? [...selectedMatch.teamAPlayerIds, ...selectedMatch.teamBPlayerIds]
+      : selectedParticipants;
+
+    if (participantIds.length < 2) {
+      showToast('error', 'Need at least 2 participants');
+      return;
+    }
+
+    const newBet: SideBet = {
+      id: crypto.randomUUID(),
+      tripId: currentTrip.id,
+      matchId: selectedMatch?.id,
+      type: newBetType,
+      name,
+      description: selectedMatch
+        ? `Inside game for Match #${selectedMatch.matchNumber}`
+        : betDescriptions[newBetType],
+      status: 'active',
+      pot: parseInt(newBetPot) || 20,
+      perHole: newBetType === 'skins' ? (parseInt(newBetPerHole) || 5) : undefined,
+      participantIds,
+      createdAt: new Date().toISOString(),
+    };
+
+    await db.sideBets.add(newBet);
+    showToast('success', `${name} created!`);
+    setShowCreateModal(false);
+    router.push(`/bets/${newBet.id}`);
+  };
+
+  const getMatchPlayers = (match: Match) => {
+    const allPlayerIds = [...match.teamAPlayerIds, ...match.teamBPlayerIds];
+    return allPlayerIds.map(id => players.find(p => p.id === id)).filter(Boolean) as Player[];
   };
 
   if (!currentTrip) return null;
@@ -151,8 +232,9 @@ export default function BetsPage() {
             </div>
           </div>
           <button
+            onClick={openCreateModal}
             className="btn-premium p-2 rounded-lg"
-            style={{ color: 'var(--color-accent)' }}
+            style={{ color: 'var(--color-accent)', background: 'transparent', border: 'none', cursor: 'pointer' }}
           >
             <Plus size={22} />
           </button>
@@ -272,6 +354,174 @@ export default function BetsPage() {
           <span>More</span>
         </Link>
       </nav>
+
+      {/* Create Bet Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowCreateModal(false)}
+          />
+          <div
+            className="relative w-full max-w-lg bg-background rounded-t-3xl p-6"
+            style={{ maxHeight: '90vh', overflowY: 'auto' }}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="type-title">Create Side Bet</h2>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 rounded-full hover:bg-muted"
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Bet Type Selection */}
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <label className="type-overline" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                Bet Type
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-2)' }}>
+                {(['skins', 'nassau', 'ctp', 'longdrive', 'custom'] as SideBetType[]).map(type => (
+                  <button
+                    key={type}
+                    onClick={() => setNewBetType(type)}
+                    className="p-3 rounded-xl transition-all"
+                    style={{
+                      background: newBetType === type ? 'var(--masters)' : 'var(--surface)',
+                      color: newBetType === type ? 'white' : 'var(--ink)',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div className="flex flex-col items-center gap-1">
+                      {getBetIcon(type)}
+                      <span className="type-micro capitalize">{type === 'ctp' ? 'CTP' : type}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Name */}
+            <div style={{ marginBottom: 'var(--space-4)' }}>
+              <label className="type-overline" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                Name (optional)
+              </label>
+              <input
+                type="text"
+                value={newBetName}
+                onChange={(e) => setNewBetName(e.target.value)}
+                placeholder={betNames[newBetType]}
+                className="w-full p-3 rounded-xl"
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--rule)',
+                  color: 'var(--ink)',
+                }}
+              />
+            </div>
+
+            {/* Pot Amount */}
+            <div style={{ display: 'grid', gridTemplateColumns: newBetType === 'skins' ? '1fr 1fr' : '1fr', gap: 'var(--space-3)', marginBottom: 'var(--space-4)' }}>
+              <div>
+                <label className="type-overline" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                  Total Pot ($)
+                </label>
+                <input
+                  type="number"
+                  value={newBetPot}
+                  onChange={(e) => setNewBetPot(e.target.value)}
+                  className="w-full p-3 rounded-xl"
+                  style={{
+                    background: 'var(--surface)',
+                    border: '1px solid var(--rule)',
+                    color: 'var(--ink)',
+                  }}
+                />
+              </div>
+              {newBetType === 'skins' && (
+                <div>
+                  <label className="type-overline" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                    Per Hole ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={newBetPerHole}
+                    onChange={(e) => setNewBetPerHole(e.target.value)}
+                    className="w-full p-3 rounded-xl"
+                    style={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--rule)',
+                      color: 'var(--ink)',
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Link to Match */}
+            {matches && matches.length > 0 && (
+              <div style={{ marginBottom: 'var(--space-4)' }}>
+                <label className="type-overline" style={{ display: 'block', marginBottom: 'var(--space-2)' }}>
+                  Link to Match (Inside Game)
+                </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+                  <button
+                    onClick={() => setSelectedMatch(null)}
+                    className="p-3 rounded-xl text-left transition-all flex items-center gap-3"
+                    style={{
+                      background: !selectedMatch ? 'var(--masters-light)' : 'var(--surface)',
+                      border: !selectedMatch ? '2px solid var(--masters)' : '1px solid var(--rule)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Users size={18} />
+                    <span className="type-body-sm">Trip-wide (All Players)</span>
+                  </button>
+                  {matches.map(match => {
+                    const matchPlayers = getMatchPlayers(match);
+                    const isSelected = selectedMatch?.id === match.id;
+                    return (
+                      <button
+                        key={match.id}
+                        onClick={() => setSelectedMatch(match)}
+                        className="p-3 rounded-xl text-left transition-all"
+                        style={{
+                          background: isSelected ? 'var(--masters-light)' : 'var(--surface)',
+                          border: isSelected ? '2px solid var(--masters)' : '1px solid var(--rule)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Flag size={18} style={{ color: isSelected ? 'var(--masters)' : 'var(--ink-secondary)' }} />
+                          <div>
+                            <p className="type-body-sm">Match #{match.matchNumber}</p>
+                            <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>
+                              {matchPlayers.map(p => p.lastName).join(', ')}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Create Button */}
+            <button
+              onClick={createCustomBet}
+              className="btn btn-primary w-full"
+              style={{ marginTop: 'var(--space-4)' }}
+            >
+              Create Bet
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -284,6 +534,7 @@ interface BetCardProps {
 }
 
 function BetCard({ bet, icon, getPlayer }: BetCardProps) {
+  const router = useRouter();
   const winner = bet.winnerId ? getPlayer(bet.winnerId) : null;
 
   return (
@@ -297,8 +548,7 @@ function BetCard({ bet, icon, getPlayer }: BetCardProps) {
         cursor: 'pointer',
       }}
       onClick={() => {
-        // TODO: Navigate to bet detail page when implemented
-        console.log('Bet clicked:', bet.id);
+        router.push(`/bets/${bet.id}`);
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-3)' }}>

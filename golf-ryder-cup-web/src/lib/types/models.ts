@@ -449,20 +449,34 @@ export type SideBetStatus = 'active' | 'completed' | 'pending';
 
 /**
  * Side bet for tracking skins, CTP, long drive, nassau, and custom bets.
+ * Can be trip-wide or linked to a specific match.
  */
 export interface SideBet {
     id: UUID;
     tripId: UUID;
+    matchId?: UUID;  // Optional: link bet to specific match for "inside games"
+    sessionId?: UUID; // Optional: link bet to specific session
     type: SideBetType;
     name: string;
     description: string;
     status: SideBetStatus;
     pot?: number;
+    perHole?: number;  // For skins: amount per hole
     winnerId?: UUID;
     hole?: number;
     participantIds: UUID[];
+    results?: SideBetResult[];  // Track hole-by-hole results for skins
     createdAt: ISODateString;
     completedAt?: ISODateString;
+}
+
+/**
+ * Individual result for skins/hole-based bets
+ */
+export interface SideBetResult {
+    holeNumber: number;
+    winnerId?: UUID;  // undefined = carry-over
+    amount: number;
 }
 
 // ============================================
