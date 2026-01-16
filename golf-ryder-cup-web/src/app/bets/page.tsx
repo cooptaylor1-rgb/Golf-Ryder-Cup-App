@@ -174,7 +174,7 @@ export default function BetsPage() {
       type: newBetType,
       name,
       description: selectedMatch
-        ? `Inside game for Match #${selectedMatch.matchNumber}`
+        ? `Inside game for Match #${selectedMatch.matchOrder}`
         : betDescriptions[newBetType],
       status: 'active',
       pot: parseInt(newBetPot) || 20,
@@ -498,7 +498,7 @@ export default function BetsPage() {
                         <div className="flex items-center gap-3">
                           <Flag size={18} style={{ color: isSelected ? 'var(--masters)' : 'var(--ink-secondary)' }} />
                           <div>
-                            <p className="type-body-sm">Match #{match.matchNumber}</p>
+                            <p className="type-body-sm">Match #{match.matchOrder}</p>
                             <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>
                               {matchPlayers.map(p => p.lastName).join(', ')}
                             </p>

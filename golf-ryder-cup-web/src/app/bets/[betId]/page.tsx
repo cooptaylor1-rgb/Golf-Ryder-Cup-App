@@ -81,14 +81,14 @@ export default function BetDetailPage() {
     const handleRecordHoleWinner = async (holeNumber: number, winnerId: string | null) => {
         if (!bet) return;
 
-        const results = bet.results || [];
-        const existingIndex = results.findIndex(r => r.holeNumber === holeNumber);
+        const results: SideBetResult[] = bet.results || [];
+        const existingIndex = results.findIndex((r: SideBetResult) => r.holeNumber === holeNumber);
         const perHole = bet.perHole || 5;
 
         // Calculate carry-over
         let carryOver = 0;
         for (let i = 1; i < holeNumber; i++) {
-            const prevResult = results.find(r => r.holeNumber === i);
+            const prevResult = results.find((r: SideBetResult) => r.holeNumber === i);
             if (!prevResult || !prevResult.winnerId) {
                 carryOver += perHole;
             }
@@ -257,7 +257,7 @@ export default function BetDetailPage() {
                             <Flag size={20} style={{ color: 'var(--masters)' }} />
                             <div className="flex-1">
                                 <p className="type-caption" style={{ color: 'var(--ink-tertiary)' }}>Linked to Match</p>
-                                <p className="type-body-sm">Match #{linkedMatch.matchNumber}</p>
+                                <p className="type-body-sm">Match #{linkedMatch.matchOrder}</p>
                             </div>
                             <Link
                                 href={`/score/${linkedMatch.id}`}
