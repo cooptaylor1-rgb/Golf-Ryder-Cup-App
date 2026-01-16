@@ -15,7 +15,7 @@
 import { useUIStore } from '@/lib/stores';
 import { cn } from '@/lib/utils';
 import { X, Check, AlertCircle, Info, AlertTriangle } from 'lucide-react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 interface ToastItemProps {
   type: 'success' | 'error' | 'info' | 'warning';
@@ -40,7 +40,8 @@ function ToastProgress({
   onComplete: () => void;
 }) {
   const [progress, setProgress] = useState(100);
-  const startTimeRef = useRef(Date.now());
+  const initialTime = useMemo(() => Date.now(), []);
+  const startTimeRef = useRef(initialTime);
   const remainingRef = useRef(duration);
 
   useEffect(() => {
