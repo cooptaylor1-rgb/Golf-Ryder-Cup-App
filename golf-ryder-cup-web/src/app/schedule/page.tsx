@@ -282,9 +282,8 @@ export default function SchedulePage() {
         <div className="flex gap-2">
           <button
             onClick={() => setSelectedTab('my')}
-            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-              selectedTab === 'my' ? 'text-white' : ''
-            }`}
+            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${selectedTab === 'my' ? 'text-white' : ''
+              }`}
             style={{
               background: selectedTab === 'my' ? 'var(--masters)' : 'var(--surface)',
               border: selectedTab === 'my' ? 'none' : '1px solid var(--rule)',
@@ -295,9 +294,8 @@ export default function SchedulePage() {
           </button>
           <button
             onClick={() => setSelectedTab('all')}
-            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-              selectedTab === 'all' ? 'text-white' : ''
-            }`}
+            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${selectedTab === 'all' ? 'text-white' : ''
+              }`}
             style={{
               background: selectedTab === 'all' ? 'var(--masters)' : 'var(--surface)',
               border: selectedTab === 'all' ? 'none' : '1px solid var(--rule)',
@@ -342,12 +340,20 @@ export default function SchedulePage() {
 
         {/* No Matches for User */}
         {selectedTab === 'my' && currentUserPlayer && !hasUserSchedule && (
-          <div className="text-center py-16">
+          <div className="text-center py-12">
             <Calendar size={48} className="mx-auto mb-4 opacity-30" />
-            <p className="type-title-sm">No tee times scheduled</p>
-            <p className="type-caption mt-2">
-              You haven't been assigned to any matches yet.
+            <p className="type-title-sm">No tee times yet</p>
+            <p className="type-caption mt-2 max-w-xs mx-auto">
+              You haven&apos;t been assigned to any matches. Check the &quot;Full Schedule&quot; tab or ask your captain.
             </p>
+            <button
+              onClick={() => setSelectedTab('all')}
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all"
+              style={{ background: 'var(--masters)', color: 'white' }}
+            >
+              <Calendar size={16} />
+              View Full Schedule
+            </button>
           </div>
         )}
 
@@ -464,13 +470,13 @@ function ScheduleEntryCard({ entry, onPress }: ScheduleEntryCardProps) {
         background: isSession
           ? 'var(--masters-subtle, rgba(0, 103, 68, 0.1))'
           : isUserMatch
-          ? 'rgba(212, 175, 55, 0.1)'
-          : 'var(--surface)',
+            ? 'rgba(212, 175, 55, 0.1)'
+            : 'var(--surface)',
         border: isSession
           ? '1px solid var(--masters-glow)'
           : isUserMatch
-          ? '1px solid rgba(212, 175, 55, 0.3)'
-          : '1px solid var(--rule)',
+            ? '1px solid rgba(212, 175, 55, 0.3)'
+            : '1px solid var(--rule)',
       }}
     >
       <div className="flex items-start gap-3">
