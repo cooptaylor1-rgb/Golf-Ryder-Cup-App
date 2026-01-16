@@ -197,7 +197,7 @@ export function CaptainDashboard({
             {activeSessions.map((session) => (
               <Link
                 key={session.id}
-                href={`/trip/${tripId}/session/${session.id}`}
+                href={`/lineup/${session.id}`}
                 className="block p-3 rounded-xl bg-white/10 backdrop-blur-sm"
               >
                 <div className="flex items-center justify-between">
@@ -677,11 +677,7 @@ function SessionsOverview({ sessions, tripId, onCreateSession }: SessionsOvervie
             return (
               <Link
                 key={session.id}
-                href={
-                  session.status === 'needs_lineup'
-                    ? `/lineup/${session.id}`
-                    : `/trip/${tripId}/session/${session.id}`
-                }
+                href={`/lineup/${session.id}`}
                 className="flex items-center gap-3 p-3 rounded-xl transition-colors"
                 style={{ background: 'var(--surface-raised)' }}
               >

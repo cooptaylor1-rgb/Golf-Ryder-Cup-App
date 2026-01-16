@@ -89,12 +89,27 @@ export default function PlayersPage() {
             return;
         }
 
+        // Validate handicap range (-10 to 54 per USGA rules)
+        if (formData.handicapIndex) {
+            const handicap = parseFloat(formData.handicapIndex);
+            if (isNaN(handicap) || handicap < -10 || handicap > 54) {
+                showToast('error', 'Handicap must be between -10 and 54');
+                return;
+            }
+        }
+
+        // Validate email format if provided
+        if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            showToast('error', 'Please enter a valid email address');
+            return;
+        }
+
         try {
             const playerData = {
-                firstName: formData.firstName,
-                lastName: formData.lastName,
+                firstName: formData.firstName.trim(),
+                lastName: formData.lastName.trim(),
                 handicapIndex: formData.handicapIndex ? parseFloat(formData.handicapIndex) : undefined,
-                email: formData.email || undefined,
+                email: formData.email?.trim() || undefined,
             };
 
             if (editingPlayer) {
@@ -154,6 +169,17 @@ export default function PlayersPage() {
         if (validRows.length === 0) {
             showToast('error', 'Add at least one player with first and last name');
             return;
+        }
+
+        // Validate all handicaps before saving
+        for (const row of validRows) {
+            if (row.handicapIndex) {
+                const handicap = parseFloat(row.handicapIndex);
+                if (isNaN(handicap) || handicap < -10 || handicap > 54) {
+                    showToast('error', `Invalid handicap for ${row.firstName} ${row.lastName}. Must be -10 to 54.`);
+                    return;
+                }
+            }
         }
 
         try {

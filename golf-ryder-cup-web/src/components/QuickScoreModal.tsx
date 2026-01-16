@@ -14,13 +14,13 @@
  * - Auto-advances to next hole
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Minus, ChevronLeft, ChevronRight, Trophy, Users } from 'lucide-react';
+import { X, Check, Minus, ChevronLeft, ChevronRight, Trophy, Users, AlertCircle } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useTripStore, useScoringStore } from '@/lib/stores';
-import { calculateMatchState } from '@/lib/services/scoringEngine';
+import { calculateMatchState, recordHoleResult } from '@/lib/services/scoringEngine';
 import { useHaptic } from '@/lib/hooks/useHaptic';
 import type { Match, Player, HoleResult, HoleWinner } from '@/lib/types/models';
 import type { MatchState } from '@/lib/types/computed';
@@ -37,6 +37,10 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
     const [currentHole, setCurrentHole] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Mutex to prevent race conditions with rapid scoring
+    const scoringLock = useRef<Promise<void> | null>(null);
 
     // Get match data
     const match = useLiveQuery(
@@ -92,46 +96,61 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
     // Get result for current hole
     const currentResult = holeResults.find(r => r.holeNumber === currentHole);
 
-    // Handle score entry
+    // Handle score entry - uses scoring engine for consistency
     const handleScore = async (winner: HoleWinner) => {
         if (!match || isSubmitting) return;
 
+        // Wait for any in-progress scoring to complete (prevents race conditions)
+        if (scoringLock.current) {
+            await scoringLock.current;
+        }
+
         setIsSubmitting(true);
+        setError(null);
         trigger('medium');
 
-        try {
-            const existingResult = holeResults.find(r => r.holeNumber === currentHole);
-
-            const holeResult: HoleResult = {
-                id: existingResult?.id || crypto.randomUUID(),
-                matchId: match.id,
-                holeNumber: currentHole,
-                winner,
-                timestamp: new Date().toISOString(),
-                teamAStrokes: winner === 'teamA' ? 1 : winner === 'teamB' ? 2 : 1,
-                teamBStrokes: winner === 'teamB' ? 1 : winner === 'teamA' ? 2 : 1,
-            };
-
-            await db.holeResults.put(holeResult);
-
-            // Show success feedback
-            setShowSuccess(true);
-            trigger('success');
-
-            // Auto-advance to next hole after brief delay
-            setTimeout(() => {
-                setShowSuccess(false);
-                if (currentHole < 18) {
-                    setCurrentHole(prev => prev + 1);
+        const scoreOperation = async () => {
+            try {
+                // Check if session is locked before scoring
+                const session = await db.sessions.get(match.sessionId);
+                if (session?.isLocked) {
+                    throw new Error('Session is finalized. Unlock to make changes.');
                 }
-            }, 600);
 
-        } catch (error) {
-            console.error('Failed to save score:', error);
-            trigger('error');
-        } finally {
-            setIsSubmitting(false);
-        }
+                // Use the scoring engine for proper event sourcing and atomic writes
+                await recordHoleResult(
+                    match.id,
+                    currentHole,
+                    winner,
+                    undefined, // teamAScore - not needed for match play winner
+                    undefined  // teamBScore - not needed for match play winner
+                );
+
+                // Show success feedback
+                setShowSuccess(true);
+                trigger('success');
+
+                // Auto-advance to next hole after brief delay
+                setTimeout(() => {
+                    setShowSuccess(false);
+                    if (currentHole < 18) {
+                        setCurrentHole(prev => prev + 1);
+                    }
+                }, 600);
+
+            } catch (err) {
+                console.error('Failed to save score:', err);
+                setError(err instanceof Error ? err.message : 'Failed to save score');
+                trigger('error');
+            } finally {
+                setIsSubmitting(false);
+            }
+        };
+
+        // Set the lock and execute
+        scoringLock.current = scoreOperation();
+        await scoringLock.current;
+        scoringLock.current = null;
     };
 
     // Format player names
@@ -185,6 +204,21 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                                 <X size={24} strokeWidth={2} />
                             </button>
                         </div>
+
+                        {/* Error Message */}
+                        {error && (
+                            <div className="mx-5 mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
+                                <AlertCircle size={20} className="text-red-500 flex-shrink-0" />
+                                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                                <button
+                                    onClick={() => setError(null)}
+                                    className="ml-auto p-1 hover:bg-red-500/10 rounded-full"
+                                    aria-label="Dismiss error"
+                                >
+                                    <X size={16} className="text-red-500" />
+                                </button>
+                            </div>
+                        )}
 
                         {/* Hole Navigator */}
                         <div className="px-5 py-5 flex items-center justify-center gap-6">

@@ -64,6 +64,27 @@ export default function NewTripPage() {
             showToast('error', 'Please enter a trip name');
             return;
         }
+
+        // Validate start date is not in the past (allow today)
+        const selectedDate = new Date(startDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        selectedDate.setHours(0, 0, 0, 0);
+        if (selectedDate < today) {
+            showToast('error', 'Start date cannot be in the past');
+            return;
+        }
+
+        // Validate team names are provided and different
+        if (!teamAName.trim() || !teamBName.trim()) {
+            showToast('error', 'Both team names are required');
+            return;
+        }
+        if (teamAName.trim().toLowerCase() === teamBName.trim().toLowerCase()) {
+            showToast('error', 'Team names must be different');
+            return;
+        }
+
         setStep('preview');
     };
 

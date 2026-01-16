@@ -98,6 +98,9 @@ export default function LivePage() {
     return matchStates.get(matchId);
   };
 
+  // Check if matches are still loading
+  const isLoadingMatches = matches === undefined;
+
   if (!currentTrip) return null;
 
   return (
@@ -168,7 +171,13 @@ export default function LivePage() {
         )}
 
         {/* Matches Grid */}
-        {matches && matches.length > 0 ? (
+        {isLoadingMatches ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-40 rounded-xl bg-muted/50" />
+            ))}
+          </div>
+        ) : matches && matches.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {matches.map((match) => {
               const state = getMatchState(match.id);
@@ -182,7 +191,7 @@ export default function LivePage() {
               );
             })}
           </div>
-        ) : (
+        ) : !isLoadingMatches && (
           <div className="text-center py-20 text-muted-foreground">
             <Tv size={48} className="mx-auto mb-4 opacity-50" />
             <p className="text-xl">No live matches</p>
