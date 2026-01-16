@@ -50,27 +50,33 @@ interface RequestBody {
   provider?: 'claude' | 'openai' | 'auto'; // AI provider preference
 }
 
-const EXTRACTION_PROMPT = `You are an expert golf scorecard data extractor. Carefully analyze this scorecard image and extract ALL data visible.
+const EXTRACTION_PROMPT = `You are an expert golf scorecard data extractor. Your job is to extract EVERY piece of data visible on this scorecard image.
 
-CRITICAL: Golf scorecards show:
-- FRONT 9 (holes 1-9) and BACK 9 (holes 10-18) - extract ALL 18 holes
-- Multiple tee boxes shown as rows (e.g., Black, Blue/Green, White, Gold/Yellow, Red)
-- Each tee has different yardages per hole
-- PAR row shows par for each hole (3, 4, or 5)
-- HANDICAP/HCP row shows hole difficulty ranking (1-18, 1 is hardest)
-- Some cards show Men's Handicap (M HCP) and Women's Handicap (W HCP) separately
+SCORECARD LAYOUT - Look for these sections:
+1. HOLE NUMBERS: Row showing 1-9 (Front) and 10-18 (Back), usually at top
+2. TEE BOXES: Multiple rows of yardages, each row is a different tee (Black, Blue, White, Gold, Red, etc.)
+3. PAR: Row showing par for each hole (values: 3, 4, or 5)
+4. HANDICAP/HCP: Row showing difficulty ranking 1-18 (1=hardest, 18=easiest)
+5. TOTALS: "OUT" (front 9 total), "IN" (back 9 total), "TOTAL" (all 18)
+6. RATINGS: Course rating (e.g., 72.4) and Slope (e.g., 128) - often near tee names
 
-Look at the ENTIRE image. Scorecards often split into two sections:
-- "OUT" = Front 9 totals (holes 1-9)
-- "IN" = Back 9 totals (holes 10-18)
-- "TOTAL" = Full 18
+IMPORTANT: The scorecard likely shows BOTH front 9 and back 9:
+- Front 9: Holes 1-9, ends with "OUT" total
+- Back 9: Holes 10-18, ends with "IN" total
+- These may be side-by-side OR stacked vertically
 
-Return this EXACT JSON format:
+TEE SET IDENTIFICATION:
+- Look for colored boxes/circles next to row labels (Black, Blue, White, Gold, Red)
+- Or text labels like "Championship", "Men's", "Ladies", "Forward"
+- Each tee row has 18 yardages PLUS rating/slope info
+
+Extract and return this JSON:
 {
-  "courseName": "string or null",
+  "courseName": "Name of the golf course if visible",
   "holes": [
-    {"par": 4, "handicap": 7, "yardage": 430},
-    ... (EXACTLY 18 holes in order 1-18)
+    {"par": 4, "handicap": 7, "yardage": 385},
+    {"par": 3, "handicap": 15, "yardage": 165},
+    ... continue for ALL 18 holes in order
   ],
   "teeSets": [
     {
@@ -78,43 +84,51 @@ Return this EXACT JSON format:
       "color": "black",
       "rating": 74.2,
       "slope": 138,
-      "yardages": [430, 210, 601, ...] (18 yardages for this tee)
+      "yardages": [385, 165, 520, 410, 195, 545, 340, 180, 430, 395, 155, 510, 425, 185, 560, 365, 170, 445]
     },
-    ... (ALL tee sets visible - usually 4-6 different tees)
+    {
+      "name": "Blue",
+      "color": "blue",
+      "rating": 72.1,
+      "slope": 131,
+      "yardages": [365, 150, 495, 385, 175, 520, 320, 165, 410, 375, 140, 485, 400, 170, 535, 345, 155, 420]
+    },
+    ... include ALL tee sets visible (typically 4-6 tees)
   ]
 }
 
-RULES:
-1. Return EXACTLY 18 holes - both front and back 9
-2. Par must be 3, 4, or 5
-3. Handicap is 1-18 (each number used once, 1=hardest hole)
-4. Extract ALL tee sets (rows of yardages with different colors/names)
-5. Yardages range from ~100 (short par 3) to ~600+ (long par 5)
-6. If rating/slope shown, include them (rating ~67-77, slope ~100-155)
+CRITICAL RULES:
+1. MUST return exactly 18 holes - scan the ENTIRE image for both front and back 9
+2. MUST include ALL tee sets visible - don't skip any rows of yardages
+3. Each tee set MUST have exactly 18 yardages (one per hole)
+4. Par values: only 3, 4, or 5
+5. Handicap: 1-18, each number used exactly once
+6. If rating/slope is shown near a tee name, include it
+7. Yardages typically: Par 3 = 100-250, Par 4 = 280-470, Par 5 = 450-650
 
-Return ONLY valid JSON, no explanation.`;
+Return ONLY the JSON object, no other text.`;
 
-const MULTI_IMAGE_PROMPT = `You are an expert golf scorecard data extractor. You are being given MULTIPLE images of the same scorecard (front and back, or different sections).
+const MULTI_IMAGE_PROMPT = `You are an expert golf scorecard data extractor. You have MULTIPLE images of the same scorecard.
 
-Combine ALL information from ALL images to build a complete picture:
-- One image may show hole-by-hole data (par, yardages, handicaps)
-- Another image may show course rating, slope, and tee information
-- Look for: Course name, all tee sets, ratings, slopes, yardages per hole
+TASK: Combine ALL information from ALL images to build a COMPLETE dataset:
+- Image 1 might show: Front 9 hole data (holes 1-9)
+- Image 2 might show: Back 9 hole data (holes 10-18)
+- Another image might show: Course ratings, slopes, tee information
 
-CRITICAL: Golf scorecards show:
-- FRONT 9 (holes 1-9) and BACK 9 (holes 10-18) - extract ALL 18 holes
-- Multiple tee boxes shown as rows (e.g., Black, Blue/Green, White, Gold/Yellow, Red)
-- Each tee has different yardages per hole
-- PAR row shows par for each hole (3, 4, or 5)
-- HANDICAP/HCP row shows hole difficulty ranking (1-18, 1 is hardest)
-- Rating/Slope info is often on the back or in a separate section
+SCORECARD ELEMENTS TO FIND:
+1. Course Name (usually at top)
+2. TEE BOXES: Multiple rows of yardages - Black, Blue, White, Gold, Red, etc.
+3. PAR: Row showing 3, 4, or 5 for each hole
+4. HANDICAP: Difficulty ranking 1-18 for each hole
+5. RATINGS & SLOPES: Near tee names, e.g., "72.4/128"
 
-Return this EXACT JSON format:
+From ALL images combined, extract:
 {
-  "courseName": "string or null",
+  "courseName": "Full course name",
   "holes": [
-    {"par": 4, "handicap": 7, "yardage": 430},
-    ... (EXACTLY 18 holes in order 1-18)
+    {"par": 4, "handicap": 7, "yardage": 385},
+    {"par": 3, "handicap": 15, "yardage": 165},
+    ... ALL 18 holes in order
   ],
   "teeSets": [
     {
@@ -122,24 +136,23 @@ Return this EXACT JSON format:
       "color": "black",
       "rating": 74.2,
       "slope": 138,
-      "yardages": [430, 210, 601, ...] (18 yardages for this tee)
+      "yardages": [18 yardages, one per hole]
     },
-    ... (ALL tee sets visible - usually 4-6 different tees)
+    ... ALL tee sets from ALL images
   ]
 }
 
-RULES:
-1. Return EXACTLY 18 holes - combine front and back 9 from all images
-2. Par must be 3, 4, or 5
-3. Handicap is 1-18 (each number used once, 1=hardest hole)
-4. Extract ALL tee sets with their ratings and slopes
-5. Yardages range from ~100 (short par 3) to ~600+ (long par 5)
-6. Rating is typically 67-77, Slope is typically 100-155
-7. Merge data from all images - don't miss any tee sets or ratings
+CRITICAL:
+1. Return EXACTLY 18 holes by combining data from all images
+2. Include EVERY tee set visible across all images
+3. Each tee needs 18 yardages AND rating/slope if visible
+4. Don't duplicate - merge intelligently
 
-Return ONLY valid JSON, no explanation.`;
+Return ONLY the JSON object.`;
 
 export async function POST(request: NextRequest) {
+  console.log('[OCR] Received scorecard scan request');
+
   try {
     const body: RequestBody = await request.json();
 
@@ -149,9 +162,11 @@ export async function POST(request: NextRequest) {
     if (body.images && body.images.length > 0) {
       // Multiple images provided
       images.push(...body.images);
+      console.log(`[OCR] Processing ${images.length} images`);
     } else if (body.image) {
       // Single image (backward compatible)
       images.push({ image: body.image, mimeType: body.mimeType || 'image/jpeg' });
+      console.log('[OCR] Processing single image');
     }
 
     if (images.length === 0) {
@@ -209,16 +224,30 @@ export async function POST(request: NextRequest) {
     }
 
     if (!result) {
+      console.error('[OCR] All extraction attempts failed');
       return NextResponse.json({ error: 'Failed to extract scorecard data' }, { status: 500 });
     }
 
     // Validate and clean the data
     const cleanedData = validateAndCleanData(result);
 
+    console.log('[OCR] Final cleaned data:', {
+      courseName: cleanedData.courseName,
+      holesExtracted: cleanedData.holes?.length || 0,
+      teeSetsExtracted: cleanedData.teeSets?.length || 0,
+      teeNames: cleanedData.teeSets?.map(t => `${t.name} (${t.rating}/${t.slope})`),
+    });
+
     return NextResponse.json({
       success: true,
       data: cleanedData,
       provider: usedProvider,
+      extractionStats: {
+        holesExtracted: cleanedData.holes?.length || 0,
+        teeSetsExtracted: cleanedData.teeSets?.length || 0,
+        hasRatings: cleanedData.teeSets?.some(t => t.rating) || false,
+        hasSlopes: cleanedData.teeSets?.some(t => t.slope) || false,
+      },
     });
   } catch (error) {
     console.error('Scorecard OCR error:', error);
@@ -269,22 +298,39 @@ async function extractWithClaude(
     });
 
     if (!response.ok) {
-      console.error('Claude API error:', await response.text());
+      const errorText = await response.text();
+      console.error('[OCR] Claude API error:', errorText);
       return null;
     }
 
     const data = await response.json();
     const content = data.content?.[0]?.text;
 
-    if (!content) return null;
+    if (!content) {
+      console.error('[OCR] Claude returned no content');
+      return null;
+    }
+
+    console.log('[OCR] Claude raw response length:', content.length);
 
     // Parse JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
+    if (!jsonMatch) {
+      console.error('[OCR] Could not extract JSON from Claude response:', content.slice(0, 500));
+      return null;
+    }
 
-    return JSON.parse(jsonMatch[0]);
+    const parsed = JSON.parse(jsonMatch[0]);
+    console.log('[OCR] Extracted data:', {
+      courseName: parsed.courseName,
+      holesCount: parsed.holes?.length,
+      teeSetsCount: parsed.teeSets?.length,
+      teeSetNames: parsed.teeSets?.map((t: TeeSetData) => t.name),
+    });
+
+    return parsed;
   } catch (error) {
-    console.error('Claude extraction error:', error);
+    console.error('[OCR] Claude extraction error:', error);
     return null;
   }
 }
