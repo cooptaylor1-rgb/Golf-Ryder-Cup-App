@@ -423,22 +423,25 @@ OR: Score Tab → "Your Match" auto-selected
 | Captain Quick Actions Reorder | Low | Medium | P1 | ✅ DONE |
 | Smart Session Defaults | Low | Medium | P1 | ✅ DONE |
 | Schedule Empty State | Low | Medium | P1 | ✅ DONE |
-| Join Trip Flow | Medium | Critical | P2 | 📋 TODO |
-| Bulk Player Add | Medium | High | P2 | 📋 TODO |
+| Join Trip Flow | Medium | Critical | P2 | ✅ DONE |
+| Bulk Player Add | Medium | High | P2 | ✅ DONE |
 
 ---
 
 ## Changes Implemented (2026-01-16)
 
 ### 1. Quick Profile Mode ✅
+
 **File:** `/profile/create/page.tsx`
 
 **Before:**
+
 - 14 required fields across 3 steps
 - Handicap was required, blocking completion
 - No way to skip to end
 
 **After:**
+
 - Step 1 only: Name + Email (3 fields) - required
 - Steps 2-3: All fields optional with "Skip for now" link
 - Handicap validation removed (optional)
@@ -449,15 +452,18 @@ OR: Score Tab → "Your Match" auto-selected
 ---
 
 ### 2. Captain Quick Actions Reorder ✅
+
 **File:** `/captain/page.tsx`
 
 **Before (Setup-focused order):**
+
 1. Create Lineup
 2. Manage Trip
-3. Pre-Flight Checklist  
+3. Pre-Flight Checklist
 4. Messages
 
 **After (Day-of priority order):**
+
 1. **Attendance** — First thing captains need when players arrive
 2. **Create Lineup** — Build pairings
 3. **Quick Swap** — Handle last-minute changes (renamed from "Manage Trip")
@@ -468,14 +474,17 @@ OR: Score Tab → "Your Match" auto-selected
 ---
 
 ### 3. Smart Session Defaults ✅
+
 **File:** `/lineup/new/page.tsx`
 
 **Before:**
+
 - Session name: Empty (required manual entry)
 - Date: Empty (required selection)
 - Couldn't proceed without filling fields
 
 **After:**
+
 - Session name: Auto-generated "Day 1 AM", "Day 1 PM", etc.
 - Date: Pre-filled with trip start date or today
 - Can proceed immediately with smart defaults
@@ -485,9 +494,11 @@ OR: Score Tab → "Your Match" auto-selected
 ---
 
 ### 4. Schedule Empty State Improvement ✅
+
 **File:** `/schedule/page.tsx`
 
 **Before:**
+
 ```
 "No tee times scheduled"
 "You haven't been assigned to any matches yet."
@@ -495,9 +506,10 @@ OR: Score Tab → "Your Match" auto-selected
 ```
 
 **After:**
+
 ```
 "No tee times yet"
-"You haven't been assigned to any matches. 
+"You haven't been assigned to any matches.
  Check the 'Full Schedule' tab or ask your captain."
 [View Full Schedule] button
 ```
@@ -506,11 +518,62 @@ OR: Score Tab → "Your Match" auto-selected
 
 ---
 
+### 5. Join Trip Flow ✅
+
+**Files:** 
+- `/components/ui/EmptyStatePremium.tsx`
+- `/src/app/page.tsx`
+
+**Before:**
+
+- Empty state only showed "Create Your First Trip"
+- Participants had no way to join an existing trip
+- JoinTripModal existed but was unused
+
+**After:**
+
+- `NoTournamentsEmpty` now accepts `onJoinTrip` callback
+- "Join a Trip" secondary button appears below primary action
+- Hint text updated: "Got an invite code? Tap 'Join a Trip'"
+- Home page wired up with `JoinTripModal` state
+
+**Flow:**
+```
+App Launch → Empty State → "Join a Trip" → Enter 6-char code → Trip loads
+```
+
+**UX Impact:** Participants can now join trips in 2 taps + code entry
+
+---
+
+### 6. Bulk Player Add ✅
+
+**File:** `/src/app/players/page.tsx`
+
+**Before:**
+
+- Only single-player add modal
+- Adding 8 players = open modal 8 times
+- ~2 minutes for full roster
+
+**After:**
+
+- "Bulk" button next to "Add" in header (captain mode)
+- Spreadsheet-style grid with 4 rows by default
+- Columns: First Name, Last Name, Handicap (optional), Team
+- "Add another row" button to extend
+- Live counter: "Add 4 Players" showing valid entries
+- Single save action for all players
+
+**UX Impact:** Adding 8 players reduced from ~2 min → ~30 seconds
+
+---
+
 ## Next Steps
 
 1. ✅ Document current flows (this doc)
 2. ✅ Implement P0-P1 changes
-3. 📋 Implement P2 changes (Join Trip Flow, Bulk Player Add)
+3. ✅ Implement P2 changes (Join Trip Flow, Bulk Player Add)
 4. 📋 User testing with both personas
 5. 📋 Iterate based on feedback
 
@@ -524,4 +587,6 @@ OR: Score Tab → "Your Match" auto-selected
 | `src/app/captain/page.tsx` | Quick actions reorder |
 | `src/app/lineup/new/page.tsx` | Smart session defaults |
 | `src/app/schedule/page.tsx` | Better empty state |
-
+| `src/components/ui/EmptyStatePremium.tsx` | Join Trip option in NoTournamentsEmpty |
+| `src/app/page.tsx` | JoinTripModal integration |
+| `src/app/players/page.tsx` | Bulk player add mode |
