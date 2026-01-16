@@ -133,7 +133,7 @@ export type ScheduleItemType = 'teeTime' | 'meal' | 'activity' | 'travel' | 'eve
 /**
  * Banter post types
  */
-export type BanterPostType = 'message' | 'result' | 'lineup' | 'system';
+export type BanterPostType = 'message' | 'result' | 'lineup' | 'system' | 'prediction' | 'cart' | 'cart_sighting';
 
 // ============================================
 // TRIP

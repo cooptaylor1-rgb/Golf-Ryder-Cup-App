@@ -6,9 +6,11 @@ import { NextRequest, NextResponse } from 'next/server';
  * Accepts an image (base64 encoded) of a golf scorecard and uses
  * AI vision to extract hole data (par, handicap, yardage).
  *
- * Uses OpenAI's GPT-4 Vision API to analyze the scorecard.
+ * Supports multiple AI providers:
+ * 1. Anthropic Claude (preferred - best accuracy for tables)
+ * 2. OpenAI GPT-4o (fallback)
  *
- * Note: PDF files are not directly supported by OpenAI Vision.
+ * Note: PDF files are not directly supported.
  * For PDFs, users should convert to image or use image capture.
  */
 
@@ -38,7 +40,52 @@ interface ScorecardData {
 interface RequestBody {
   image: string; // Base64 encoded image data
   mimeType: string; // image/jpeg, image/png, etc.
+  provider?: 'claude' | 'openai' | 'auto'; // AI provider preference
 }
+
+const EXTRACTION_PROMPT = `You are an expert golf scorecard data extractor. Carefully analyze this scorecard image and extract ALL data visible.
+
+CRITICAL: Golf scorecards show:
+- FRONT 9 (holes 1-9) and BACK 9 (holes 10-18) - extract ALL 18 holes
+- Multiple tee boxes shown as rows (e.g., Black, Blue/Green, White, Gold/Yellow, Red)
+- Each tee has different yardages per hole
+- PAR row shows par for each hole (3, 4, or 5)
+- HANDICAP/HCP row shows hole difficulty ranking (1-18, 1 is hardest)
+- Some cards show Men's Handicap (M HCP) and Women's Handicap (W HCP) separately
+
+Look at the ENTIRE image. Scorecards often split into two sections:
+- "OUT" = Front 9 totals (holes 1-9)
+- "IN" = Back 9 totals (holes 10-18)
+- "TOTAL" = Full 18
+
+Return this EXACT JSON format:
+{
+  "courseName": "string or null",
+  "holes": [
+    {"par": 4, "handicap": 7, "yardage": 430},
+    ... (EXACTLY 18 holes in order 1-18)
+  ],
+  "teeSets": [
+    {
+      "name": "Black",
+      "color": "black",
+      "rating": 74.2,
+      "slope": 138,
+      "yardages": [430, 210, 601, ...] (18 yardages for this tee)
+    },
+    ... (ALL tee sets visible - usually 4-6 different tees)
+  ]
+}
+
+RULES:
+1. Return EXACTLY 18 holes - both front and back 9
+2. Par must be 3, 4, or 5
+3. Handicap is 1-18 (each number used once, 1=hardest hole)
+4. Extract ALL tee sets (rows of yardages with different colors/names)
+5. Yardages range from ~100 (short par 3) to ~600+ (long par 5)
+6. If rating/slope shown, include them (rating ~67-77, slope ~100-155)
+
+Return ONLY valid JSON, no explanation.`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,98 +95,157 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
     }
 
-    // Check if PDF - OpenAI Vision doesn't support PDFs directly
+    // Check if PDF
     if (body.mimeType === 'application/pdf') {
       return NextResponse.json(
         {
-          error: 'PDF files are not supported directly. Please take a photo of your scorecard or convert the PDF to an image first.',
-          suggestion: 'Try using your phone camera to capture the scorecard, or screenshot the PDF.'
+          error: 'PDF files are not supported. Please take a photo or convert to image.',
+          suggestion: 'Try using your phone camera to capture the scorecard.',
         },
         { status: 400 }
       );
     }
 
-    // Check for OpenAI API key
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      // Return mock data for demo/development
-      console.log('No OpenAI API key configured, returning sample data');
+    // Determine which AI provider to use
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const preferredProvider = body.provider || 'auto';
+
+    let result: ScorecardData | null = null;
+    let usedProvider = '';
+
+    // Try Claude first (better at structured data extraction)
+    if ((preferredProvider === 'claude' || preferredProvider === 'auto') && anthropicKey) {
+      result = await extractWithClaude(body.image, body.mimeType, anthropicKey);
+      usedProvider = 'claude';
+    }
+
+    // Fall back to OpenAI if Claude fails or not available
+    if (!result && openaiKey) {
+      result = await extractWithOpenAI(body.image, body.mimeType, openaiKey);
+      usedProvider = 'openai';
+    }
+
+    // No API keys configured - return demo data
+    if (!result && !anthropicKey && !openaiKey) {
+      console.log('No AI API keys configured, returning sample data');
       return NextResponse.json({
         success: true,
         data: getMockScorecardData(),
-        message: 'Demo mode: Configure OPENAI_API_KEY for real OCR',
+        message: 'Demo mode: Configure ANTHROPIC_API_KEY or OPENAI_API_KEY for real OCR',
+        provider: 'demo',
       });
     }
 
-    // Prepare the image URL for OpenAI
-    const imageUrl = `data:${body.mimeType};base64,${body.image}`;
+    if (!result) {
+      return NextResponse.json({ error: 'Failed to extract scorecard data' }, { status: 500 });
+    }
 
-    // Call OpenAI Vision API with improved prompt
+    // Validate and clean the data
+    const cleanedData = validateAndCleanData(result);
+
+    return NextResponse.json({
+      success: true,
+      data: cleanedData,
+      provider: usedProvider,
+    });
+  } catch (error) {
+    console.error('Scorecard OCR error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// Extract using Anthropic Claude (better for tables/structured data)
+async function extractWithClaude(
+  imageBase64: string,
+  mimeType: string,
+  apiKey: string
+): Promise<ScorecardData | null> {
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: mimeType,
+                  data: imageBase64,
+                },
+              },
+              {
+                type: 'text',
+                text: EXTRACTION_PROMPT,
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Claude API error:', await response.text());
+      return null;
+    }
+
+    const data = await response.json();
+    const content = data.content?.[0]?.text;
+
+    if (!content) return null;
+
+    // Parse JSON from response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+
+    return JSON.parse(jsonMatch[0]);
+  } catch (error) {
+    console.error('Claude extraction error:', error);
+    return null;
+  }
+}
+
+// Extract using OpenAI GPT-4o Vision
+async function extractWithOpenAI(
+  imageBase64: string,
+  mimeType: string,
+  apiKey: string
+): Promise<ScorecardData | null> {
+  try {
+    const imageUrl = `data:${mimeType};base64,${imageBase64}`;
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: `You are an expert golf scorecard data extractor. Your job is to carefully analyze scorecard images and extract ALL available data.
-
-IMPORTANT: Golf scorecards typically show:
-- FRONT 9 (holes 1-9) and BACK 9 (holes 10-18) - you MUST extract ALL 18 holes
-- Multiple tee sets (rows) with different colors/names (e.g., Black, Blue, White, Gold, Red)
-- Each tee set has its own yardage for each hole
-- Par values for each hole (usually in a dedicated "Par" row)
-- Handicap/HCP values for each hole (usually in a "Handicap" or "HCP" row, numbered 1-18)
-- Course rating and slope for each tee set
-
-Look carefully at the ENTIRE scorecard. Many scorecards split into Front 9 and Back 9 sections.
-
-Respond with valid JSON in this exact format:
-{
-  "courseName": "string or null - the golf course name",
-  "holes": [
-    { "par": number, "handicap": number, "yardage": number or null },
-    ... (MUST have exactly 18 holes, holes 1-18 in order)
-  ],
-  "teeSets": [
-    {
-      "name": "string - tee name (e.g., 'Blue', 'Championship', 'Men's')",
-      "color": "string or null - color if mentioned",
-      "rating": number or null,
-      "slope": number or null,
-      "yardages": [number or null, ... ] (18 yardages, one per hole)
-    },
-    ... (include ALL tee sets visible on the scorecard)
-  ]
-}
-
-CRITICAL RULES:
-1. ALWAYS return exactly 18 holes - look for both Front 9 AND Back 9 sections
-2. Par values must be 3, 4, or 5
-3. Handicap values should be 1-18, each used once (handicap indicates hole difficulty)
-4. Extract ALL tee sets shown (there are usually 3-6 different tees)
-5. If you can only see 9 holes, the scorecard likely continues - look for "Out" (front 9 total) and "In" (back 9 total) sections
-6. Yardages vary by tee set - longer tees (Black/Blue) have higher yardages than shorter tees (Red/Gold)
-7. If a value is unclear, make a reasonable estimate rather than omitting it`,
+            content: EXTRACTION_PROMPT,
           },
           {
             role: 'user',
             content: [
               {
                 type: 'text',
-                text: `Carefully analyze this golf scorecard image. Extract:
-1. Course name
-2. ALL 18 holes with par and handicap for each hole
-3. ALL tee sets visible (look for rows with different colors/names like Black, Blue, White, Gold, Red, etc.)
-4. Yardages for each hole from each tee set
-5. Rating and slope for each tee set if shown
-
-Remember: Most scorecards show Front 9 (holes 1-9) and Back 9 (holes 10-18) - make sure to get ALL 18 holes.
-Return complete JSON data.`,
+                text: 'Analyze this golf scorecard image. Extract ALL 18 holes, ALL tee sets, par, handicap, and yardages. Return complete JSON.',
               },
               {
                 type: 'image_url',
@@ -157,53 +263,24 @@ Return complete JSON data.`,
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
-      return NextResponse.json(
-        { error: 'Failed to analyze scorecard', details: error },
-        { status: 500 }
-      );
+      console.error('OpenAI API error:', await response.text());
+      return null;
     }
 
     const result = await response.json();
     const content = result.choices?.[0]?.message?.content;
 
-    if (!content) {
-      return NextResponse.json(
-        { error: 'No response from AI' },
-        { status: 500 }
-      );
-    }
+    if (!content) return null;
 
-    // Parse the JSON from the response
-    let parsedData: ScorecardData;
-    try {
-      // Extract JSON from potential markdown code blocks
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-      const jsonStr = jsonMatch[1].trim();
-      parsedData = JSON.parse(jsonStr);
-    } catch {
-      console.error('Failed to parse AI response:', content);
-      return NextResponse.json(
-        { error: 'Failed to parse scorecard data', rawResponse: content },
-        { status: 500 }
-      );
-    }
+    // Parse JSON from response (handle markdown code blocks)
+    const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
 
-    // Validate and clean the data
-    const cleanedData = validateAndCleanData(parsedData);
-
-    return NextResponse.json({
-      success: true,
-      data: cleanedData,
-      teeSets: cleanedData.teeSets, // Include all tee sets in response
-    });
+    const jsonStr = Array.isArray(jsonMatch) && jsonMatch[1] ? jsonMatch[1].trim() : jsonMatch[0];
+    return JSON.parse(jsonStr);
   } catch (error) {
-    console.error('Scorecard OCR error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error', details: String(error) },
-      { status: 500 }
-    );
+    console.error('OpenAI extraction error:', error);
+    return null;
   }
 }
 
@@ -221,7 +298,7 @@ function validateAndCleanData(data: ScorecardData): ScorecardData {
     if (par > 5) par = 5;
 
     // Validate handicap (1-18, unique)
-    let handicap = hole?.handicap ?? (i + 1);
+    let handicap = hole?.handicap ?? i + 1;
     if (handicap < 1 || handicap > 18 || usedHandicaps.has(handicap)) {
       // Find next available handicap
       for (let h = 1; h <= 18; h++) {

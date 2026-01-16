@@ -11,15 +11,17 @@
  * - Pulse animation when match is live
  * - Respects reduced motion preferences
  * - Hides automatically on scoring pages
+ * - Tap opens quick score modal, long press goes to full scorecard
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTripStore } from '@/lib/stores';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { calculateMatchState } from '@/lib/services/scoringEngine';
-import { Target, ChevronRight } from 'lucide-react';
+import { Target, ChevronRight, Zap } from 'lucide-react';
+import { QuickScoreModal } from './QuickScoreModal';
 import type { Match, HoleResult } from '@/lib/types/models';
 
 export function QuickScoreFAB() {
@@ -27,6 +29,8 @@ export function QuickScoreFAB() {
     const router = useRouter();
     const { currentTrip } = useTripStore();
     const [isVisible, setIsVisible] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const longPressTimer = useRef<NodeJS.Timeout | null>(null);
     const [activeMatch, setActiveMatch] = useState<{
         match: Match;
         displayScore: string;
@@ -101,52 +105,81 @@ export function QuickScoreFAB() {
         return null;
     }
 
+    const handleTouchStart = () => {
+        longPressTimer.current = setTimeout(() => {
+            // Long press: go to full scorecard
+            router.push(`/score/${activeMatch.match.id}`);
+        }, 500);
+    };
+
+    const handleTouchEnd = () => {
+        if (longPressTimer.current) {
+            clearTimeout(longPressTimer.current);
+            longPressTimer.current = null;
+        }
+    };
+
     const handleClick = () => {
-        router.push(`/score/${activeMatch.match.id}`);
+        // Short tap: open quick score modal
+        setShowModal(true);
     };
 
     return (
-        <button
-            onClick={handleClick}
-            className="fixed bottom-24 right-4 z-40 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg animate-in slide-in-from-bottom-4 fade-in duration-300 press-scale"
-            style={{
-                background: 'var(--masters)',
-                color: 'white',
-                boxShadow: '0 4px 20px rgba(0, 103, 71, 0.4)',
-            }}
-            aria-label="Quick score - go to active match"
-        >
-            {/* Pulse indicator */}
-            <div className="relative">
-                <span
-                    className="absolute inset-0 rounded-full animate-ping opacity-75"
-                    style={{ background: 'rgba(255, 255, 255, 0.4)' }}
-                />
-                <div
-                    className="relative w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ background: 'rgba(255, 255, 255, 0.2)' }}
-                >
-                    <Target size={20} />
-                </div>
-            </div>
-
-            {/* Match info */}
-            <div className="text-left">
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold">{activeMatch.displayScore}</span>
+        <>
+            <button
+                onClick={handleClick}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onMouseDown={handleTouchStart}
+                onMouseUp={handleTouchEnd}
+                onMouseLeave={handleTouchEnd}
+                className="fixed bottom-24 right-4 z-40 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-lg animate-in slide-in-from-bottom-4 fade-in duration-300 press-scale"
+                style={{
+                    background: 'var(--masters)',
+                    color: 'white',
+                    boxShadow: '0 4px 20px rgba(0, 103, 71, 0.4)',
+                }}
+                aria-label="Quick score - tap to enter score, hold for full scorecard"
+            >
+                {/* Pulse indicator */}
+                <div className="relative">
                     <span
-                        className="text-xs px-1.5 py-0.5 rounded"
+                        className="absolute inset-0 rounded-full animate-ping opacity-75"
+                        style={{ background: 'rgba(255, 255, 255, 0.4)' }}
+                    />
+                    <div
+                        className="relative w-10 h-10 rounded-full flex items-center justify-center"
                         style={{ background: 'rgba(255, 255, 255, 0.2)' }}
                     >
-                        LIVE
+                        <Zap size={20} />
+                    </div>
+                </div>
+
+                {/* Match info */}
+                <div className="text-left">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{activeMatch.displayScore}</span>
+                        <span
+                            className="text-xs px-1.5 py-0.5 rounded"
+                            style={{ background: 'rgba(255, 255, 255, 0.2)' }}
+                        >
+                            LIVE
+                        </span>
+                    </div>
+                    <span className="text-xs opacity-80">
+                        Hole {activeMatch.currentHole} • Tap to score
                     </span>
                 </div>
-                <span className="text-xs opacity-80">
-                    Hole {activeMatch.currentHole}
-                </span>
-            </div>
 
-            <ChevronRight size={18} className="opacity-60" />
-        </button>
+                <ChevronRight size={18} className="opacity-60" />
+            </button>
+
+            {/* Quick Score Modal */}
+            <QuickScoreModal
+                isOpen={showModal}
+                onClose={() => setShowModal(false)}
+                matchId={activeMatch.match.id}
+            />
+        </>
     );
 }
