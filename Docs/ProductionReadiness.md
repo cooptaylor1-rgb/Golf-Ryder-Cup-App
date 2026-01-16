@@ -92,7 +92,7 @@ These animation/effect patterns are valid but flagged by React 19's strict rules
 | Date | Commit | Description |
 |------|--------|-------------|
 | 2026-01-16 | d3dd462 | Initial assessment and documentation |
-| 2026-01-16 | (pending) | Fix lint errors, update ESLint config |
+| 2026-01-16 | d3170ee | Fix lint errors, update ESLint config |
 
 ---
 
@@ -100,31 +100,43 @@ These animation/effect patterns are valid but flagged by React 19's strict rules
 
 ### 4.1 Participant Flows
 
-| Flow | Status | Issues |
-|------|--------|--------|
-| Profile creation | 🔍 TODO | |
-| Join trip via code | 🔍 TODO | |
-| View schedule | 🔍 TODO | |
-| Score entry (live) | 🔍 TODO | |
-| View standings | 🔍 TODO | |
-| View matchups | 🔍 TODO | |
-| Social/photos | 🔍 TODO | |
-| Achievements | 🔍 TODO | |
+| Flow | Status | Issues Found |
+|------|--------|--------------|
+| Profile creation | ⚠️ ISSUES | HIGH: skipToEnd bypasses validation; MEDIUM: error feedback missing |
+| Join trip via code | ⚠️ ISSUES | MEDIUM: race condition - loadTrip could fail but modal closes |
+| View schedule | ⚠️ ISSUES | MEDIUM: error swallowed silently; LOW: no loading spinner |
+| Score entry (live) | 🔴 CRITICAL | **CRITICAL: Photo button is dead (onClick={})**, HIGH: silent fail on rapid tap |
+| View standings | ⚠️ ISSUES | MEDIUM: error swallowed silently |
+| View matchups | ✅ OK | No critical issues found |
+| Social/photos | ⚠️ ISSUES | HIGH: no error handling for db.banterPosts.add; HIGH: author could be undefined |
+| Achievements | ⚠️ ISSUES | MEDIUM: error swallowed; no loading indicator |
+| Profile view | ⚠️ ISSUES | MEDIUM: save failure has no user feedback |
+| Login | ✅ OK | LOW: wasteful re-renders (non-breaking) |
 
 ### 4.2 Captain Flows
 
-| Flow | Status | Issues |
-|------|--------|--------|
-| Create trip | 🔍 TODO | |
-| Add players | 🔍 TODO | |
-| Set up teams | 🔍 TODO | |
-| Create sessions/matches | 🔍 TODO | |
-| Draft players | 🔍 TODO | |
-| Manage lineups | 🔍 TODO | |
-| Configure scoring | 🔍 TODO | |
-| Side bets setup | 🔍 TODO | |
-| Send invites | 🔍 TODO | |
-| Manage availability | 🔍 TODO | |
+| Flow | Status | Issues Found |
+|------|--------|--------------|
+| Captain dashboard | ✅ OK | LOW: no explicit loading state during init |
+| Manage sessions | ⚠️ ISSUES | HIGH: no double-submit protection; HIGH: cascading delete can orphan data |
+| Draft players | 🔴 CRITICAL | **CRITICAL: no error handling - partial draft leaves data inconsistent** |
+| Side bets | ⚠️ ISSUES | HIGH: no try-catch on DB ops; HIGH: no double-submit protection |
+| Trip settings | ⚠️ ISSUES | HIGH: no try-catch on save; HIGH: no double-submit protection |
+| Messages | ⚠️ ISSUES | MEDIUM: announcements not persisted (lost on refresh) |
+| Contacts | ⚠️ ISSUES | LOW: hardcoded demo data |
+| Invites | ⚠️ ISSUES | LOW: callbacks are no-ops (invite not actually sent) |
+| Checklist | ⚠️ ISSUES | MEDIUM: matches array empty - validation won't work |
+| Carts | ⚠️ ISSUES | LOW: cart assignments not actually saved |
+| Availability | ⚠️ ISSUES | MEDIUM: attendance data not persisted |
+| New lineup | ⚠️ ISSUES | HIGH: publish button not disabled during creation |
+| Create trip | ✅ OK | Has double-submit protection, good error handling |
+
+### 4.3 Issue Summary
+
+- **CRITICAL:** 2 issues (dead photo button, draft error handling)
+- **HIGH:** 10 issues (mostly missing error handling and double-submit protection)
+- **MEDIUM:** 10 issues (silent error swallowing, data not persisted)
+- **LOW:** 8 issues (demo data, no-op handlers, minor UX)
 
 ---
 
@@ -132,10 +144,12 @@ These animation/effect patterns are valid but flagged by React 19's strict rules
 
 | Risk | Severity | Mitigation |
 |------|----------|------------|
-| React hooks violations | MEDIUM | Fix lint errors before deploy |
+| Dead photo button in scoring | CRITICAL | Remove or implement - confuses users |
+| Draft partial failure | CRITICAL | Add transaction/rollback or try-catch |
+| No double-submit protection | HIGH | Add isSubmitting state to forms |
+| Silent error swallowing | MEDIUM | Add user-visible error toasts |
 | Offline sync reliability | MEDIUM | Test thoroughly on slow connections |
-| Error boundaries coverage | LOW | Verify error.tsx files work |
-| Missing loading states | LOW | Audit during flow review |
+| Data not persisted | MEDIUM | Some captain features store only in React state |
 
 ---
 
