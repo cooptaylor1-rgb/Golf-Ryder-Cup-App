@@ -281,7 +281,7 @@ function calculateHeadToHead(
 
 export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): UsePlayerStatsReturn {
     // Error state for potential async error handling
-    const [, setError] = useState<Error | null>(null);
+    const [error, setError] = useState<Error | null>(null);
 
     // Fetch player
     const player = useLiveQuery(
@@ -544,8 +544,8 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
         nemesis,
 
         // State
-        isLoading: !player && !_error,
-        error: _error,
+        isLoading: !player && !error,
+        error: error,
     };
 }
 
