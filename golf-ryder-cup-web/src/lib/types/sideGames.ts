@@ -4,7 +4,7 @@
  * Additional side game types for Wolf, Vegas, Hammer, and more.
  */
 
-import type { UUID, ISODateString, Player, HoleResult } from './models';
+import type { UUID, ISODateString } from './models';
 
 // ============================================
 // EXTENDED SIDE GAME TYPES

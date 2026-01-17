@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -15,9 +15,6 @@ import {
     getWindDirection,
     formatTime,
     type GolfWeather,
-    type CurrentWeather,
-    type HourlyForecast,
-    type DailyForecast,
 } from '@/lib/services/weatherService';
 import {
     Sun,
@@ -32,7 +29,6 @@ import {
     CloudMoon,
     Wind,
     Droplets,
-    Thermometer,
     Sunrise,
     Sunset,
     AlertCircle,
@@ -61,11 +57,7 @@ export function WeatherWidget({
     const [error, setError] = useState<string | null>(null);
     const [showForecast, setShowForecast] = useState(false);
 
-    useEffect(() => {
-        loadWeather();
-    }, [latitude, longitude]);
-
-    const loadWeather = async () => {
+    const loadWeather = useCallback(async () => {
         setIsLoading(true);
         setError(null);
 
@@ -78,7 +70,11 @@ export function WeatherWidget({
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [latitude, longitude]);
+
+    useEffect(() => {
+        loadWeather();
+    }, [loadWeather]);
 
     if (isLoading) {
         return (

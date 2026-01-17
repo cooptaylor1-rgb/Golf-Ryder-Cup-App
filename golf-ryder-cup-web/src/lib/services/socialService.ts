@@ -9,7 +9,6 @@ import type { UUID, ISODateString } from '@/lib/types/models';
 import type {
     ChatMessage,
     ChatThread,
-    MessageReaction,
     MessageType,
     TrashTalk,
     TrashTalkComment,

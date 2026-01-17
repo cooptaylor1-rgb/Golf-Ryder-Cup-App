@@ -5,17 +5,15 @@
  * These are popular buddies trip games that add excitement beyond standard skins.
  */
 
-import type { UUID, ISODateString, Player } from '@/lib/types/models';
+import type { UUID, Player } from '@/lib/types/models';
 import type {
     WolfGame,
     WolfHoleResult,
-    WolfStanding,
     WolfConfig,
     VegasGame,
     VegasHoleResult,
     VegasConfig,
     HammerGame,
-    HammerHoleResult,
     HammerAction,
     HammerConfig,
     NassauEnhanced,
@@ -49,7 +47,7 @@ export function createWolfGame(
     buyIn: number,
     playerIds: UUID[],
     sessionId?: UUID,
-    config: Partial<WolfConfig> = {}
+    _config: Partial<WolfConfig> = {}
 ): WolfGame {
     if (playerIds.length !== 4) {
         throw new Error('Wolf requires exactly 4 players');
@@ -102,7 +100,7 @@ export function wolfChoosesPartner(
     partnerId?: UUID,
     isPig: boolean = false
 ): WolfGame {
-    const config = { ...DEFAULT_WOLF_CONFIG };
+    const _config = { ...DEFAULT_WOLF_CONFIG };
     const isLoneWolf = !partnerId;
 
     // Update wolf's stats
@@ -362,7 +360,7 @@ export function recordVegasHoleResult(
  */
 export function calculateVegasPayouts(
     game: VegasGame,
-    players: Player[]
+    _players: Player[]
 ): {
     team1Owes: number;
     team2Owes: number;
@@ -584,7 +582,7 @@ export function completeHammerHole(
  */
 export function calculateHammerPayouts(
     game: HammerGame,
-    players: Player[]
+    _players: Player[]
 ): {
     team1Total: number;
     team2Total: number;
@@ -821,7 +819,7 @@ export function addManualPress(
  */
 export function calculateNassauPayouts(
     game: NassauEnhanced,
-    players: Player[]
+    _players: Player[]
 ): {
     frontNineResult: { winner: string; amount: number };
     backNineResult: { winner: string; amount: number };
@@ -1060,7 +1058,7 @@ export function generateTripSettlement(
             const toPlayer = players.find(p => p.id === creditor.id);
 
             const fromBreakdown = breakdowns.get(debtor.id)!;
-            const toBreakdown = breakdowns.get(creditor.id)!;
+            const _toBreakdown = breakdowns.get(creditor.id)!;
 
             const gameBreakdown: SettlementGameItem[] = [];
             if (fromBreakdown.wolf !== 0) {

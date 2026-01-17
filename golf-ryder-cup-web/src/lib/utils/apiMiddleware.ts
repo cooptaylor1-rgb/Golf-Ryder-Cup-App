@@ -183,7 +183,7 @@ export async function verifyAuth(req: NextRequest): Promise<{
         }
 
         return { authenticated: true, userId: data.user.id };
-    } catch (_err) {
+    } catch {
         return { authenticated: false, error: 'Authentication failed' };
     }
 }

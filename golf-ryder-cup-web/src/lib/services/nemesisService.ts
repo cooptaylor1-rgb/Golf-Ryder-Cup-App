@@ -6,7 +6,7 @@
  */
 
 import { db } from '@/lib/db';
-import type { UUID, ISODateString, Match, Player } from '@/lib/types/models';
+import type { UUID, Match, Player } from '@/lib/types/models';
 import type { HeadToHeadRecord, NemesisStats } from '@/lib/types/social';
 
 // ============================================
@@ -188,7 +188,7 @@ export async function getPlayerRecords(playerId: UUID): Promise<HeadToHeadRecord
  */
 export async function calculateNemesisStats(
     playerId: UUID,
-    players: Player[]
+    _players: Player[]
 ): Promise<NemesisStats> {
     const records = await getPlayerRecords(playerId);
 

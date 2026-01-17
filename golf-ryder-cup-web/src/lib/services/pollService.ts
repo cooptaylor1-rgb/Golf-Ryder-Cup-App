@@ -12,7 +12,6 @@ import type {
     PollType,
     PollStatus,
     PollCategory,
-    PollVote,
 } from '@/lib/types/social';
 
 // ============================================
@@ -336,7 +335,7 @@ export async function voteRanked(
     }
 
     // Add votes with rankings (we'll calculate winner differently)
-    for (const { optionId, rank } of rankings) {
+    for (const { optionId, rank: _rank } of rankings) {
         const option = poll.options.find(o => o.id === optionId);
         if (option) {
             option.votes.push(playerId);
