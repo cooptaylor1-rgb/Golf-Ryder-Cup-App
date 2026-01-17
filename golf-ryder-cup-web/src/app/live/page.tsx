@@ -20,6 +20,7 @@ import {
   VolumeX,
   CalendarDays,
 } from 'lucide-react';
+import { PageSkeleton, LiveMatchCardSkeleton } from '@/components/ui';
 import type { Match, Player } from '@/lib/types/models';
 import type { MatchState } from '@/lib/types/computed';
 
@@ -101,7 +102,17 @@ export default function LivePage() {
   // Check if matches are still loading
   const isLoadingMatches = matches === undefined;
 
-  if (!currentTrip) return null;
+  if (!currentTrip) {
+    return (
+      <PageSkeleton>
+        <div className="grid gap-4 mt-4">
+          <LiveMatchCardSkeleton />
+          <LiveMatchCardSkeleton />
+          <LiveMatchCardSkeleton />
+        </div>
+      </PageSkeleton>
+    );
+  }
 
   return (
     <div

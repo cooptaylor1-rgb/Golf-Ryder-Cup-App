@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useTripStore, useUIStore } from '@/lib/stores';
 import { formatPlayerName } from '@/lib/utils';
 import { Users, Plus, Shield, Calendar, ChevronRight, Home, Target, Trophy, MoreHorizontal, ChevronLeft, CalendarDays } from 'lucide-react';
-import { NoSessionsPremiumEmpty } from '@/components/ui';
+import { NoSessionsPremiumEmpty, PageSkeleton, PlayerListSkeleton } from '@/components/ui';
 
 /**
  * MATCHUPS PAGE — Team Rosters & Sessions
@@ -41,7 +41,16 @@ export default function MatchupsPage() {
   const teamAPlayers = teamA ? getTeamPlayers(teamA.id) : [];
   const teamBPlayers = teamB ? getTeamPlayers(teamB.id) : [];
 
-  if (!currentTrip) return null;
+  if (!currentTrip) {
+    return (
+      <PageSkeleton>
+        <div className="space-y-4 mt-4">
+          <PlayerListSkeleton count={4} />
+          <PlayerListSkeleton count={4} />
+        </div>
+      </PageSkeleton>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>
@@ -237,7 +246,7 @@ export default function MatchupsPage() {
               ))}
             </div>
           ) : (
-            <NoSessionsPremiumEmpty 
+            <NoSessionsPremiumEmpty
               isCaptain={isCaptainMode}
               onCreateSession={() => router.push('/lineup/new')}
             />

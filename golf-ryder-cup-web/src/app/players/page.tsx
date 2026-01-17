@@ -6,7 +6,7 @@ import { useTripStore, useUIStore } from '@/lib/stores';
 import { formatPlayerName } from '@/lib/utils';
 import type { Player } from '@/lib/types/models';
 import { Edit2, Trash2, UserPlus, Users, X, ChevronLeft, UsersRound, Plus, Check } from 'lucide-react';
-import { NoPlayersPremiumEmpty } from '@/components/ui';
+import { NoPlayersPremiumEmpty, PageSkeleton, PlayerListSkeleton } from '@/components/ui';
 
 // Bulk player entry row type
 interface BulkPlayerRow {
@@ -207,7 +207,16 @@ export default function PlayersPage() {
 
     const validBulkCount = bulkRows.filter(row => row.firstName.trim() && row.lastName.trim()).length;
 
-    if (!currentTrip) return null;
+    if (!currentTrip) {
+        return (
+            <PageSkeleton>
+                <div className="space-y-4 mt-4">
+                    <PlayerListSkeleton count={4} />
+                    <PlayerListSkeleton count={4} />
+                </div>
+            </PageSkeleton>
+        );
+    }
 
     const teamA = teams.find(t => t.color === 'usa');
     const teamB = teams.find(t => t.color === 'europe');

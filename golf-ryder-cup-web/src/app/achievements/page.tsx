@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTripStore } from '@/lib/stores';
+import { useTripStore, useUIStore } from '@/lib/stores';
 import { calculatePlayerStats } from '@/lib/services/awardsService';
 import type { PlayerStats } from '@/lib/types/awards';
 import {
@@ -54,8 +54,10 @@ const RARITY_COLORS = {
 export default function AchievementsPage() {
   const router = useRouter();
   const { currentTrip } = useTripStore();
+  const { showToast } = useUIStore();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'unlocked' | 'locked'>('all');
   const [playerStats, setPlayerStats] = useState<PlayerStats[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!currentTrip) {
@@ -66,16 +68,23 @@ export default function AchievementsPage() {
   // Load real player stats from the database
   useEffect(() => {
     async function loadStats() {
-      if (!currentTrip) return;
+      if (!currentTrip) {
+        setIsLoading(false);
+        return;
+      }
       try {
+        setIsLoading(true);
         const stats = await calculatePlayerStats(currentTrip.id);
         setPlayerStats(stats);
       } catch (error) {
         console.error('Failed to load player stats:', error);
+        showToast('error', 'Failed to load achievements');
+      } finally {
+        setIsLoading(false);
       }
     }
     loadStats();
-  }, [currentTrip]);
+  }, [currentTrip, showToast]);
 
   // Calculate achievements based on real player stats
   const achievements = useMemo((): Achievement[] => {
@@ -237,87 +246,106 @@ export default function AchievementsPage() {
       </header>
 
       <main className="container-editorial" style={{ paddingTop: 'var(--space-4)', paddingBottom: 'var(--space-4)' }}>
-        {/* Progress Overview */}
-        <div
-          className="card text-center"
-          style={{
-            background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-hover) 100%)',
-            color: 'white',
-            padding: 'var(--space-6)',
-            marginBottom: 'var(--space-6)',
-          }}
-        >
-          <Award size={48} style={{ margin: '0 auto var(--space-3)', opacity: 0.9 }} />
-          <h2 className="score-large" style={{ marginBottom: 'var(--space-1)' }}>
-            {Math.round((unlockedCount / totalCount) * 100)}%
-          </h2>
-          <p className="type-body" style={{ opacity: 0.8 }}>Trip Progress</p>
-
-          {/* Progress Bar */}
-          <div style={{ marginTop: 'var(--space-4)', height: '8px', borderRadius: 'var(--radius-full)', background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="space-y-4">
             <div
-              style={{ height: '100%', borderRadius: 'var(--radius-full)', background: 'white', transition: 'width 0.5s ease', width: `${(unlockedCount / totalCount) * 100}%` }}
+              className="animate-pulse rounded-xl"
+              style={{ background: 'var(--surface-card)', height: '160px' }}
             />
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map(i => (
+                <div
+                  key={i}
+                  className="animate-pulse rounded-xl"
+                  style={{ background: 'var(--surface-card)', height: '120px' }}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Progress Overview */}
+            <div
+              className="card text-center"
+              style={{
+                background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-hover) 100%)',
+                color: 'white',
+                padding: 'var(--space-6)',
+                marginBottom: 'var(--space-6)',
+              }}
+            >
+              <Award size={48} style={{ margin: '0 auto var(--space-3)', opacity: 0.9 }} />
+              <h2 className="score-large" style={{ marginBottom: 'var(--space-1)' }}>
+                {Math.round((unlockedCount / totalCount) * 100)}%
+              </h2>
+              <p className="type-body" style={{ opacity: 0.8 }}>Trip Progress</p>
 
-        {/* Category Filter */}
-        <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }}>
-          <CategoryButton
-            label="All"
-            count={totalCount}
-            active={selectedCategory === 'all'}
-            onClick={() => setSelectedCategory('all')}
-          />
-          <CategoryButton
-            label="Unlocked"
-            count={unlockedCount}
-            active={selectedCategory === 'unlocked'}
-            onClick={() => setSelectedCategory('unlocked')}
-          />
-          <CategoryButton
-            label="Locked"
-            count={totalCount - unlockedCount}
-            active={selectedCategory === 'locked'}
-            onClick={() => setSelectedCategory('locked')}
-          />
-        </div>
+              {/* Progress Bar */}
+              <div style={{ marginTop: 'var(--space-4)', height: '8px', borderRadius: 'var(--radius-full)', background: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
+                <div
+                  style={{ height: '100%', borderRadius: 'var(--radius-full)', background: 'white', transition: 'width 0.5s ease', width: `${(unlockedCount / totalCount) * 100}%` }}
+                />
+              </div>
+            </div>
 
-        {/* Achievements Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-3)' }}>
-          {filteredAchievements.map((achievement) => (
-            <AchievementCard key={achievement.id} achievement={achievement} />
-          ))}
-        </div>
-      </main>
+            {/* Category Filter */}
+            <div style={{ display: 'flex', gap: 'var(--space-2)', marginBottom: 'var(--space-6)' }}>
+              <CategoryButton
+                label="All"
+                count={totalCount}
+                active={selectedCategory === 'all'}
+                onClick={() => setSelectedCategory('all')}
+              />
+              <CategoryButton
+                label="Unlocked"
+                count={unlockedCount}
+                active={selectedCategory === 'unlocked'}
+                onClick={() => setSelectedCategory('unlocked')}
+              />
+              <CategoryButton
+                label="Locked"
+                count={totalCount - unlockedCount}
+                active={selectedCategory === 'locked'}
+                onClick={() => setSelectedCategory('locked')}
+              />
+            </div>
 
-      {/* Bottom Navigation */}
-      <nav className="nav-premium bottom-nav">
-        <Link href="/" className="nav-item">
-          <Home size={22} strokeWidth={1.75} />
-          <span>Home</span>
-        </Link>
-        <Link href="/schedule" className="nav-item">
-          <CalendarDays size={22} strokeWidth={1.75} />
-          <span>Schedule</span>
-        </Link>
-        <Link href="/score" className="nav-item">
-          <Target size={22} strokeWidth={1.75} />
-          <span>Score</span>
-        </Link>
-        <Link href="/matchups" className="nav-item">
-          <Users size={22} strokeWidth={1.75} />
-          <span>Matches</span>
-        </Link>
-        <Link href="/standings" className="nav-item">
-          <Trophy size={22} strokeWidth={1.75} />
-          <span>Standings</span>
-        </Link>
-        <Link href="/more" className="nav-item">
-          <MoreHorizontal size={22} strokeWidth={1.75} />
-          <span>More</span>
-        </Link>
-      </nav>
+            {/* Achievements Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-3)' }}>
+              {filteredAchievements.map((achievement) => (
+                <AchievementCard key={achievement.id} achievement={achievement} />
+              ))}
+            </div>
+          </>
+        )}
+        {/* Bottom Navigation */}
+        <nav className="nav-premium bottom-nav">
+          <Link href="/" className="nav-item">
+            <Home size={22} strokeWidth={1.75} />
+            <span>Home</span>
+          </Link>
+          <Link href="/schedule" className="nav-item">
+            <CalendarDays size={22} strokeWidth={1.75} />
+            <span>Schedule</span>
+          </Link>
+          <Link href="/score" className="nav-item">
+            <Target size={22} strokeWidth={1.75} />
+            <span>Score</span>
+          </Link>
+          <Link href="/matchups" className="nav-item">
+            <Users size={22} strokeWidth={1.75} />
+            <span>Matches</span>
+          </Link>
+          <Link href="/standings" className="nav-item">
+            <Trophy size={22} strokeWidth={1.75} />
+            <span>Standings</span>
+          </Link>
+          <Link href="/more" className="nav-item">
+            <MoreHorizontal size={22} strokeWidth={1.75} />
+            <span>More</span>
+          </Link>
+        </nav>
     </div>
   );
 }

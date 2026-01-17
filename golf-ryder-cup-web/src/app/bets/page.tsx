@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useTripStore, useUIStore } from '@/lib/stores';
-import { NoBetsEmpty } from '@/components/ui';
+import { NoBetsEmpty, PageSkeleton, Skeleton } from '@/components/ui';
 import type { Player, SideBet, SideBetType, Match } from '@/lib/types/models';
 import {
   ChevronLeft,
@@ -194,7 +194,19 @@ export default function BetsPage() {
     return allPlayerIds.map(id => players.find(p => p.id === id)).filter(Boolean) as Player[];
   };
 
-  if (!currentTrip) return null;
+  if (!currentTrip) {
+    return (
+      <PageSkeleton>
+        <div className="space-y-4 mt-4">
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <div className="grid gap-3">
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+          </div>
+        </div>
+      </PageSkeleton>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>

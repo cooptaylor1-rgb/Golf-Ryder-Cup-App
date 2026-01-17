@@ -11,7 +11,7 @@ import { formatPlayerName } from '@/lib/utils';
 import { ChevronRight, ChevronLeft, Home, Target, Users, Trophy, MoreHorizontal, CalendarDays } from 'lucide-react';
 import type { MatchState } from '@/lib/types/computed';
 import type { Player } from '@/lib/types/models';
-import { NoScoresPremiumEmpty } from '@/components/ui';
+import { NoScoresPremiumEmpty, PageSkeleton, MatchCardSkeleton } from '@/components/ui';
 
 /**
  * SCORE PAGE — Match List
@@ -112,7 +112,17 @@ export default function ScorePage() {
 
     const isLoading = matches === undefined || holeResults === undefined;
 
-    if (!currentTrip) return null;
+    if (!currentTrip) {
+        return (
+            <PageSkeleton>
+                <div className="space-y-4 mt-4">
+                    <MatchCardSkeleton />
+                    <MatchCardSkeleton />
+                    <MatchCardSkeleton />
+                </div>
+            </PageSkeleton>
+        );
+    }
 
     return (
         <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>

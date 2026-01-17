@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { useTripStore } from '@/lib/stores';
+import { useTripStore, useUIStore } from '@/lib/stores';
 import { calculateTeamStandings, calculateMagicNumber, calculatePlayerLeaderboard } from '@/lib/services/tournamentEngine';
 import { computeAwards, calculatePlayerStats } from '@/lib/services/awardsService';
 import { STAT_DEFINITIONS, type TripStatType } from '@/lib/types/tripStats';
@@ -45,6 +45,7 @@ type TabType = 'competition' | 'stats' | 'awards';
 export default function StandingsPage() {
   const router = useRouter();
   const { currentTrip, teams, players } = useTripStore();
+  const { showToast } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('competition');
   const [standings, setStandings] = useState<TeamStandings | null>(null);
@@ -89,12 +90,13 @@ export default function StandingsPage() {
         setPlayerStats(stats);
       } catch (error) {
         console.error('Failed to load standings:', error);
+        showToast('error', 'Failed to load standings');
       } finally {
         setIsLoading(false);
       }
     };
     loadStandings();
-  }, [currentTrip]);
+  }, [currentTrip, showToast]);
 
   if (!currentTrip) return null;
 
