@@ -29,6 +29,23 @@ import type {
 import type { ScoringEvent } from '@/lib/types/events';
 import type { CourseProfile, TeeSetProfile } from '@/lib/types/courseProfile';
 import type { PlayerTripStat, TripAward } from '@/lib/types/tripStats';
+import type {
+    ChatMessage,
+    ChatThread,
+    TrashTalk,
+    Photo,
+    PhotoAlbum,
+    Poll,
+    HeadToHeadRecord,
+    TripArchive,
+} from '@/lib/types/social';
+import type {
+    WolfGame,
+    VegasGame,
+    HammerGame,
+    NassauEnhanced,
+    SettlementTransaction,
+} from '@/lib/types/sideGames';
 
 /**
  * Golf Trip Database
@@ -69,6 +86,23 @@ export class GolfTripDB extends Dexie {
 
     // Side bets
     sideBets!: Table<SideBet>;
+
+    // Extended side games (v7)
+    wolfGames!: Table<WolfGame>;
+    vegasGames!: Table<VegasGame>;
+    hammerGames!: Table<HammerGame>;
+    nassauGames!: Table<NassauEnhanced>;
+    settlements!: Table<SettlementTransaction>;
+
+    // Social features (v7)
+    chatMessages!: Table<ChatMessage>;
+    chatThreads!: Table<ChatThread>;
+    trashTalks!: Table<TrashTalk>;
+    photos!: Table<Photo>;
+    photoAlbums!: Table<PhotoAlbum>;
+    polls!: Table<Poll>;
+    headToHeadRecords!: Table<HeadToHeadRecord>;
+    tripArchives!: Table<TripArchive>;
 
     // Event sourcing for scoring (append-only)
     scoringEvents!: Table<ScoringEvent>;
@@ -147,6 +181,36 @@ export class GolfTripDB extends Dexie {
             // Add [matchId+synced] compound index for sync queue queries
             scoringEvents:
                 '++localId, id, matchId, timestamp, synced, [matchId+timestamp], [matchId+synced]',
+        });
+
+        // Schema version 7 - Extended side games and social features
+        this.version(7).stores({
+            // Extended side games
+            wolfGames: 'id, tripId, sessionId, status, [tripId+status]',
+            vegasGames: 'id, tripId, sessionId, status, [tripId+status]',
+            hammerGames: 'id, tripId, sessionId, status, [tripId+status]',
+            nassauGames: 'id, tripId, sessionId, status, [tripId+status]',
+            settlements: 'id, tripId, fromPlayerId, toPlayerId, status, [tripId+status]',
+
+            // Social features - Chat
+            chatMessages: 'id, tripId, threadId, authorId, timestamp, [tripId+timestamp], [threadId+timestamp]',
+            chatThreads: 'id, tripId, createdAt, [tripId+createdAt]',
+
+            // Social features - Trash Talk
+            trashTalks: 'id, tripId, authorId, targetId, timestamp, [tripId+timestamp]',
+
+            // Social features - Photos
+            photos: 'id, tripId, albumId, uploaderId, uploadedAt, [tripId+uploadedAt], [albumId+uploadedAt]',
+            photoAlbums: 'id, tripId, createdAt, [tripId+createdAt]',
+
+            // Social features - Polls
+            polls: 'id, tripId, createdById, status, expiresAt, [tripId+status], [tripId+expiresAt]',
+
+            // Social features - Nemesis tracking
+            headToHeadRecords: 'id, tripId, player1Id, player2Id, [tripId+player1Id], [player1Id+player2Id]',
+
+            // Trip archive
+            tripArchives: 'id, tripId, archivedAt',
         });
     }
 }

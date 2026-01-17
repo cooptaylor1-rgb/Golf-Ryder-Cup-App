@@ -190,6 +190,11 @@ export interface Player {
     teePreference?: string;
     avatarUrl?: string;
     team?: 'usa' | 'europe';
+    // Payment info for settlements
+    venmoUsername?: string;
+    paypalUsername?: string;
+    zelleEmail?: string;
+    zellePhone?: string;
     joinedAt?: ISODateString;
     createdAt?: ISODateString;
     updatedAt?: ISODateString;
