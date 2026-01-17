@@ -24,13 +24,12 @@ import { cn } from '@/lib/utils';
 
 /**
  * PROFILE PAGE
- */
-
-const logger = createLogger('profile');
  *
  * View and edit user profile.
  * Accessible from settings or user menu.
  */
+
+const logger = createLogger('profile');
 
 export default function ProfilePage() {
     const router = useRouter();
