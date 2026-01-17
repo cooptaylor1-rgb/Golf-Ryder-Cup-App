@@ -210,14 +210,31 @@ export const useTripStore = create<TripState>()(
             },
 
             deleteTrip: async (tripId) => {
-                // Delete all related data
+                // Delete all related data with proper cascade
                 const teams = await db.teams.where('tripId').equals(tripId).toArray();
                 const teamIds = teams.map(t => t.id);
 
                 const sessions = await db.sessions.where('tripId').equals(tripId).toArray();
                 const sessionIds = sessions.map(s => s.id);
 
-                // Delete in order
+                const matches = await db.matches.where('sessionId').anyOf(sessionIds).toArray();
+                const matchIds = matches.map(m => m.id);
+
+                // Delete in dependency order (leaves → roots)
+                // Scoring data
+                await db.holeResults.where('matchId').anyOf(matchIds).delete();
+                await db.scoringEvents.where('matchId').anyOf(matchIds).delete();
+                // Social & bets
+                await db.sideBets.where('tripId').equals(tripId).delete();
+                await db.banterPosts.where('tripId').equals(tripId).delete();
+                // Audit & stats
+                await db.auditLog.where('tripId').equals(tripId).delete();
+                await db.tripStats.where('tripId').equals(tripId).delete();
+                await db.tripAwards.where('tripId').equals(tripId).delete();
+                // Schedule
+                await db.scheduleDays.where('tripId').equals(tripId).delete();
+                await db.scheduleItems.where('tripId').equals(tripId).delete();
+                // Core entities (original order)
                 await db.teamMembers.where('teamId').anyOf(teamIds).delete();
                 await db.matches.where('sessionId').anyOf(sessionIds).delete();
                 await db.sessions.where('tripId').equals(tripId).delete();

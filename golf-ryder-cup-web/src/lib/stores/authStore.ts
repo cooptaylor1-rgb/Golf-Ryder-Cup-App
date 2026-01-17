@@ -10,6 +10,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Player } from '../types/models';
 import { db } from '../db';
 import { authLogger } from '../utils/logger';
+import { hashPin, verifyPin, isHashedPin } from '../utils/crypto';
 
 // ============================================
 // TYPES
@@ -101,7 +102,24 @@ export const useAuthStore = create<AuthState>()(
                         return false;
                     }
 
-                    if (userEntry.pin !== pin) {
+                    // Verify PIN (supports both hashed and legacy plain text)
+                    let pinValid = false;
+                    if (isHashedPin(userEntry.pin)) {
+                        // PIN is already hashed - verify against hash
+                        pinValid = await verifyPin(pin, userEntry.pin);
+                    } else {
+                        // Legacy plain text PIN - verify and migrate to hash
+                        pinValid = userEntry.pin === pin;
+                        if (pinValid) {
+                            // Migrate to hashed PIN
+                            const hashedPin = await hashPin(pin);
+                            users[userEntry.profile.id] = { profile: userEntry.profile, pin: hashedPin };
+                            localStorage.setItem('golf-app-users', JSON.stringify(users));
+                            authLogger.log(`Migrated PIN to hash for: ${userEntry.profile.email}`);
+                        }
+                    }
+
+                    if (!pinValid) {
                         set({ isLoading: false, error: 'Invalid PIN' });
                         return false;
                     }
@@ -185,7 +203,9 @@ export const useAuthStore = create<AuthState>()(
                         throw new Error('An account with this email already exists');
                     }
 
-                    users[id] = { profile, pin };
+                    // Hash the PIN before storage (never store plain text)
+                    const hashedPin = await hashPin(pin);
+                    users[id] = { profile, pin: hashedPin };
                     localStorage.setItem('golf-app-users', JSON.stringify(users));
 
                     // Also add to IndexedDB players table for trip assignment

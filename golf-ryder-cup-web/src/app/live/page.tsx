@@ -65,15 +65,51 @@ export default function LivePage() {
     }
   }, [activeSession, loadSessionMatches]);
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh every 30 seconds (only when tab is visible for battery optimization)
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (activeSession) {
-        loadSessionMatches(activeSession.id);
-        setLastUpdate(new Date());
+    let interval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (interval) return;
+      interval = setInterval(() => {
+        if (activeSession && document.visibilityState === 'visible') {
+          loadSessionMatches(activeSession.id);
+          setLastUpdate(new Date());
+        }
+      }, 30000);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
       }
-    }, 30000);
-    return () => clearInterval(interval);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Refresh immediately when tab becomes visible
+        if (activeSession) {
+          loadSessionMatches(activeSession.id);
+          setLastUpdate(new Date());
+        }
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    // Start polling if visible
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [activeSession, loadSessionMatches]);
 
   const toggleFullscreen = async () => {

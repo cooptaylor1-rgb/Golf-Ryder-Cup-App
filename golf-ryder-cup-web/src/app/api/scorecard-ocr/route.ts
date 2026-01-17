@@ -170,7 +170,8 @@ VALIDATION:
 Return ONLY the JSON object.`;
 
 export async function POST(request: NextRequest) {
-  console.log('[OCR] Received scorecard scan request');
+  // Debug logging only in development
+  const isDev = process.env.NODE_ENV === 'development';
 
   try {
     const body: RequestBody = await request.json();
@@ -181,11 +182,9 @@ export async function POST(request: NextRequest) {
     if (body.images && body.images.length > 0) {
       // Multiple images provided
       images.push(...body.images);
-      console.log(`[OCR] Processing ${images.length} images`);
     } else if (body.image) {
       // Single image (backward compatible)
       images.push({ image: body.image, mimeType: body.mimeType || 'image/jpeg' });
-      console.log('[OCR] Processing single image');
     }
 
     if (images.length === 0) {
@@ -233,7 +232,6 @@ export async function POST(request: NextRequest) {
 
     // No API keys configured - return demo data
     if (!result && !anthropicKey && !openaiKey) {
-      console.log('No AI API keys configured, returning sample data');
       return NextResponse.json({
         success: true,
         data: getMockScorecardData(),
@@ -249,13 +247,6 @@ export async function POST(request: NextRequest) {
 
     // Validate and clean the data
     const cleanedData = validateAndCleanData(result);
-
-    console.log('[OCR] Final cleaned data:', {
-      courseName: cleanedData.courseName,
-      holesExtracted: cleanedData.holes?.length || 0,
-      teeSetsExtracted: cleanedData.teeSets?.length || 0,
-      teeNames: cleanedData.teeSets?.map(t => `${t.name} (${t.rating}/${t.slope})`),
-    });
 
     return NextResponse.json({
       success: true,
@@ -340,12 +331,6 @@ async function extractWithClaude(
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-    console.log('[OCR] Extracted data:', {
-      courseName: parsed.courseName,
-      holesCount: parsed.holes?.length,
-      teeSetsCount: parsed.teeSets?.length,
-      teeSetNames: parsed.teeSets?.map((t: TeeSetData) => t.name),
-    });
 
     return parsed;
   } catch (error) {
@@ -425,14 +410,11 @@ async function extractWithClaudeMultiple(
   images: ImageData[],
   apiKey: string
 ): Promise<ScorecardData | null> {
-  console.log(`[OCR] Multi - image extraction with ${images.length} images`);
-
   try {
     // Build content array with all images
     const content: Array<{ type: string; source?: { type: string; media_type: string; data: string }; text?: string }> = [];
 
     images.forEach((img, index) => {
-      console.log(`[OCR] Adding image ${index + 1}: ${img.label || 'unlabeled'}, type: ${img.mimeType} `);
       content.push({
         type: 'image',
         source: {
@@ -499,17 +481,6 @@ async function extractWithClaudeMultiple(
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
-    console.log('[OCR] Multi-image extracted:', {
-      courseName: parsed.courseName,
-      holesCount: parsed.holes?.length,
-      teeSetsCount: parsed.teeSets?.length,
-      teeSetDetails: parsed.teeSets?.map((t: TeeSetData) => ({
-        name: t.name,
-        rating: t.rating,
-        slope: t.slope,
-        yardagesCount: t.yardages?.length,
-      })),
-    });
 
     return parsed;
   } catch (error) {

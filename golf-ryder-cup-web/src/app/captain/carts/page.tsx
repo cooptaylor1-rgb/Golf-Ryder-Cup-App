@@ -38,7 +38,14 @@ export default function CartsPage() {
   }, [currentTrip, isCaptainMode, router]);
 
   if (!currentTrip || !isCaptainMode) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--canvas)' }}>
+        <div className="animate-pulse text-center">
+          <div className="w-12 h-12 rounded-full mx-auto mb-4" style={{ background: 'var(--surface-elevated)' }} />
+          <div className="h-4 w-24 mx-auto rounded" style={{ background: 'var(--surface-elevated)' }} />
+        </div>
+      </div>
+    );
   }
 
   // Convert players to CartPlayer format with required teamId
