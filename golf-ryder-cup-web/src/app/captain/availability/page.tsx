@@ -205,8 +205,8 @@ export default function AvailabilityPage() {
                   key={session.id}
                   onClick={() => setSelectedSession(session.id)}
                   className={`px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all ${selectedSession === session.id
-                      ? 'bg-masters text-white'
-                      : 'bg-surface border border-rule'
+                    ? 'bg-masters text-white'
+                    : 'bg-surface border border-rule'
                     }`}
                 >
                   {session.name}
