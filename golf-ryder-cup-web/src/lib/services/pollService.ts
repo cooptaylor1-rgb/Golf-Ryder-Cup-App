@@ -327,19 +327,26 @@ export async function voteRanked(
         return undefined;
     }
 
-    // For ranked voting, we store the vote with rank in a simple way
-    // Clear existing votes
+    // For ranked voting, store votes with points based on rank
+    // Higher rank = more points (e.g., rank 1 = most points)
+    const maxRank = rankings.length;
+
+    // Clear existing votes from this player
     for (const option of poll.options) {
         option.votes = option.votes.filter(id => id !== playerId);
-        option.rank = undefined;
     }
 
-    // Add votes with rankings (we'll calculate winner differently)
-    for (const { optionId, rank: _rank } of rankings) {
+    // Add votes with rankings - store playerId with rank suffix for scoring
+    // Format: "playerId:rank" to track rank per voter
+    for (const { optionId, rank } of rankings) {
         const option = poll.options.find(o => o.id === optionId);
         if (option) {
-            option.votes.push(playerId);
-            // Store rank info (simplified - in production would use separate table)
+            // Store vote with rank info encoded
+            // Points = maxRank - rank + 1 (so rank 1 gets most points)
+            const points = maxRank - rank + 1;
+            // Use a weighted vote system: add playerId multiple times based on points
+            // This is a simplified Borda count implementation
+            option.votes.push(`${playerId}:${points}` as UUID);
         }
     }
 

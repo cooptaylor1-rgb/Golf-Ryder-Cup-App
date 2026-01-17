@@ -60,7 +60,7 @@ export interface LiveMatch {
 /**
  * Subscribe to trip-wide updates
  */
-export function subscribeToTrip(
+export async function subscribeToTrip(
     supabase: SupabaseClient,
     tripId: UUID,
     callbacks: {
@@ -68,13 +68,14 @@ export function subscribeToTrip(
         onMatchUpdate?: MatchUpdateCallback;
         onPresence?: PresenceCallback;
     }
-): () => void {
+): Promise<() => void> {
     const channelName = `trip:${tripId}`;
 
     // Remove existing channel if any
     const existing = activeChannels.get(channelName);
     if (existing) {
-        supabase.removeChannel(existing);
+        await supabase.removeChannel(existing);
+        activeChannels.delete(channelName);
     }
 
     const channel = supabase
@@ -110,19 +111,20 @@ export function subscribeToTrip(
 /**
  * Subscribe to a specific match
  */
-export function subscribeToMatch(
+export async function subscribeToMatch(
     supabase: SupabaseClient,
     matchId: UUID,
     callbacks: {
         onScoreUpdate?: ScoreUpdateCallback;
         onPresence?: PresenceCallback;
     }
-): () => void {
+): Promise<() => void> {
     const channelName = `match:${matchId}`;
 
     const existing = activeChannels.get(channelName);
     if (existing) {
-        supabase.removeChannel(existing);
+        await supabase.removeChannel(existing);
+        activeChannels.delete(channelName);
     }
 
     const channel = supabase
@@ -157,29 +159,33 @@ export function subscribeToMatch(
  * Broadcast a score update to all subscribers
  */
 export async function broadcastScoreUpdate(
-    supabase: SupabaseClient,
+    _supabase: SupabaseClient,
     tripId: UUID,
     matchId: UUID,
     update: ScoreUpdate
 ): Promise<void> {
-    // Broadcast to trip channel
-    const tripChannel = activeChannels.get(`trip:${tripId}`);
-    if (tripChannel) {
-        await tripChannel.send({
-            type: 'broadcast',
-            event: 'score_update',
-            payload: update,
-        });
-    }
+    try {
+        // Broadcast to trip channel
+        const tripChannel = activeChannels.get(`trip:${tripId}`);
+        if (tripChannel) {
+            await tripChannel.send({
+                type: 'broadcast',
+                event: 'score_update',
+                payload: update,
+            });
+        }
 
-    // Broadcast to match channel
-    const matchChannel = activeChannels.get(`match:${matchId}`);
-    if (matchChannel) {
-        await matchChannel.send({
-            type: 'broadcast',
-            event: 'score_update',
-            payload: update,
-        });
+        // Broadcast to match channel
+        const matchChannel = activeChannels.get(`match:${matchId}`);
+        if (matchChannel) {
+            await matchChannel.send({
+                type: 'broadcast',
+                event: 'score_update',
+                payload: update,
+            });
+        }
+    } catch (error) {
+        console.error('Failed to broadcast score update:', error);
     }
 }
 
@@ -187,17 +193,21 @@ export async function broadcastScoreUpdate(
  * Broadcast a match status update
  */
 export async function broadcastMatchUpdate(
-    supabase: SupabaseClient,
+    _supabase: SupabaseClient,
     tripId: UUID,
     match: Match
 ): Promise<void> {
-    const tripChannel = activeChannels.get(`trip:${tripId}`);
-    if (tripChannel) {
-        await tripChannel.send({
-            type: 'broadcast',
-            event: 'match_update',
-            payload: match,
-        });
+    try {
+        const tripChannel = activeChannels.get(`trip:${tripId}`);
+        if (tripChannel) {
+            await tripChannel.send({
+                type: 'broadcast',
+                event: 'match_update',
+                payload: match,
+            });
+        }
+    } catch (error) {
+        console.error('Failed to broadcast match update:', error);
     }
 }
 
@@ -209,7 +219,7 @@ export async function broadcastMatchUpdate(
  * Track player presence for a match
  */
 export async function trackPresence(
-    supabase: SupabaseClient,
+    _supabase: SupabaseClient,
     matchId: UUID,
     playerId: UUID,
     playerName: string,
@@ -218,36 +228,44 @@ export async function trackPresence(
     const channel = activeChannels.get(`match:${matchId}`);
     if (!channel) return;
 
-    await channel.track({
-        playerId,
-        playerName,
-        status,
-        currentMatchId: matchId,
-        lastSeen: new Date().toISOString(),
-    });
+    try {
+        await channel.track({
+            playerId,
+            playerName,
+            status,
+            currentMatchId: matchId,
+            lastSeen: new Date().toISOString(),
+        });
+    } catch (error) {
+        console.error('Failed to track presence:', error);
+    }
 }
 
 /**
  * Update presence status
  */
 export async function updatePresenceStatus(
-    supabase: SupabaseClient,
+    _supabase: SupabaseClient,
     matchId: UUID,
     status: PlayerPresence['status']
 ): Promise<void> {
     const channel = activeChannels.get(`match:${matchId}`);
     if (!channel) return;
 
-    // Get current presence and update status
-    const state = channel.presenceState();
-    const currentPresence = Object.values(state).flat()[0] as unknown as PlayerPresence | undefined;
+    try {
+        // Get current presence and update status
+        const state = channel.presenceState();
+        const currentPresence = Object.values(state).flat()[0] as unknown as PlayerPresence | undefined;
 
-    if (currentPresence) {
-        await channel.track({
-            ...currentPresence,
-            status,
-            lastSeen: new Date().toISOString(),
-        });
+        if (currentPresence) {
+            await channel.track({
+                ...currentPresence,
+                status,
+                lastSeen: new Date().toISOString(),
+            });
+        }
+    } catch (error) {
+        console.error('Failed to update presence status:', error);
     }
 }
 

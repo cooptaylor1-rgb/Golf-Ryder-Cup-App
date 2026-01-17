@@ -183,24 +183,26 @@ export async function addReaction(
     emoji: string,
     playerId: UUID
 ): Promise<ChatMessage | undefined> {
-    const message = await db.chatMessages.get(messageId);
-    if (!message) return undefined;
+    return await db.transaction('rw', db.chatMessages, async () => {
+        const message = await db.chatMessages.get(messageId);
+        if (!message) return undefined;
 
-    const existingReaction = message.reactions.find(r => r.emoji === emoji);
+        const existingReaction = message.reactions.find(r => r.emoji === emoji);
 
-    if (existingReaction) {
-        if (!existingReaction.playerIds.includes(playerId)) {
-            existingReaction.playerIds.push(playerId);
+        if (existingReaction) {
+            if (!existingReaction.playerIds.includes(playerId)) {
+                existingReaction.playerIds.push(playerId);
+            }
+        } else {
+            message.reactions.push({
+                emoji,
+                playerIds: [playerId],
+            });
         }
-    } else {
-        message.reactions.push({
-            emoji,
-            playerIds: [playerId],
-        });
-    }
 
-    await db.chatMessages.update(messageId, { reactions: message.reactions });
-    return message;
+        await db.chatMessages.update(messageId, { reactions: message.reactions });
+        return message;
+    });
 }
 
 /**
