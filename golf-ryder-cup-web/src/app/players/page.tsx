@@ -32,6 +32,8 @@ export default function PlayersPage() {
     const [showBulkAdd, setShowBulkAdd] = useState(false);
     const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
     const [playerToDelete, setPlayerToDelete] = useState<Player | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -105,6 +107,7 @@ export default function PlayersPage() {
         }
 
         try {
+            setIsSaving(true);
             const playerData = {
                 firstName: formData.firstName.trim(),
                 lastName: formData.lastName.trim(),
@@ -132,18 +135,23 @@ export default function PlayersPage() {
         } catch (error) {
             console.error('Failed to save player:', error);
             showToast('error', 'Failed to save player');
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleDelete = async () => {
-        if (!playerToDelete) return;
+        if (!playerToDelete || isDeleting) return;
         try {
+            setIsDeleting(true);
             await removePlayer(playerToDelete.id);
             setPlayerToDelete(null);
             showToast('info', 'Player deleted');
         } catch (error) {
             console.error('Failed to delete player:', error);
             showToast('error', 'Failed to delete player');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -371,7 +379,7 @@ export default function PlayersPage() {
                     <div className="modal" onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
                             <h2 className="type-headline">{editingPlayer ? 'Edit Player' : 'Add Player'}</h2>
-                            <button onClick={resetForm} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                            <button onClick={resetForm} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }} aria-label="Close">
                                 <X size={20} style={{ color: 'var(--ink-tertiary)' }} />
                             </button>
                         </div>
@@ -404,6 +412,9 @@ export default function PlayersPage() {
                                 <label className="type-meta" style={{ display: 'block', marginBottom: 'var(--space-1)' }}>Handicap Index</label>
                                 <input
                                     type="number"
+                                    min="-10"
+                                    max="54"
+                                    step="0.1"
                                     className="input"
                                     value={formData.handicapIndex}
                                     onChange={(e) => setFormData(prev => ({ ...prev, handicapIndex: e.target.value }))}
@@ -426,9 +437,9 @@ export default function PlayersPage() {
                         </div>
 
                         <div style={{ display: 'flex', gap: 'var(--space-3)', marginTop: 'var(--space-6)' }}>
-                            <button onClick={resetForm} className="btn btn-secondary" style={{ flex: 1 }}>Cancel</button>
-                            <button onClick={handleSave} className="btn btn-primary" style={{ flex: 1 }}>
-                                {editingPlayer ? 'Save' : 'Add'}
+                            <button onClick={resetForm} className="btn btn-secondary" style={{ flex: 1 }} disabled={isSaving}>Cancel</button>
+                            <button onClick={handleSave} className="btn btn-primary" style={{ flex: 1 }} disabled={isSaving}>
+                                {isSaving ? 'Saving...' : editingPlayer ? 'Save' : 'Add'}
                             </button>
                         </div>
                     </div>
@@ -444,8 +455,10 @@ export default function PlayersPage() {
                             Are you sure you want to delete {playerToDelete.firstName} {playerToDelete.lastName}? This will also remove them from any matches.
                         </p>
                         <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                            <button onClick={() => setPlayerToDelete(null)} className="btn btn-secondary" style={{ flex: 1 }}>Cancel</button>
-                            <button onClick={handleDelete} className="btn btn-danger" style={{ flex: 1 }}>Delete</button>
+                            <button onClick={() => setPlayerToDelete(null)} className="btn btn-secondary" style={{ flex: 1 }} disabled={isDeleting}>Cancel</button>
+                            <button onClick={handleDelete} className="btn btn-danger" style={{ flex: 1 }} disabled={isDeleting}>
+                                {isDeleting ? 'Deleting...' : 'Delete'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -523,6 +536,9 @@ export default function PlayersPage() {
                                     />
                                     <input
                                         type="number"
+                                        min="-10"
+                                        max="54"
+                                        step="0.1"
                                         className="input"
                                         value={row.handicapIndex}
                                         onChange={(e) => updateBulkRow(row.id, 'handicapIndex', e.target.value)}
@@ -654,10 +670,10 @@ function PlayerRow({
             {/* Actions */}
             {canEdit && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
-                    <button onClick={onEdit} style={{ padding: 'var(--space-2)', color: 'var(--ink-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <button onClick={onEdit} style={{ padding: 'var(--space-2)', color: 'var(--ink-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }} aria-label="Edit player">
                         <Edit2 size={16} />
                     </button>
-                    <button onClick={onDelete} style={{ padding: 'var(--space-2)', color: 'var(--error)', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                    <button onClick={onDelete} style={{ padding: 'var(--space-2)', color: 'var(--error)', background: 'transparent', border: 'none', cursor: 'pointer' }} aria-label="Delete player">
                         <Trash2 size={16} />
                     </button>
                 </div>

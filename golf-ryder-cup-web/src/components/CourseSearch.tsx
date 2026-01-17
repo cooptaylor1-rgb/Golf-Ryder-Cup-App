@@ -151,7 +151,7 @@ export function CourseSearch({ onSelectCourse, onClose }: CourseSearchProps) {
                         ← Back to search
                     </button>
                     {onClose && (
-                        <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600">
+                        <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600" aria-label="Close">
                             <X className="w-5 h-5" />
                         </button>
                     )}
@@ -209,7 +209,7 @@ export function CourseSearch({ onSelectCourse, onClose }: CourseSearchProps) {
             <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-gray-900">Search Course Database</h3>
                 {onClose && (
-                    <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600">
+                    <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600" aria-label="Close">
                         <X className="w-5 h-5" />
                     </button>
                 )}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, type UserProfile } from '@/lib/stores';
+import { useAuthStore, useUIStore, type UserProfile } from '@/lib/stores';
 import { Button } from '@/components/ui';
 import { GolfersIllustration } from '@/components/ui/illustrations';
 import {
@@ -75,6 +75,7 @@ const initialFormData: FormData = {
 export default function CreateProfilePage() {
     const router = useRouter();
     const { createProfile, isAuthenticated, isLoading, error, clearError } = useAuthStore();
+    const { showToast } = useUIStore();
 
     const [step, setStep] = useState<Step>(1);
     const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -186,6 +187,7 @@ export default function CreateProfilePage() {
             router.push('/');
         } catch (err) {
             console.error('Failed to create profile:', err);
+            showToast('error', 'Failed to create profile');
         } finally {
             setIsSubmitting(false);
         }

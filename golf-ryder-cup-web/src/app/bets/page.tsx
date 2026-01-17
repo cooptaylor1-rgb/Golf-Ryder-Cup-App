@@ -444,6 +444,7 @@ export default function BetsPage() {
                 </label>
                 <input
                   type="number"
+                  min="0"
                   value={newBetPot}
                   onChange={(e) => setNewBetPot(e.target.value)}
                   className="w-full p-3 rounded-xl"
@@ -461,6 +462,7 @@ export default function BetsPage() {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     value={newBetPerHole}
                     onChange={(e) => setNewBetPerHole(e.target.value)}
                     className="w-full p-3 rounded-xl"

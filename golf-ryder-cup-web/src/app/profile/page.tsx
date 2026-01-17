@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, type UserProfile } from '@/lib/stores';
+import { useAuthStore, useUIStore, type UserProfile } from '@/lib/stores';
 import { Button, Card, CardContent } from '@/components/ui';
 import { GolfersIllustration } from '@/components/ui/illustrations';
 import {
@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 export default function ProfilePage() {
     const router = useRouter();
     const { currentUser, isAuthenticated, updateProfile, logout, isLoading } = useAuthStore();
+    const { showToast } = useUIStore();
 
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState<Partial<UserProfile>>({});
@@ -55,8 +56,10 @@ export default function ProfilePage() {
                     : undefined,
             });
             setIsEditing(false);
+            showToast('success', 'Profile updated');
         } catch (err) {
             console.error('Failed to save profile:', err);
+            showToast('error', 'Failed to save profile');
         } finally {
             setIsSaving(false);
         }
@@ -213,6 +216,9 @@ export default function ProfilePage() {
                                     isEditing={isEditing}
                                     onChange={(v) => setFormData(prev => ({ ...prev, handicapIndex: parseFloat(v) || undefined }))}
                                     type="number"
+                                    min={-10}
+                                    max={54}
+                                    step={0.1}
                                 />
                                 <ProfileField
                                     icon={<Hash className="w-4 h-4" />}
@@ -423,6 +429,9 @@ interface ProfileFieldProps {
     isEditing: boolean;
     onChange: (value: string) => void;
     type?: 'text' | 'email' | 'tel' | 'number';
+    min?: number;
+    max?: number;
+    step?: number;
 }
 
 function ProfileField({
@@ -432,6 +441,9 @@ function ProfileField({
     isEditing,
     onChange,
     type = 'text',
+    min,
+    max,
+    step,
 }: ProfileFieldProps) {
     return (
         <div className="space-y-1">
@@ -444,6 +456,9 @@ function ProfileField({
                     type={type}
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
+                    min={min}
+                    max={max}
+                    step={step}
                     className={cn(
                         "w-full py-2 px-3 rounded-lg border border-surface-200 bg-white",
                         "text-body-md placeholder:text-surface-400",

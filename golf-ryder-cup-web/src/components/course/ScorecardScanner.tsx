@@ -288,7 +288,7 @@ export function ScorecardScanner({ onScanComplete, onCancel }: ScorecardScannerP
                 className="flex items-center justify-between p-4 border-b border-border"
                 style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}
             >
-                <button onClick={onCancel || reset} className="p-2 rounded-full hover:bg-muted">
+                <button onClick={onCancel || reset} className="p-2 rounded-full hover:bg-muted" aria-label="Cancel">
                     <X size={24} />
                 </button>
                 <h1 className="font-semibold">Scan Scorecard</h1>

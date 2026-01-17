@@ -450,7 +450,7 @@ export function PredictionsModal({ isOpen, onClose }: PredictionsModalProps) {
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={onClose} className="p-2 rounded-full hover:bg-muted">
+                            <button onClick={onClose} className="p-2 rounded-full hover:bg-muted" aria-label="Close">
                                 <X size={20} />
                             </button>
                         </div>

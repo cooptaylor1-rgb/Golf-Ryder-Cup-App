@@ -94,7 +94,24 @@ export default function SocialPage() {
 
   const quickReactions = ['🔥', '👏', '😂', '💪', '⛳', '🎯'];
 
-  if (!currentTrip) return null;
+  if (!currentTrip) {
+    return (
+      <main className="page-container">
+        <header className="header-premium">
+          <h1 className="type-h2">Team Banter</h1>
+        </header>
+        <div className="content-area">
+          <div className="card-surface rounded-xl p-8 text-center">
+            <div className="text-4xl mb-4">💬</div>
+            <h2 className="type-h3 mb-2">No Active Trip</h2>
+            <p className="text-text-secondary">
+              Start or join a trip to chat with your group!
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="pb-nav page-premium-enter texture-grain" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--canvas)' }}>

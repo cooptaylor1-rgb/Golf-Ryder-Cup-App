@@ -92,7 +92,7 @@ export function WeatherWidget({
                 <div className="flex items-center gap-2 text-surface-500">
                     <AlertCircle className="w-5 h-5" />
                     <span className="text-sm">{error || 'Weather unavailable'}</span>
-                    <button onClick={loadWeather} className="ml-auto p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-800">
+                    <button onClick={loadWeather} className="ml-auto p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-800" aria-label="Refresh weather">
                         <RefreshCw className="w-4 h-4" />
                     </button>
                 </div>

@@ -73,6 +73,7 @@ export default function SessionPage() {
         setMatches(loadedMatches);
       } catch (error) {
         console.error('Failed to load matches:', error);
+        showToast('error', 'Failed to load matches');
       } finally {
         setIsLoading(false);
       }
