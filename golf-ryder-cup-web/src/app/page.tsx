@@ -24,6 +24,9 @@ import {
   Users,
   ClipboardCheck,
   BarChart3,
+  DollarSign,
+  CircleDot,
+  Ruler,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { useEffect, useState, useCallback, useMemo } from 'react';
@@ -244,6 +247,28 @@ export default function HomePage() {
     if (!activeTrip) return [];
     return db.sideBets.where('tripId').equals(activeTrip.id).toArray();
   }, [activeTrip?.id]);
+
+  // Helper function to get appropriate icon for each bet type
+  const getBetIcon = (betType: string) => {
+    switch (betType?.toLowerCase()) {
+      case 'skins':
+        return <DollarSign size={16} />;
+      case 'nassau':
+        return <Trophy size={16} />;
+      case 'ctp':
+      case 'closest':
+      case 'closest to pin':
+        return <Target size={16} />;
+      case 'longdrive':
+      case 'long_drive':
+      case 'long drive':
+        return <Ruler size={16} />;
+      case 'kp':
+        return <CircleDot size={16} />;
+      default:
+        return <Zap size={16} />;
+    }
+  };
 
   // Calculate real counts
   const liveMatchesCount = liveMatches?.length || 0;
@@ -706,7 +731,7 @@ export default function HomePage() {
                         key={bet.id}
                         type={bet.type || 'Custom'}
                         status={bet.status === 'active' ? 'In Progress' : 'Complete'}
-                        icon={<Zap size={16} />}
+                        icon={getBetIcon(bet.type)}
                       />
                     ))}
                   </div>
@@ -715,7 +740,7 @@ export default function HomePage() {
                     className="text-center py-6"
                     style={{ color: 'var(--ink-tertiary)' }}
                   >
-                    <Zap size={24} style={{ margin: '0 auto var(--space-2)' }} />
+                    <DollarSign size={24} style={{ margin: '0 auto var(--space-2)' }} />
                     <p className="type-caption">No active side bets</p>
                     <p className="type-caption" style={{ marginTop: 'var(--space-1)' }}>
                       Add skins, KP, or custom bets

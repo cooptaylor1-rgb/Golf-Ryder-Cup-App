@@ -26,6 +26,7 @@ import {
   CalendarDays,
   X,
   Flag,
+  Ruler,
 } from 'lucide-react';
 
 /**
@@ -96,15 +97,15 @@ export default function BetsPage() {
   const getBetIcon = (type: SideBetType) => {
     switch (type) {
       case 'skins':
-        return <Zap size={20} />;
+        return <DollarSign size={20} />;
       case 'ctp':
         return <Target size={20} />;
       case 'longdrive':
-        return <TrendingUp size={20} />;
+        return <Ruler size={20} />;
       case 'nassau':
-        return <DollarSign size={20} />;
-      default:
         return <Trophy size={20} />;
+      default:
+        return <Zap size={20} />;
     }
   };
 
