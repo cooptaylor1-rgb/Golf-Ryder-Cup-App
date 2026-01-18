@@ -36,6 +36,8 @@ export interface UndoAction {
         result?: 'teamA' | 'teamB' | 'halved';
         teamAName?: string;
         teamBName?: string;
+        teamAScore?: number;
+        teamBScore?: number;
     };
     timestamp: number;
     onUndo: () => void | Promise<void>;

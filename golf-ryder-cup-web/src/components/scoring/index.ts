@@ -71,3 +71,12 @@ export {
 export {
   QuickScoreFABv2,
 } from './QuickScoreFABv2';
+
+export {
+  HoleScoreDisplay,
+  InlineGrossNetScore,
+} from './HoleScoreDisplay';
+
+export {
+  StrokeScoreEntry,
+} from './StrokeScoreEntry';

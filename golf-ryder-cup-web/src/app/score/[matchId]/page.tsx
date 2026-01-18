@@ -42,6 +42,8 @@ import {
     HandicapStrokeIndicator,
     StrokeAlertBanner,
     PressTracker,
+    StrokeScoreEntry,
+    HoleScoreDisplay,
     type Press,
 } from '@/components/scoring';
 import {
@@ -110,7 +112,7 @@ export default function EnhancedMatchScoringPage() {
     const [undoAction, setUndoAction] = useState<UndoAction | null>(null);
     const [presses, setPresses] = useState<Press[]>([]);
     const [showHandicapDetails, setShowHandicapDetails] = useState(false);
-    const [scoringMode, setScoringMode] = useState<'swipe' | 'buttons'>('swipe');
+    const [scoringMode, setScoringMode] = useState<'swipe' | 'buttons' | 'strokes'>('swipe');
 
     // Celebration state
     const [celebration, setCelebration] = useState<{
@@ -229,6 +231,65 @@ export default function EnhancedMatchScoringPage() {
             onUndo: handleUndo,
         });
     }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, haptic, scoreHole, currentHole]);
+
+    // Score handler with stroke scores (gross/net)
+    const handleScoreWithStrokes = useCallback(async (winner: HoleWinner, teamAStrokeScore: number, teamBStrokeScore: number) => {
+        if (isSaving || !matchState) return;
+
+        // Check for match closeout
+        const wouldCloseOut =
+            Math.abs(matchState.currentScore + (winner === 'teamA' ? 1 : winner === 'teamB' ? -1 : 0))
+            > (matchState.holesRemaining - 1);
+
+        if (scoringPreferences.confirmCloseout && wouldCloseOut && winner !== 'halved') {
+            const winningTeam = winner === 'teamA' ? teamAName : teamBName;
+            if (!confirm(`This will end the match with ${winningTeam} winning. Continue?`)) {
+                return;
+            }
+        }
+
+        // Score the hole with stroke scores
+        haptic.scorePoint();
+        await scoreHole(winner, teamAStrokeScore, teamBStrokeScore);
+
+        // Show celebration/toast
+        if (wouldCloseOut && winner !== 'halved') {
+            setCelebration({
+                type: 'matchWon',
+                winner,
+                teamName: winner === 'teamA' ? teamAName : teamBName,
+                teamColor: winner === 'teamA' ? teamAColor : teamBColor,
+                finalScore: matchState.displayScore,
+            });
+        } else if (winner === 'halved') {
+            setToast({
+                message: `Hole ${currentHole} halved (${teamAStrokeScore}-${teamBStrokeScore})`,
+                type: 'success',
+            });
+        } else {
+            setToast({
+                message: `Hole ${currentHole}: ${winner === 'teamA' ? teamAName : teamBName} wins (${teamAStrokeScore}-${teamBStrokeScore})`,
+                type: 'success',
+            });
+        }
+
+        // Show undo banner
+        setUndoAction({
+            id: crypto.randomUUID(),
+            type: 'score',
+            description: `Hole ${currentHole}: ${teamAStrokeScore}-${teamBStrokeScore}`,
+            metadata: {
+                holeNumber: currentHole,
+                result: winner === 'none' ? undefined : winner,
+                teamAName,
+                teamBName,
+                teamAScore: teamAStrokeScore,
+                teamBScore: teamBStrokeScore,
+            },
+            timestamp: Date.now(),
+            onUndo: handleUndo,
+        });
+    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, teamAColor, teamBColor, haptic, scoreHole, currentHole]);
 
     // Undo handler
     const handleUndo = useCallback(async () => {
@@ -612,6 +673,37 @@ export default function EnhancedMatchScoringPage() {
                                         disabled={isSaving}
                                     />
                                 </motion.div>
+                            ) : scoringMode === 'strokes' ? (
+                                <motion.div
+                                    key="strokes"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                >
+                                    <StrokeScoreEntry
+                                        holeNumber={currentHole}
+                                        par={currentTeeSet?.holePars?.[currentHole - 1] || 4}
+                                        teamAName={teamAName}
+                                        teamBName={teamBName}
+                                        teamAColor={teamAColor}
+                                        teamBColor={teamBColor}
+                                        teamAHandicapStrokes={activeMatch.teamAHandicapAllowance}
+                                        teamBHandicapStrokes={activeMatch.teamBHandicapAllowance}
+                                        holeHandicaps={holeHandicaps}
+                                        initialTeamAScore={currentHoleResult?.teamAScore || null}
+                                        initialTeamBScore={currentHoleResult?.teamBScore || null}
+                                        onSubmit={handleScoreWithStrokes}
+                                        isSubmitting={isSaving}
+                                    />
+                                    {/* Show current hole gross/net if already scored */}
+                                    {currentHoleResult && (currentHoleResult.teamAScore || currentHoleResult.teamBScore) && (
+                                        <div className="mt-4 p-3 rounded-xl" style={{ background: 'var(--canvas-sunken)' }}>
+                                            <p className="text-xs text-center" style={{ color: 'var(--ink-tertiary)' }}>
+                                                Previous score: {teamAName} {currentHoleResult.teamAScore} - {currentHoleResult.teamBScore} {teamBName}
+                                            </p>
+                                        </div>
+                                    )}
+                                </motion.div>
                             ) : (
                                 <motion.div
                                     key="buttons"
@@ -722,6 +814,17 @@ export default function EnhancedMatchScoringPage() {
                                     }}
                                 >
                                     Buttons
+                                </button>
+                                <button
+                                    onClick={() => setScoringMode('strokes')}
+                                    className="px-3 py-1 rounded-full transition-all"
+                                    style={{
+                                        background: scoringMode === 'strokes' ? 'var(--canvas)' : 'transparent',
+                                        color: scoringMode === 'strokes' ? 'var(--ink)' : 'var(--ink-tertiary)',
+                                        boxShadow: scoringMode === 'strokes' ? 'var(--shadow-sm)' : 'none',
+                                    }}
+                                >
+                                    Strokes
                                 </button>
                             </div>
                         </div>
