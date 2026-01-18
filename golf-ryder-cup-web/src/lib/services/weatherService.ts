@@ -214,7 +214,7 @@ export async function getWeather(
         .map((time: string, i: number) => {
             const actualIndex = startIdx + i;
             // For the first entry ("Now"), use current temperature for consistency
-            const temperature = i === 0 
+            const temperature = i === 0
                 ? Math.round(data.current.temperature_2m)
                 : Math.round(data.hourly.temperature_2m[actualIndex]);
             const condition = i === 0
