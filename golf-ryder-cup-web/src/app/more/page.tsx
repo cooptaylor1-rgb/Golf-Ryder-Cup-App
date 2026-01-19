@@ -3,40 +3,79 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTripStore, useUIStore, useAuthStore } from '@/lib/stores';
 import { seedDemoData, clearDemoData } from '@/lib/db/seed';
 import { createLogger } from '@/lib/utils/logger';
 import {
-    Users,
-    MapPin,
-    Shield,
-    Vibrate,
-    Database,
-    Trash2,
+    // Navigation & UI
     ChevronRight,
-    LogOut,
-    Lock,
-    Unlock,
-    Home,
-    Target,
-    Trophy,
-    MoreHorizontal,
     ChevronLeft,
-    X,
+    // Account & Auth
     User,
     LogIn,
-    CalendarDays,
-    Sun,
-    Moon,
-    SunDim,
+    LogOut,
+    // Trip & Management
+    Shield,
+    Lock,
+    Unlock,
+    Users,
+    MapPin,
+    // Features
+    Award,
+    Camera,
+    Coins,
     BarChart3,
+    Eye,
+    ExternalLink,
+    Sparkles,
+    // Settings
+    Palette,
+    Bell,
+    Target,
+    // Data
+    Database,
+    Trash2,
+    HardDrive,
+    // Info
+    Heart,
 } from 'lucide-react';
 
 /**
- * MORE PAGE - Settings & Data
+ * MORE PAGE — Redesigned Hub
  *
- * Editorial design with clean toggles and action rows
+ * Clean, organized access to all features, settings, and account management.
+ * Groups related items together with clear visual hierarchy.
  */
+
+// ============================================
+// TYPES
+// ============================================
+
+interface MenuSection {
+    id: string;
+    title: string;
+    items: MenuItem[];
+}
+
+interface MenuItem {
+    id: string;
+    label: string;
+    description?: string;
+    icon: React.ReactNode;
+    href?: string;
+    action?: () => void;
+    badge?: string;
+    badgeColor?: string;
+    destructive?: boolean;
+    requiresTrip?: boolean;
+    requiresCaptain?: boolean;
+    external?: boolean;
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export default function MorePage() {
     const router = useRouter();
@@ -46,11 +85,7 @@ export default function MorePage() {
         isCaptainMode,
         enableCaptainMode,
         disableCaptainMode,
-        scoringPreferences,
-        updateScoringPreference,
         showToast,
-        theme,
-        setTheme,
     } = useUIStore();
 
     const [showCaptainModal, setShowCaptainModal] = useState(false);
@@ -59,6 +94,7 @@ export default function MorePage() {
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [showExitTripConfirm, setShowExitTripConfirm] = useState(false);
 
+    // Handlers
     const handleEnableCaptainMode = () => {
         if (captainPin.length >= 4) {
             enableCaptainMode(captainPin);
@@ -87,7 +123,7 @@ export default function MorePage() {
             await clearDemoData();
             clearTrip();
             setShowClearConfirm(false);
-            showToast('info', 'Data cleared');
+            showToast('info', 'All data cleared');
             router.push('/');
         } catch (error) {
             createLogger('more').error('Failed to clear data', { error });
@@ -101,371 +137,515 @@ export default function MorePage() {
         router.push('/');
     };
 
+    // ============================================
+    // MENU SECTIONS
+    // ============================================
+
+    const menuSections: MenuSection[] = [
+        // Features & Activities
+        {
+            id: 'features',
+            title: 'Features',
+            items: [
+                {
+                    id: 'achievements',
+                    label: 'Achievements',
+                    description: 'Badges & milestones',
+                    icon: <Award size={20} />,
+                    href: '/achievements',
+                    badge: 'New',
+                    badgeColor: 'var(--masters)',
+                },
+                {
+                    id: 'social',
+                    label: 'Social & Photos',
+                    description: 'Share memories',
+                    icon: <Camera size={20} />,
+                    href: '/social',
+                },
+                {
+                    id: 'bets',
+                    label: 'Side Bets',
+                    description: 'Fun wagers & pools',
+                    icon: <Coins size={20} />,
+                    href: '/bets',
+                    requiresTrip: true,
+                },
+                {
+                    id: 'trip-stats',
+                    label: 'Trip Stats',
+                    description: 'Beverages, mishaps & more',
+                    icon: <BarChart3 size={20} />,
+                    href: '/trip-stats',
+                    requiresTrip: true,
+                },
+                {
+                    id: 'live',
+                    label: 'Live Leaderboard',
+                    description: 'Real-time scores',
+                    icon: <Sparkles size={20} />,
+                    href: '/live',
+                    requiresTrip: true,
+                },
+            ],
+        },
+        // Management (Trip-specific)
+        ...(currentTrip
+            ? [
+                  {
+                      id: 'manage',
+                      title: 'Trip Management',
+                      items: [
+                          {
+                              id: 'captain-center',
+                              label: 'Captain Command',
+                              description: 'Lineups, settings & more',
+                              icon: <Shield size={20} />,
+                              href: '/captain',
+                              requiresCaptain: true,
+                              badge: isCaptainMode ? 'Active' : undefined,
+                              badgeColor: 'var(--success)',
+                          },
+                          {
+                              id: 'players',
+                              label: 'Players',
+                              description: 'Manage roster',
+                              icon: <Users size={20} />,
+                              href: '/players',
+                          },
+                          {
+                              id: 'courses',
+                              label: 'Courses',
+                              description: 'View & add courses',
+                              icon: <MapPin size={20} />,
+                              href: '/courses',
+                          },
+                          {
+                              id: 'spectator',
+                              label: 'Spectator Link',
+                              description: 'Share live scores',
+                              icon: <Eye size={20} />,
+                              href: `/spectator/${currentTrip.id}`,
+                              external: true,
+                          },
+                      ],
+                  },
+              ]
+            : []),
+        // Settings
+        {
+            id: 'settings',
+            title: 'Settings',
+            items: [
+                {
+                    id: 'scoring',
+                    label: 'Scoring Preferences',
+                    description: 'Rules & behavior',
+                    icon: <Target size={20} />,
+                    href: '/settings/scoring',
+                },
+                {
+                    id: 'notifications',
+                    label: 'Notifications',
+                    description: 'Alerts & reminders',
+                    icon: <Bell size={20} />,
+                    href: '/settings/notifications',
+                },
+                {
+                    id: 'appearance',
+                    label: 'Appearance',
+                    description: 'Theme & display',
+                    icon: <Palette size={20} />,
+                    href: '/settings',
+                },
+                {
+                    id: 'backup',
+                    label: 'Backup & Export',
+                    description: 'Save your data',
+                    icon: <HardDrive size={20} />,
+                    href: '/settings/backup',
+                },
+            ],
+        },
+        // Data & Developer
+        {
+            id: 'data',
+            title: 'Data',
+            items: [
+                {
+                    id: 'demo',
+                    label: 'Load Demo Data',
+                    description: 'Try with sample trip',
+                    icon: <Database size={20} />,
+                    action: handleSeedData,
+                },
+                {
+                    id: 'clear',
+                    label: 'Clear All Data',
+                    description: 'Start fresh',
+                    icon: <Trash2 size={20} />,
+                    action: () => setShowClearConfirm(true),
+                    destructive: true,
+                },
+            ],
+        },
+    ];
+
     return (
-        <div className="pb-nav page-premium-enter texture-grain" style={{ minHeight: '100vh', background: 'var(--canvas)' }}>
-            {/* Premium Header */}
-            <header className="header-premium">
-                <div className="container-editorial" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                    <button onClick={() => router.back()} className="press-scale" style={{ padding: 'var(--space-1)', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--ink-secondary)' }} aria-label="Back">
+        <div
+            className="pb-nav page-premium-enter"
+            style={{ minHeight: '100vh', background: 'var(--canvas)' }}
+        >
+            {/* Header */}
+            <header
+                style={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 40,
+                    background: 'var(--canvas)',
+                    borderBottom: '1px solid var(--rule)',
+                }}
+            >
+                <div
+                    style={{
+                        padding: '12px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                    }}
+                >
+                    <button
+                        onClick={() => router.back()}
+                        style={{
+                            padding: '8px',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'var(--ink-secondary)',
+                            borderRadius: '8px',
+                        }}
+                    >
                         <ChevronLeft size={20} />
                     </button>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                        <div
-                            style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: 'var(--radius-md)',
-                                background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: 'var(--shadow-glow-green)',
-                            }}
-                        >
-                            <MoreHorizontal size={16} style={{ color: 'var(--color-accent)' }} />
-                        </div>
-                        <span className="type-overline" style={{ letterSpacing: '0.1em' }}>More</span>
-                    </div>
+                    <h1 style={{ fontSize: '1.25rem', fontWeight: 600 }}>More</h1>
                 </div>
             </header>
 
-            <main className="container-editorial">
-                {/* Account Section */}
-                <section className="section" style={{ paddingTop: 'var(--space-6)' }}>
-                    <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>Account</h2>
+            <main style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+                {/* Account Card */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{
+                        background: 'var(--surface-card)',
+                        borderRadius: '16px',
+                        padding: '16px',
+                        marginBottom: '24px',
+                        border: '1px solid var(--rule)',
+                    }}
+                >
                     {isAuthenticated && currentUser ? (
-                        <Link href="/profile" className="match-row">
+                        <Link
+                            href="/profile"
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                textDecoration: 'none',
+                                color: 'inherit',
+                            }}
+                        >
                             <div
                                 style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    borderRadius: 'var(--radius-full)',
+                                    width: '48px',
+                                    height: '48px',
+                                    borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    background: 'var(--masters)',
                                     color: 'white',
-                                    fontWeight: 600,
-                                    fontSize: '12px',
+                                    fontWeight: 700,
+                                    fontSize: '16px',
                                 }}
                             >
-                                {currentUser.firstName?.[0] || '?'}{currentUser.lastName?.[0] || '?'}
+                                {currentUser.firstName?.[0] || '?'}
+                                {currentUser.lastName?.[0] || '?'}
                             </div>
                             <div style={{ flex: 1 }}>
-                                <p style={{ fontWeight: 500 }}>{currentUser.firstName} {currentUser.lastName}</p>
-                                <p className="type-meta">{currentUser.email}</p>
+                                <p style={{ fontWeight: 600, fontSize: '1rem' }}>
+                                    {currentUser.firstName} {currentUser.lastName}
+                                </p>
+                                <p style={{ fontSize: '0.875rem', color: 'var(--ink-secondary)' }}>
+                                    {currentUser.email}
+                                </p>
                             </div>
-                            <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
+                            <ChevronRight size={20} style={{ color: 'var(--ink-tertiary)' }} />
                         </Link>
                     ) : (
-                        <>
-                            <Link href="/login" className="match-row">
-                                <LogIn size={18} style={{ color: 'var(--masters)' }} />
-                                <div style={{ flex: 1 }}>
-                                    <p style={{ fontWeight: 500 }}>Sign In</p>
-                                    <p className="type-meta">Access your profile and sync data</p>
-                                </div>
-                                <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <Link
+                                href="/login"
+                                style={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    padding: '12px',
+                                    background: 'var(--masters)',
+                                    color: 'white',
+                                    borderRadius: '10px',
+                                    fontWeight: 600,
+                                    fontSize: '0.875rem',
+                                    textDecoration: 'none',
+                                }}
+                            >
+                                <LogIn size={18} />
+                                Sign In
                             </Link>
-                            <Link href="/profile/create" className="match-row">
-                                <User size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                                <div style={{ flex: 1 }}>
-                                    <p style={{ fontWeight: 500 }}>Create Profile</p>
-                                    <p className="type-meta">Set up your golf profile for trips</p>
-                                </div>
-                                <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
+                            <Link
+                                href="/profile/create"
+                                style={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    padding: '12px',
+                                    background: 'var(--surface-raised)',
+                                    border: '1px solid var(--rule)',
+                                    color: 'var(--ink-primary)',
+                                    borderRadius: '10px',
+                                    fontWeight: 600,
+                                    fontSize: '0.875rem',
+                                    textDecoration: 'none',
+                                }}
+                            >
+                                <User size={18} />
+                                Create Profile
                             </Link>
-                        </>
+                        </div>
                     )}
-                </section>
+                </motion.div>
 
-                <hr className="divider" />
-
-                {/* Current Trip */}
+                {/* Current Trip Card */}
                 {currentTrip && (
-                    <section className="section" style={{ paddingTop: 'var(--space-6)' }}>
-                        <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>Current Trip</h2>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.05 }}
+                        style={{
+                            background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
+                            borderRadius: '16px',
+                            padding: '16px',
+                            marginBottom: '24px',
+                            color: 'white',
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                             <div>
-                                <p style={{ fontWeight: 500 }}>{currentTrip.name}</p>
-                                <p className="type-meta">
-                                    {new Date(currentTrip.startDate).toLocaleDateString()} – {new Date(currentTrip.endDate).toLocaleDateString()}
+                                <p style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '4px' }}>
+                                    CURRENT TRIP
+                                </p>
+                                <p style={{ fontWeight: 700, fontSize: '1.125rem' }}>{currentTrip.name}</p>
+                                <p style={{ fontSize: '0.875rem', opacity: 0.9, marginTop: '4px' }}>
+                                    {new Date(currentTrip.startDate).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                    })}{' '}
+                                    –{' '}
+                                    {new Date(currentTrip.endDate).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                    })}
                                 </p>
                             </div>
                             <button
                                 onClick={() => setShowExitTripConfirm(true)}
-                                className="type-meta"
-                                style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--error)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    background: 'rgba(255,255,255,0.15)',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    color: 'white',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
                             >
                                 <LogOut size={14} />
                                 Exit
                             </button>
                         </div>
-                    </section>
+                    </motion.div>
                 )}
 
-                {currentTrip && <hr className="divider" />}
-
-                {/* Captain Mode */}
-                <section className="section" id="captain">
-                    <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>Captain Mode</h2>
-                    <button
-                        onClick={() => isCaptainMode ? disableCaptainMode() : setShowCaptainModal(true)}
-                        className="match-row"
-                        style={{ width: '100%', textAlign: 'left' }}
-                    >
-                        {isCaptainMode ? <Unlock size={18} /> : <Lock size={18} />}
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontWeight: 500 }}>Captain Mode</p>
-                            <p className="type-meta">{isCaptainMode ? 'On — Full editing access' : 'Off — Read-only view'}</p>
-                        </div>
-                        <Toggle enabled={isCaptainMode} />
-                    </button>
-
-                    {/* Captain Command Center Link */}
-                    {isCaptainMode && currentTrip && (
-                        <Link href="/captain" className="match-row mt-2">
-                            <Shield size={18} style={{ color: 'var(--masters)' }} />
-                            <div className="flex-1">
-                                <p style={{ fontWeight: 500 }}>Captain Command Center</p>
-                                <p className="type-meta">Lineups, attendance, settings</p>
-                            </div>
-                            <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                        </Link>
-                    )}
-                </section>
-
-                <hr className="divider" />
-
-                {/* Display / Theme */}
-                <section className="section" id="display">
-                    <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>Display</h2>
-                    <p className="type-meta" style={{ marginBottom: 'var(--space-3)' }}>
-                        Choose a theme for your environment
-                    </p>
-                    <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-                        <button
-                            onClick={() => setTheme('outdoor')}
-                            className="card-premium press-scale"
-                            style={{
-                                flex: 1,
-                                padding: 'var(--space-4)',
-                                textAlign: 'center',
-                                border: theme === 'outdoor' ? '2px solid var(--masters)' : '1px solid var(--rule)',
-                                background: theme === 'outdoor' ? 'var(--masters-subtle)' : 'var(--surface-card)',
-                            }}
-                        >
-                            <Sun size={24} style={{ margin: '0 auto var(--space-2)', color: theme === 'outdoor' ? 'var(--masters)' : 'var(--ink-secondary)' }} />
-                            <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Outdoor</p>
-                            <p className="type-micro" style={{ marginTop: '2px' }}>High contrast for sunlight</p>
-                        </button>
-                        <button
-                            onClick={() => setTheme('light')}
-                            className="card-premium press-scale"
-                            style={{
-                                flex: 1,
-                                padding: 'var(--space-4)',
-                                textAlign: 'center',
-                                border: theme === 'light' ? '2px solid var(--masters)' : '1px solid var(--rule)',
-                                background: theme === 'light' ? 'var(--masters-subtle)' : 'var(--surface-card)',
-                            }}
-                        >
-                            <SunDim size={24} style={{ margin: '0 auto var(--space-2)', color: theme === 'light' ? 'var(--masters)' : 'var(--ink-secondary)' }} />
-                            <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Indoor</p>
-                            <p className="type-micro" style={{ marginTop: '2px' }}>Warm, comfortable</p>
-                        </button>
-                        <button
-                            onClick={() => setTheme('dark')}
-                            className="card-premium press-scale"
-                            style={{
-                                flex: 1,
-                                padding: 'var(--space-4)',
-                                textAlign: 'center',
-                                border: theme === 'dark' ? '2px solid var(--masters)' : '1px solid var(--rule)',
-                                background: theme === 'dark' ? 'var(--masters-subtle)' : 'var(--surface-card)',
-                            }}
-                        >
-                            <Moon size={24} style={{ margin: '0 auto var(--space-2)', color: theme === 'dark' ? 'var(--masters)' : 'var(--ink-secondary)' }} />
-                            <p style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Dark</p>
-                            <p className="type-micro" style={{ marginTop: '2px' }}>Easy on the eyes</p>
-                        </button>
-                    </div>
-                </section>
-
-                <hr className="divider" />
-
-                {/* Manage */}
-                <section className="section">
-                    <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>Manage</h2>
-                    <Link href="/trip-stats" className="match-row">
-                        <BarChart3 size={18} style={{ color: 'var(--masters)' }} />
-                        <div style={{ flex: 1 }}>
-                            <span style={{ fontWeight: 500 }}>Trip Stats</span>
-                            <p className="type-meta">Beverages, mishaps, and fun tracking</p>
-                        </div>
-                        <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                    </Link>
-                    <Link href="/players" className="match-row">
-                        <Users size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                        <span style={{ flex: 1 }}>Players</span>
-                        <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                    </Link>
-                    <Link href="/courses" className="match-row">
-                        <MapPin size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                        <span style={{ flex: 1 }}>Courses</span>
-                        <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                    </Link>
-                </section>
-
-                <hr className="divider" />
-
-                {/* Scoring Preferences */}
-                <section className="section" id="preferences">
-                    <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>Scoring</h2>
-
-                    <button
-                        onClick={() => updateScoringPreference('hapticFeedback', !scoringPreferences.hapticFeedback)}
-                        className="match-row"
-                        style={{ width: '100%', textAlign: 'left' }}
-                    >
-                        <Vibrate size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontWeight: 500 }}>Haptic Feedback</p>
-                            <p className="type-meta">Vibrate on score entry</p>
-                        </div>
-                        <Toggle enabled={scoringPreferences.hapticFeedback} />
-                    </button>
-
-                    <button
-                        onClick={() => updateScoringPreference('autoAdvance', !scoringPreferences.autoAdvance)}
-                        className="match-row"
-                        style={{ width: '100%', textAlign: 'left' }}
-                    >
-                        <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontWeight: 500 }}>Auto-Advance</p>
-                            <p className="type-meta">Move to next hole after scoring</p>
-                        </div>
-                        <Toggle enabled={scoringPreferences.autoAdvance} />
-                    </button>
-
-                    <button
-                        onClick={() => updateScoringPreference('confirmCloseout', !scoringPreferences.confirmCloseout)}
-                        className="match-row"
-                        style={{ width: '100%', textAlign: 'left' }}
-                    >
-                        <Shield size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontWeight: 500 }}>Confirm Match End</p>
-                            <p className="type-meta">Ask before recording closeout</p>
-                        </div>
-                        <Toggle enabled={scoringPreferences.confirmCloseout} />
-                    </button>
-                </section>
-
-                <hr className="divider" />
-
-                {/* Data */}
-                <section className="section" id="data">
-                    <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>Data</h2>
-
-                    <button
-                        onClick={handleSeedData}
-                        disabled={isSeeding}
-                        className="match-row"
-                        style={{ width: '100%', textAlign: 'left' }}
-                    >
-                        <Database size={18} style={{ color: 'var(--ink-tertiary)' }} />
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontWeight: 500 }}>Load Demo Data</p>
-                            <p className="type-meta">Create sample trip with players</p>
-                        </div>
-                        {isSeeding && <span className="type-meta">Loading…</span>}
-                    </button>
-
-                    <button
-                        onClick={() => setShowClearConfirm(true)}
-                        className="match-row"
-                        style={{ width: '100%', textAlign: 'left' }}
-                    >
-                        <Trash2 size={18} style={{ color: 'var(--error)' }} />
-                        <div style={{ flex: 1 }}>
-                            <p style={{ fontWeight: 500, color: 'var(--error)' }}>Clear All Data</p>
-                            <p className="type-meta">Delete everything and start fresh</p>
-                        </div>
-                    </button>
-                </section>
-
-                <hr className="divider" />
-
-                {/* About */}
-                <section className="section">
-                    <h2 className="type-overline" style={{ marginBottom: 'var(--space-3)' }}>About</h2>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
-                        <div style={{
-                            width: '48px',
-                            height: '48px',
-                            borderRadius: 'var(--radius-lg)',
-                            background: 'var(--masters)',
+                {/* Captain Mode Quick Toggle */}
+                <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    onClick={() => (isCaptainMode ? disableCaptainMode() : setShowCaptainModal(true))}
+                    style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '16px',
+                        background: isCaptainMode ? 'var(--masters-subtle)' : 'var(--surface-card)',
+                        border: isCaptainMode ? '2px solid var(--masters)' : '1px solid var(--rule)',
+                        borderRadius: '16px',
+                        marginBottom: '24px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                    }}
+                >
+                    <div
+                        style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '12px',
+                            background: isCaptainMode
+                                ? 'var(--masters)'
+                                : 'var(--surface-raised)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: 'white',
-                            fontWeight: 700,
-                            fontSize: '18px'
-                        }}>
+                            color: isCaptainMode ? 'white' : 'var(--ink-secondary)',
+                        }}
+                    >
+                        {isCaptainMode ? <Unlock size={22} /> : <Lock size={22} />}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <p style={{ fontWeight: 600, color: 'var(--ink-primary)' }}>Captain Mode</p>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--ink-secondary)' }}>
+                            {isCaptainMode ? 'Enabled — Full editing access' : 'Tap to unlock editing'}
+                        </p>
+                    </div>
+                    <Toggle enabled={isCaptainMode} />
+                </motion.button>
+
+                {/* Menu Sections */}
+                {menuSections.map((section, sectionIndex) => (
+                    <motion.section
+                        key={section.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 + sectionIndex * 0.05 }}
+                        style={{ marginBottom: '24px' }}
+                    >
+                        <h2
+                            style={{
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: 'var(--ink-tertiary)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                                marginBottom: '8px',
+                                paddingLeft: '4px',
+                            }}
+                        >
+                            {section.title}
+                        </h2>
+                        <div
+                            style={{
+                                background: 'var(--surface-card)',
+                                borderRadius: '16px',
+                                border: '1px solid var(--rule)',
+                                overflow: 'hidden',
+                            }}
+                        >
+                            {section.items
+                                .filter(
+                                    (item) =>
+                                        (!item.requiresTrip || currentTrip) &&
+                                        (!item.requiresCaptain || isCaptainMode)
+                                )
+                                .map((item, index, filteredItems) => (
+                                    <MenuItemRow
+                                        key={item.id}
+                                        item={item}
+                                        isLast={index === filteredItems.length - 1}
+                                        isLoading={item.id === 'demo' && isSeeding}
+                                    />
+                                ))}
+                        </div>
+                    </motion.section>
+                ))}
+
+                {/* About Section */}
+                <motion.section
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    style={{
+                        background: 'var(--surface-card)',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        border: '1px solid var(--rule)',
+                        marginBottom: '24px',
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                        <div
+                            style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '14px',
+                                background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 800,
+                                fontSize: '20px',
+                                boxShadow: '0 4px 12px rgba(0, 66, 37, 0.3)',
+                            }}
+                        >
                             RC
                         </div>
                         <div>
-                            <p style={{ fontWeight: 500 }}>Golf Ryder Cup App</p>
-                            <p className="type-meta">Version 1.0.0</p>
+                            <p style={{ fontWeight: 700, fontSize: '1.125rem' }}>Golf Ryder Cup</p>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--ink-secondary)' }}>
+                                Version 1.1.0
+                            </p>
                         </div>
                     </div>
-                    <p className="type-meta" style={{ marginTop: 'var(--space-3)' }}>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--ink-secondary)', lineHeight: 1.5 }}>
                         Offline-first match play scoring for your Ryder Cup format golf trip.
+                        Track scores, manage lineups, and celebrate with friends.
                     </p>
-                </section>
+                    <div
+                        style={{
+                            marginTop: '16px',
+                            paddingTop: '16px',
+                            borderTop: '1px solid var(--rule)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            color: 'var(--ink-tertiary)',
+                            fontSize: '0.75rem',
+                        }}
+                    >
+                        <Heart size={14} style={{ color: 'var(--error)' }} />
+                        Made with love for golf
+                    </div>
+                </motion.section>
             </main>
 
-            {/* Bottom Navigation */}
-            <nav className="nav-premium bottom-nav">
-                <Link href="/" className="nav-item">
-                    <Home size={20} />
-                    <span>Home</span>
-                </Link>
-                <Link href="/schedule" className="nav-item">
-                    <CalendarDays size={20} />
-                    <span>Schedule</span>
-                </Link>
-                <Link href="/score" className="nav-item">
-                    <Target size={20} />
-                    <span>Score</span>
-                </Link>
-                <Link href="/matchups" className="nav-item">
-                    <Users size={20} />
-                    <span>Matches</span>
-                </Link>
-                <Link href="/standings" className="nav-item">
-                    <Trophy size={20} />
-                    <span>Standings</span>
-                </Link>
-                <Link href="/more" className="nav-item nav-item-active">
-                    <MoreHorizontal size={20} />
-                    <span>More</span>
-                </Link>
-            </nav>
-
-            {/* Captain Mode Modal */}
-            {showCaptainModal && (
-                <div className="modal-backdrop" onClick={() => setShowCaptainModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
-                            <h2 className="type-headline">Enable Captain Mode</h2>
-                            <button onClick={() => setShowCaptainModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                                <X size={20} style={{ color: 'var(--ink-tertiary)' }} />
-                            </button>
-                        </div>
-                        <p className="type-meta" style={{ marginBottom: 'var(--space-4)' }}>
+            {/* Modals */}
+            <AnimatePresence>
+                {showCaptainModal && (
+                    <Modal onClose={() => setShowCaptainModal(false)}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '8px' }}>
+                            Enable Captain Mode
+                        </h2>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--ink-secondary)', marginBottom: '20px' }}>
                             Enter a PIN to unlock captain features like editing lineups and managing players.
                         </p>
                         <input
@@ -474,99 +654,345 @@ export default function MorePage() {
                             onChange={(e) => setCaptainPin(e.target.value)}
                             placeholder="Enter 4+ digit PIN"
                             autoFocus
-                            className="input"
-                            style={{ marginBottom: 'var(--space-4)' }}
+                            style={{
+                                width: '100%',
+                                padding: '14px 16px',
+                                fontSize: '1rem',
+                                borderRadius: '12px',
+                                border: '1px solid var(--rule)',
+                                background: 'var(--surface-raised)',
+                                color: 'var(--ink-primary)',
+                                marginBottom: '16px',
+                            }}
                         />
-                        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+                        <div style={{ display: 'flex', gap: '12px' }}>
                             <button
-                                onClick={() => { setShowCaptainModal(false); setCaptainPin(''); }}
-                                className="btn btn-secondary"
-                                style={{ flex: 1 }}
+                                onClick={() => {
+                                    setShowCaptainModal(false);
+                                    setCaptainPin('');
+                                }}
+                                style={{
+                                    flex: 1,
+                                    padding: '14px',
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--rule)',
+                                    background: 'var(--surface-raised)',
+                                    color: 'var(--ink-primary)',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleEnableCaptainMode}
                                 disabled={captainPin.length < 4}
-                                className="btn btn-primary"
-                                style={{ flex: 1 }}
+                                style={{
+                                    flex: 1,
+                                    padding: '14px',
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    background: captainPin.length >= 4 ? 'var(--masters)' : 'var(--rule)',
+                                    color: captainPin.length >= 4 ? 'white' : 'var(--ink-tertiary)',
+                                    fontWeight: 600,
+                                    cursor: captainPin.length >= 4 ? 'pointer' : 'not-allowed',
+                                }}
                             >
                                 Enable
                             </button>
                         </div>
-                    </div>
-                </div>
-            )}
+                    </Modal>
+                )}
 
-            {/* Clear Data Confirmation */}
-            {showClearConfirm && (
-                <div className="modal-backdrop" onClick={() => setShowClearConfirm(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <h2 className="type-headline" style={{ marginBottom: 'var(--space-3)' }}>Clear All Data?</h2>
-                        <p className="type-body" style={{ marginBottom: 'var(--space-4)' }}>
-                            This will permanently delete all trips, players, matches, and scores. This action cannot be undone.
+                {showClearConfirm && (
+                    <Modal onClose={() => setShowClearConfirm(false)}>
+                        <div
+                            style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '50%',
+                                background: 'var(--error-subtle)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 16px',
+                            }}
+                        >
+                            <Trash2 size={28} style={{ color: 'var(--error)' }} />
+                        </div>
+                        <h2
+                            style={{
+                                fontSize: '1.25rem',
+                                fontWeight: 700,
+                                textAlign: 'center',
+                                marginBottom: '8px',
+                            }}
+                        >
+                            Clear All Data?
+                        </h2>
+                        <p
+                            style={{
+                                fontSize: '0.875rem',
+                                color: 'var(--ink-secondary)',
+                                textAlign: 'center',
+                                marginBottom: '20px',
+                            }}
+                        >
+                            This will permanently delete all trips, players, matches, and scores. This cannot be
+                            undone.
                         </p>
-                        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                            <button onClick={() => setShowClearConfirm(false)} className="btn btn-secondary" style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={() => setShowClearConfirm(false)}
+                                style={{
+                                    flex: 1,
+                                    padding: '14px',
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--rule)',
+                                    background: 'var(--surface-raised)',
+                                    color: 'var(--ink-primary)',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                            >
                                 Cancel
                             </button>
-                            <button onClick={handleClearData} className="btn btn-danger" style={{ flex: 1 }}>
-                                Clear All Data
+                            <button
+                                onClick={handleClearData}
+                                style={{
+                                    flex: 1,
+                                    padding: '14px',
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    background: 'var(--error)',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                Clear All
                             </button>
                         </div>
-                    </div>
-                </div>
-            )}
+                    </Modal>
+                )}
 
-            {/* Exit Trip Confirmation */}
-            {showExitTripConfirm && (
-                <div className="modal-backdrop" onClick={() => setShowExitTripConfirm(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
-                        <h2 className="type-headline" style={{ marginBottom: 'var(--space-3)' }}>Exit Trip?</h2>
-                        <p className="type-body" style={{ marginBottom: 'var(--space-4)' }}>
-                            You&apos;ll be taken back to the trip selector. Your data will be saved and you can return to this trip anytime.
+                {showExitTripConfirm && (
+                    <Modal onClose={() => setShowExitTripConfirm(false)}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '8px' }}>
+                            Exit Trip?
+                        </h2>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--ink-secondary)', marginBottom: '20px' }}>
+                            You&apos;ll return to the trip selector. Your data is saved and you can return anytime.
                         </p>
-                        <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                            <button onClick={() => setShowExitTripConfirm(false)} className="btn btn-secondary" style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button
+                                onClick={() => setShowExitTripConfirm(false)}
+                                style={{
+                                    flex: 1,
+                                    padding: '14px',
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--rule)',
+                                    background: 'var(--surface-raised)',
+                                    color: 'var(--ink-primary)',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                            >
                                 Cancel
                             </button>
-                            <button onClick={handleExitTrip} className="btn btn-primary" style={{ flex: 1 }}>
+                            <button
+                                onClick={handleExitTrip}
+                                style={{
+                                    flex: 1,
+                                    padding: '14px',
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    background: 'var(--masters)',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                }}
+                            >
                                 Exit Trip
                             </button>
                         </div>
-                    </div>
-                </div>
-            )}
+                    </Modal>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
 
-/* Toggle Switch Component */
+// ============================================
+// SUB-COMPONENTS
+// ============================================
+
+function MenuItemRow({
+    item,
+    isLast,
+    isLoading,
+}: {
+    item: MenuItem;
+    isLast: boolean;
+    isLoading?: boolean;
+}) {
+    const content = (
+        <>
+            <div
+                style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: item.destructive ? 'var(--error-subtle)' : 'var(--surface-raised)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: item.destructive ? 'var(--error)' : 'var(--ink-secondary)',
+                    flexShrink: 0,
+                }}
+            >
+                {item.icon}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <p
+                    style={{
+                        fontWeight: 500,
+                        color: item.destructive ? 'var(--error)' : 'var(--ink-primary)',
+                    }}
+                >
+                    {item.label}
+                </p>
+                {item.description && (
+                    <p
+                        style={{
+                            fontSize: '0.8125rem',
+                            color: 'var(--ink-tertiary)',
+                            marginTop: '2px',
+                        }}
+                    >
+                        {item.description}
+                    </p>
+                )}
+            </div>
+            {item.badge && (
+                <span
+                    style={{
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        background: item.badgeColor || 'var(--masters)',
+                        color: 'white',
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                    }}
+                >
+                    {item.badge}
+                </span>
+            )}
+            {isLoading ? (
+                <span style={{ fontSize: '0.8125rem', color: 'var(--ink-tertiary)' }}>Loading…</span>
+            ) : item.external ? (
+                <ExternalLink size={18} style={{ color: 'var(--ink-tertiary)' }} />
+            ) : item.href ? (
+                <ChevronRight size={18} style={{ color: 'var(--ink-tertiary)' }} />
+            ) : null}
+        </>
+    );
+
+    const style: React.CSSProperties = {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        padding: '14px 16px',
+        width: '100%',
+        textAlign: 'left',
+        textDecoration: 'none',
+        color: 'inherit',
+        background: 'transparent',
+        border: 'none',
+        borderBottom: isLast ? 'none' : '1px solid var(--rule)',
+        cursor: 'pointer',
+    };
+
+    if (item.href) {
+        return (
+            <Link href={item.href} style={style}>
+                {content}
+            </Link>
+        );
+    }
+
+    return (
+        <button onClick={item.action} style={style} disabled={isLoading}>
+            {content}
+        </button>
+    );
+}
+
 function Toggle({ enabled }: { enabled: boolean }) {
     return (
         <div
             style={{
-                width: '44px',
-                height: '26px',
-                borderRadius: '13px',
+                width: '48px',
+                height: '28px',
+                borderRadius: '14px',
                 background: enabled ? 'var(--masters)' : 'var(--rule)',
                 position: 'relative',
-                transition: 'background var(--duration) var(--ease)',
+                transition: 'background 0.2s ease',
+                flexShrink: 0,
             }}
         >
-            <div
+            <motion.div
+                animate={{ x: enabled ? 22 : 2 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 style={{
                     position: 'absolute',
-                    top: '3px',
-                    left: enabled ? '21px' : '3px',
-                    width: '20px',
-                    height: '20px',
+                    top: '2px',
+                    width: '24px',
+                    height: '24px',
                     borderRadius: '50%',
                     background: 'white',
-                    transition: 'left var(--duration) var(--ease)',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
                 }}
             />
         </div>
+    );
+}
+
+function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0, 0, 0, 0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '24px',
+                zIndex: 100,
+            }}
+        >
+            <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                    background: 'var(--surface-card)',
+                    borderRadius: '20px',
+                    padding: '24px',
+                    width: '100%',
+                    maxWidth: '360px',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                }}
+            >
+                {children}
+            </motion.div>
+        </motion.div>
     );
 }
