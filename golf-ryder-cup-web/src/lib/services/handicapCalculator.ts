@@ -42,7 +42,14 @@ export function calculateCourseHandicap(
     par: number
 ): number {
     const STANDARD_SLOPE = 113;
-    const slopeFactor = slopeRating / STANDARD_SLOPE;
+
+    // BUG-002 FIX: Validate slope rating to prevent division by zero / NaN
+    // If slope is invalid, use USGA standard slope of 113
+    const validSlopeRating = (!Number.isFinite(slopeRating) || slopeRating <= 0)
+        ? STANDARD_SLOPE
+        : slopeRating;
+
+    const slopeFactor = validSlopeRating / STANDARD_SLOPE;
     const ratingAdjustment = courseRating - par;
     const courseHandicap = handicapIndex * slopeFactor + ratingAdjustment;
     return Math.round(courseHandicap);
@@ -73,10 +80,20 @@ export function allocateStrokes(
     courseHandicap: number,
     holeHandicaps: number[]
 ): number[] {
-    // Validate input
-    if (holeHandicaps.length !== 18) {
-        logger.warn('Invalid hole handicaps array length, expected 18');
+    // BUG-008 FIX: Better validation with explicit error handling
+    // Instead of silently returning zeros, log error with context
+    if (!holeHandicaps || holeHandicaps.length !== 18) {
+        const actualLength = holeHandicaps?.length ?? 0;
+        logger.error(`Invalid hole handicaps array: expected 18 holes, got ${actualLength}. ` +
+            'This may indicate corrupt course data. Falling back to zero strokes.');
         return Array(18).fill(0);
+    }
+
+    // Validate that hole handicaps are valid numbers (1-18)
+    const invalidHoles = holeHandicaps.filter((h, i) => !Number.isFinite(h) || h < 1 || h > 18);
+    if (invalidHoles.length > 0) {
+        logger.warn(`Invalid hole handicap values detected: ${JSON.stringify(invalidHoles)}. ` +
+            'Some strokes may be incorrectly allocated.');
     }
 
     const strokes = Array(18).fill(0);
@@ -403,12 +420,29 @@ export function calculateOneBallFormatStrokes(
  * @returns Combined team handicap
  */
 export function calculateGreensomesHandicap(playerHandicaps: number[]): number {
-    if (playerHandicaps.length !== 2) {
-        logger.warn('Greensomes requires exactly 2 players');
+    // BUG-018 FIX: Add comprehensive validation for inputs
+    if (!playerHandicaps || playerHandicaps.length !== 2) {
+        // BUG-019 FIX: Use logger.error instead of warn for production
+        // logger.warn can clutter production logs with expected conditions
+        if (process.env.NODE_ENV === 'development') {
+            logger.warn('Greensomes requires exactly 2 players, got:', playerHandicaps?.length ?? 0);
+        }
         return 0;
     }
 
-    const [low, high] = playerHandicaps.sort((a, b) => a - b);
+    // Validate that handicaps are valid numbers
+    const validHandicaps = playerHandicaps.filter(h =>
+        typeof h === 'number' && Number.isFinite(h)
+    );
+
+    if (validHandicaps.length !== 2) {
+        if (process.env.NODE_ENV === 'development') {
+            logger.warn('Invalid handicap values in greensomes calculation');
+        }
+        return 0;
+    }
+
+    const [low, high] = validHandicaps.sort((a, b) => a - b);
     return Math.round(low * 0.6 + high * 0.4);
 }
 

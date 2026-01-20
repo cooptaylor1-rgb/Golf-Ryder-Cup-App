@@ -271,7 +271,7 @@ export default function StandingsPage() {
             teamAName={teamAName}
             teamBName={teamBName}
             teamA={teamA}
-            pointsToWin={currentTrip.settings?.pointsToWin || 14.5}
+            pointsToWin={currentTrip.settings?.pointsToWin ?? 14.5}
           />
         ) : activeTab === 'stats' ? (
           <FunStatsTab
@@ -335,6 +335,10 @@ function TabButton({
     <button
       onClick={onClick}
       className="press-scale"
+      // BUG-022 FIX: Add aria-label and role for accessibility
+      aria-label={`${label} tab`}
+      aria-selected={active}
+      role="tab"
       style={{
         flex: 1,
         display: 'flex',

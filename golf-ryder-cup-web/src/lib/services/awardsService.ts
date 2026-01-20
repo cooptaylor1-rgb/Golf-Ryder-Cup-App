@@ -77,6 +77,10 @@ export async function calculatePlayerStats(tripId: string): Promise<PlayerStats[
         const matchWinner = teamAScore > teamBScore ? 'teamA' : teamBScore > teamAScore ? 'teamB' : 'halved';
 
         // Update stats for each player in the match
+        // NOTE (BUG-015): In team formats (fourballs, foursomes), both partners
+        // receive credit for wins/losses. This is intentional - individual stats
+        // reflect each player's participation in winning/losing teams.
+        // To track unique team wins, use a separate team-level stat.
         const allPlayerIds = [...match.teamAPlayerIds, ...match.teamBPlayerIds];
 
         for (const playerId of allPlayerIds) {
@@ -116,9 +120,13 @@ export async function calculatePlayerStats(tripId: string): Promise<PlayerStats[
     }
 
     // Calculate win percentages
+    // BUG-005 FIX: Explicit guard against division by zero
     for (const stats of statsMap.values()) {
         if (stats.matchesPlayed > 0) {
             stats.winPercentage = (stats.points / stats.matchesPlayed) * 100;
+        } else {
+            // Explicitly set to 0 for players with no matches to avoid NaN/Infinity
+            stats.winPercentage = 0;
         }
     }
 

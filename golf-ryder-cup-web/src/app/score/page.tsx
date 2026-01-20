@@ -12,7 +12,7 @@ import { formatPlayerName } from '@/lib/utils';
 import { ChevronRight, ChevronLeft, Home, Target, Users, Trophy, MoreHorizontal, CalendarDays } from 'lucide-react';
 import type { MatchState } from '@/lib/types/computed';
 import type { Player } from '@/lib/types/models';
-import { NoScoresPremiumEmpty, PageSkeleton, MatchCardSkeleton } from '@/components/ui';
+import { NoScoresPremiumEmpty, PageSkeleton, MatchCardSkeleton, ErrorBoundary } from '@/components/ui';
 
 /**
  * SCORE PAGE — Match List
@@ -113,7 +113,10 @@ export default function ScorePage() {
         }
     };
 
+    // BUG-014 FIX: Distinguish loading state (undefined) from empty state ([] with length 0)
+    // useLiveQuery returns undefined while loading, empty array when no data
     const isLoading = matches === undefined || holeResults === undefined;
+    const hasNoMatches = !isLoading && matches.length === 0;
 
     if (!currentTrip) {
         return (
@@ -184,51 +187,53 @@ export default function ScorePage() {
 
                 <hr className="divider" />
 
-                {/* Matches */}
+                {/* Matches - BUG-011 FIX: Wrap with ErrorBoundary for graceful error handling */}
                 <section className="section-sm">
                     <h2 className="type-overline" style={{ marginBottom: 'var(--space-6)' }}>
                         Matches
                     </h2>
 
-                    {isLoading ? (
-                        <div className="skeleton-group" style={{ padding: 'var(--space-8) 0' }}>
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="player-row">
-                                    <div className="skeleton" style={{ width: '24px', height: '16px' }} />
-                                    <div className="flex-1">
-                                        <div className="skeleton" style={{ width: '60%', height: '16px', marginBottom: '8px' }} />
-                                        <div className="skeleton" style={{ width: '50%', height: '16px' }} />
+                    <ErrorBoundary variant="inline" showDetails={process.env.NODE_ENV === 'development'}>
+                        {isLoading ? (
+                            <div className="skeleton-group" style={{ padding: 'var(--space-8) 0' }}>
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="player-row">
+                                        <div className="skeleton" style={{ width: '24px', height: '16px' }} />
+                                        <div className="flex-1">
+                                            <div className="skeleton" style={{ width: '60%', height: '16px', marginBottom: '8px' }} />
+                                            <div className="skeleton" style={{ width: '50%', height: '16px' }} />
+                                        </div>
+                                        <div className="skeleton" style={{ width: '40px', height: '24px' }} />
                                     </div>
-                                    <div className="skeleton" style={{ width: '40px', height: '24px' }} />
-                                </div>
-                            ))}
-                        </div>
-                    ) : matchStates.length > 0 ? (
-                        <div className="stagger-fast">
-                            {matchStates.map((matchState, index) => {
-                                // Check if current user is in this match (P0-3)
-                                const isUserMatch = currentUserPlayer && (
-                                    matchState.match.teamAPlayerIds.includes(currentUserPlayer.id) ||
-                                    matchState.match.teamBPlayerIds.includes(currentUserPlayer.id)
-                                );
+                                ))}
+                            </div>
+                        ) : matchStates.length > 0 ? (
+                            <div className="stagger-fast">
+                                {matchStates.map((matchState, index) => {
+                                    // Check if current user is in this match (P0-3)
+                                    const isUserMatch = currentUserPlayer && (
+                                        matchState.match.teamAPlayerIds.includes(currentUserPlayer.id) ||
+                                        matchState.match.teamBPlayerIds.includes(currentUserPlayer.id)
+                                    );
 
-                                return (
-                                    <MatchRow
-                                        key={matchState.match.id}
-                                        matchState={matchState}
-                                        matchNumber={index + 1}
-                                        teamAPlayers={getMatchPlayers(matchState.match.teamAPlayerIds)}
-                                        teamBPlayers={getMatchPlayers(matchState.match.teamBPlayerIds)}
-                                        onClick={() => handleMatchSelect(matchState.match.id)}
-                                        animationDelay={index * 50}
-                                        isUserMatch={isUserMatch || false}
-                                    />
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <NoScoresPremiumEmpty onStartScoring={() => router.push('/matchups')} />
-                    )}
+                                    return (
+                                        <MatchRow
+                                            key={matchState.match.id}
+                                            matchState={matchState}
+                                            matchNumber={index + 1}
+                                            teamAPlayers={getMatchPlayers(matchState.match.teamAPlayerIds)}
+                                            teamBPlayers={getMatchPlayers(matchState.match.teamBPlayerIds)}
+                                            onClick={() => handleMatchSelect(matchState.match.id)}
+                                            animationDelay={index * 50}
+                                            isUserMatch={isUserMatch || false}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <NoScoresPremiumEmpty onStartScoring={() => router.push('/matchups')} />
+                        )}
+                    </ErrorBoundary>
                 </section>
 
                 {/* Session Selector */}

@@ -33,6 +33,7 @@ import {
     X,
 } from 'lucide-react';
 import type { HoleWinner } from '@/lib/types/models';
+import { TEAM_COLORS } from '@/lib/constants/teamColors';
 import {
     SwipeScorePanel,
     HoleMiniMap,
@@ -153,8 +154,9 @@ export default function EnhancedMatchScoringPage() {
     const teamB = teams.find(t => t.color === 'europe');
     const teamAName = teamA?.name || 'USA';
     const teamBName = teamB?.name || 'Europe';
-    const teamAColor = '#0047AB';
-    const teamBColor = '#8B0000';
+    // BUG-021 FIX: Use centralized team color constants
+    const teamAColor = TEAM_COLORS.teamA;
+    const teamBColor = TEAM_COLORS.teamB;
 
     const teamAPlayers = useMemo(() => {
         if (!activeMatch) return [];

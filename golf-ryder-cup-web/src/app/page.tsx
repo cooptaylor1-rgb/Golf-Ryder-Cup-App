@@ -79,23 +79,35 @@ export default function HomePage() {
     return now >= start && now <= end;
   }) || currentTrip;
 
+  // BUG-004 FIX: Memoize loadTrip call to avoid stale closure issues
+  const loadTripStable = useCallback((tripId: string) => {
+    loadTrip(tripId);
+  }, [loadTrip]);
+
   // Load standings for active trip
   useEffect(() => {
     if (activeTrip) {
-      loadTrip(activeTrip.id);
+      loadTripStable(activeTrip.id);
       calculateTeamStandings(activeTrip.id).then(setStandings);
     }
-  }, [activeTrip, loadTrip]);
+  }, [activeTrip, loadTripStable]);
 
   // Find the current user's player record (P0-1)
+  // BUG-003 FIX: Added optional chaining for currentUser properties
   const currentUserPlayer = useMemo(() => {
     if (!isAuthenticated || !currentUser) return null;
+    // Ensure currentUser has required properties before comparison
+    const userEmail = currentUser.email?.toLowerCase();
+    const userFirstName = currentUser.firstName?.toLowerCase();
+    const userLastName = currentUser.lastName?.toLowerCase();
+
     return players.find(
       p =>
-        (p.email && currentUser.email && p.email.toLowerCase() === currentUser.email.toLowerCase()) ||
-        (p.firstName.toLowerCase() === currentUser.firstName.toLowerCase() &&
-          p.lastName.toLowerCase() === currentUser.lastName.toLowerCase())
-    );
+        (p.email && userEmail && p.email.toLowerCase() === userEmail) ||
+        (userFirstName && userLastName &&
+          p.firstName.toLowerCase() === userFirstName &&
+          p.lastName.toLowerCase() === userLastName)
+    ) ?? null;
   }, [currentUser, isAuthenticated, players]);
 
   // Find the current user's match (scheduled or in progress) (P0-1)
@@ -973,15 +985,16 @@ function QuickActionButton({ icon, label, href, badge, color }: QuickActionButto
   );
 }
 
-/* Momentum Card Component */
-interface MomentumCardProps {
+/* Momentum Card Component - Reserved for future use (BUG-020) */
+interface _MomentumCardProps {
   team: string;
   streak: number;
   trend: 'up' | 'down' | 'neutral';
   color: string;
 }
 
-function MomentumCard({ team, streak, trend, color }: MomentumCardProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _MomentumCard({ team, streak, trend, color }: _MomentumCardProps) {
   return (
     <div
       className="card"

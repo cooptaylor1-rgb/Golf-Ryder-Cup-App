@@ -94,6 +94,8 @@ export async function calculateTeamStandings(tripId: string): Promise<TeamStandi
     }
 
     // Calculate projected points from in-progress matches
+    // BUG-012 FIX: Weight projections based on lead margin and holes remaining
+    // A 3-up lead with 5 holes left is more likely to hold than 1-up with 5 holes left
     let teamAProjected = teamAPoints;
     let teamBProjected = teamBPoints;
 
@@ -102,12 +104,43 @@ export async function calculateTeamStandings(tripId: string): Promise<TeamStandi
         const matchState = calculateMatchState(match, holeResults);
 
         if (matchState.holesPlayed > 0 && matchState.holesRemaining > 0 && !matchState.isClosedOut) {
-            // In progress - project based on current state
-            if (matchState.currentScore > 0) {
-                teamAProjected += 1;
-            } else if (matchState.currentScore < 0) {
-                teamBProjected += 1;
+            // In progress - project based on current state with weighted probability
+            const absLead = Math.abs(matchState.currentScore);
+            const holesLeft = matchState.holesRemaining;
+
+            // Calculate win probability based on lead and holes remaining
+            // The closer the lead is to holes remaining, the higher the probability
+            // If lead >= holesLeft, match is essentially won (dormie or better)
+            let projectedPointsForLeader: number;
+            let projectedPointsForTrailer: number;
+
+            if (absLead >= holesLeft) {
+                // Dormie or better - leader almost certain to win
+                projectedPointsForLeader = 0.95;
+                projectedPointsForTrailer = 0.05;
+            } else if (absLead === 0) {
+                // All square - 50/50 with slight halve chance
+                projectedPointsForLeader = 0.5;
+                projectedPointsForTrailer = 0.5;
             } else {
+                // General case: probability scales with lead/holes ratio
+                // Lead of 2 with 4 holes left ≈ 70% chance to win
+                // Lead of 1 with 4 holes left ≈ 60% chance to win
+                const leadRatio = absLead / holesLeft;
+                projectedPointsForLeader = Math.min(0.5 + leadRatio * 0.45, 0.95);
+                projectedPointsForTrailer = 1 - projectedPointsForLeader;
+            }
+
+            if (matchState.currentScore > 0) {
+                // Team A leads
+                teamAProjected += projectedPointsForLeader;
+                teamBProjected += projectedPointsForTrailer;
+            } else if (matchState.currentScore < 0) {
+                // Team B leads
+                teamBProjected += projectedPointsForLeader;
+                teamAProjected += projectedPointsForTrailer;
+            } else {
+                // All square
                 teamAProjected += 0.5;
                 teamBProjected += 0.5;
             }
@@ -303,10 +336,13 @@ export async function calculatePlayerLeaderboard(tripId: string): Promise<Player
  * This calculates how close each team is to that threshold.
  *
  * @param standings - Current team standings
+ * @param customPointsToWin - Optional custom points to win (from trip settings)
  * @returns Magic number for each team
  */
-export function calculateMagicNumber(standings: TeamStandings): MagicNumber {
-    const POINTS_TO_WIN = 14.5;
+export function calculateMagicNumber(standings: TeamStandings, customPointsToWin?: number): MagicNumber {
+    // BUG-009 FIX: Use custom points to win if provided, otherwise default to 14.5
+    // Use nullish coalescing to allow 0 as a valid value (though rare)
+    const POINTS_TO_WIN = customPointsToWin ?? 14.5;
 
     const teamANeeded = Math.max(0, POINTS_TO_WIN - standings.teamAPoints);
     const teamBNeeded = Math.max(0, POINTS_TO_WIN - standings.teamBPoints);
@@ -378,14 +414,24 @@ export async function calculateFairnessScore(
         sessionCounts.set(player.id, 0);
     }
 
+    // Get all teams for this trip to determine which is "Team A" vs "Team B"
+    const allTeams = await db.teams
+        .where('tripId')
+        .equals(tripId)
+        .sortBy('createdAt');
+
+    // BUG-006 FIX: Use team ID comparison instead of hardcoded name
+    // The first team created is considered "Team A" for match structure
+    const teamAId = allTeams[0]?.id;
+
     for (const session of sessions) {
         const matches = await db.matches
             .where('sessionId')
             .equals(session.id)
             .toArray();
 
-        const team = await db.teams.get(teamId);
-        const isTeamA = team?.name === 'Team USA'; // Simplified check
+        // Determine if this team is Team A based on ID, not name
+        const isTeamA = teamId === teamAId;
 
         const playersInSession = new Set<string>();
 

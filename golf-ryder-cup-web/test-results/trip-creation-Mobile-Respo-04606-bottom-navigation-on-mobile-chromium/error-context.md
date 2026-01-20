@@ -1,0 +1,102 @@
+# Page snapshot
+
+```yaml
+- generic:
+  - generic [active]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - navigation [ref=e6]:
+          - button "previous" [disabled] [ref=e7]:
+            - img "previous" [ref=e8]
+          - generic [ref=e10]:
+            - generic [ref=e11]: 1/
+            - text: "1"
+          - button "next" [disabled] [ref=e12]:
+            - img "next" [ref=e13]
+        - link "Next.js 16.1.1 (stale) Turbopack" [ref=e16] [cursor=pointer]:
+          - /url: https://nextjs.org/docs/messages/version-staleness
+          - img [ref=e17]
+          - generic "There is a newer version (16.1.4) available, upgrade recommended!" [ref=e19]: Next.js 16.1.1 (stale)
+          - generic [ref=e20]: Turbopack
+      - dialog "Build Error" [ref=e22]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e29]: Build Error
+              - generic [ref=e30]:
+                - button "Copy Error Info" [ref=e31] [cursor=pointer]:
+                  - img [ref=e32]
+                - button "No related documentation found" [disabled] [ref=e34]:
+                  - img [ref=e35]
+                - button "Attach Node.js inspector" [ref=e37] [cursor=pointer]:
+                  - img [ref=e38]
+            - generic [ref=e47]: Parsing ecmascript source code failed
+          - generic [ref=e49]:
+            - generic [ref=e51]:
+              - img [ref=e53]
+              - generic [ref=e57]: ./src/lib/stores/scoringStore.ts (337:67)
+              - button "Open in editor" [ref=e58] [cursor=pointer]:
+                - img [ref=e60]
+            - generic [ref=e63]:
+              - generic [ref=e64]: Parsing ecmascript source code failed
+              - generic [ref=e65]: 335 |
+              - generic [ref=e66]: // Update local match record with new status when closeout occurs
+              - generic [ref=e67]: 336 |
+              - text: if
+              - generic [ref=e68]: (newMatchState
+              - text: .
+              - generic [ref=e69]: isClosedOut
+              - text: "||"
+              - generic [ref=e70]: newMatchState
+              - text: .
+              - generic [ref=e71]: holesRemaining
+              - text: === 0
+              - generic [ref=e72]: ") {"
+              - text: ">"
+              - generic [ref=e73]: 337 |
+              - text: await
+              - generic [ref=e74]: db
+              - text: .matches.update(activeMatch.id,
+              - generic [ref=e75]: "{"
+              - text: \
+              - generic [ref=e76]: n status
+              - text: ": 'completed' as const, \\"
+              - generic [ref=e77]: n result
+              - text: ":"
+              - generic [ref=e78]: matchToSync
+              - text: .result, \
+              - generic [ref=e79]: n margin
+              - text: ":"
+              - generic [ref=e80]: matchToSync
+              - text: .margin, \
+              - generic [ref=e81]: n holesRemaining
+              - text: ":"
+              - generic [ref=e82]: matchToSync
+              - text: .holesRemaining, \
+              - generic [ref=e83]: n updatedAt
+              - text: ":"
+              - generic [ref=e84]: matchToSync
+              - text: .updatedAt, \
+              - generic [ref=e85]: "n })"
+              - text: ;
+              - generic [ref=e86]: "|"
+              - text: ^
+              - generic [ref=e87]: 338 |
+              - generic [ref=e88]: "}"
+              - generic [ref=e89]: 339 |
+              - generic [ref=e90]: "}"
+              - generic [ref=e91]: 340 |
+              - generic [ref=e92]: "}"
+              - generic [ref=e93]: "Expected unicode escape Import traces: #1 [Client Component Browser]: ./src/lib/stores/scoringStore.ts [Client Component Browser] ./src/lib/stores/index.ts [Client Component Browser] ./src/components/ThemeProvider.tsx [Client Component Browser] ./src/components/ThemeProvider.tsx [Server Component] ./src/app/layout.tsx [Server Component] #2 [Client Component SSR]: ./src/lib/stores/scoringStore.ts [Client Component SSR] ./src/lib/stores/index.ts [Client Component SSR] ./src/components/ThemeProvider.tsx [Client Component SSR] ./src/components/ThemeProvider.tsx [Server Component] ./src/app/layout.tsx [Server Component] #3 [Client Component Browser]: ./src/lib/stores/scoringStore.ts [Client Component Browser] ./src/lib/stores/index.ts [Client Component Browser] ./src/components/ui/SyncStatus.tsx [Client Component Browser] ./src/components/ui/index.ts [Client Component Browser] ./src/app/global-error.tsx [Client Component Browser] ./src/app/global-error.tsx [Server Component] #4 [Client Component Browser]: ./src/lib/stores/scoringStore.ts [Client Component Browser] ./src/lib/supabase/useRealtime.ts [Client Component Browser] ./src/lib/supabase/index.ts [Client Component Browser] ./src/components/ui/JoinTripModal.tsx [Client Component Browser] ./src/app/page.tsx [Client Component Browser] ./src/app/page.tsx [Server Component] #5 [Client Component SSR]: ./src/lib/stores/scoringStore.ts [Client Component SSR] ./src/lib/stores/index.ts [Client Component SSR] ./src/components/ui/SyncStatus.tsx [Client Component SSR] ./src/components/ui/index.ts [Client Component SSR] ./src/app/global-error.tsx [Client Component SSR] ./src/app/global-error.tsx [Server Component] #6 [Client Component SSR]: ./src/lib/stores/scoringStore.ts [Client Component SSR] ./src/lib/supabase/useRealtime.ts [Client Component SSR] ./src/lib/supabase/index.ts [Client Component SSR] ./src/components/ui/JoinTripModal.tsx [Client Component SSR] ./src/app/page.tsx [Client Component SSR] ./src/app/page.tsx [Server Component]"
+        - generic [ref=e94]: "1"
+        - generic [ref=e95]: "2"
+    - generic [ref=e100] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e101]:
+        - img [ref=e102]
+      - button "Open issues overlay" [ref=e106]:
+        - generic [ref=e107]:
+          - generic [ref=e108]: "0"
+          - generic [ref=e109]: "1"
+        - generic [ref=e110]: Issue
+  - alert [ref=e111]
+```

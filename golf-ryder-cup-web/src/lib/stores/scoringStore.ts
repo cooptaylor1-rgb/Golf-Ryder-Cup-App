@@ -164,31 +164,88 @@ export const useScoringStore = create<ScoringState>((set, get) => ({
             const nextHole = await getCurrentHole(matchId);
 
             // Reconstruct undo stack from persisted scoring events
+            // BUG-001 FIX: Track state chronologically through events instead of
+            // looking up current holeResults (which have already been modified)
             const scoringEvents = await db.scoringEvents
                 .where('matchId')
                 .equals(matchId)
                 .sortBy('timestamp');
 
-            // Build undo stack from events (exclude HoleUndone events, they represent completed undos)
+            // Build undo stack by tracking state changes through events chronologically
             const undoStack: Array<{
                 matchId: string;
                 holeNumber: number;
                 previousResult: HoleResult | null;
             }> = [];
 
+            // Track the state of each hole as we replay events
+            const holeStateMap = new Map<number, HoleResult | null>();
+
             for (const event of scoringEvents) {
-                if (event.eventType === ScoringEventType.HoleScored || event.eventType === ScoringEventType.HoleEdited) {
-                    const payload = event.payload as { holeNumber: number; previousWinner?: string };
-                    // Find if there was a previous result for this hole
-                    const prevResult = holeResults.find(r => r.holeNumber === payload.holeNumber) || null;
+                if (event.eventType === ScoringEventType.HoleScored) {
+                    const payload = event.payload as {
+                        holeNumber: number;
+                        winner: HoleWinner;
+                        teamAStrokes?: number;
+                        teamBStrokes?: number;
+                    };
+                    // For a new score, the previous state was null (no result)
                     undoStack.push({
                         matchId: event.matchId,
                         holeNumber: payload.holeNumber,
-                        previousResult: prevResult,
+                        previousResult: holeStateMap.get(payload.holeNumber) ?? null,
+                    });
+                    // Update tracked state
+                    holeStateMap.set(payload.holeNumber, {
+                        id: '', // Not needed for undo
+                        matchId: event.matchId,
+                        holeNumber: payload.holeNumber,
+                        winner: payload.winner,
+                        teamAScore: payload.teamAStrokes,
+                        teamBScore: payload.teamBStrokes,
+                    });
+                } else if (event.eventType === ScoringEventType.HoleEdited) {
+                    const payload = event.payload as {
+                        holeNumber: number;
+                        previousWinner: HoleWinner;
+                        newWinner: HoleWinner;
+                        previousTeamAStrokes?: number;
+                        previousTeamBStrokes?: number;
+                        newTeamAStrokes?: number;
+                        newTeamBStrokes?: number;
+                    };
+                    // Store the ACTUAL previous state from the event payload
+                    undoStack.push({
+                        matchId: event.matchId,
+                        holeNumber: payload.holeNumber,
+                        previousResult: {
+                            id: '', // Not needed for undo
+                            matchId: event.matchId,
+                            holeNumber: payload.holeNumber,
+                            winner: payload.previousWinner,
+                            teamAScore: payload.previousTeamAStrokes,
+                            teamBScore: payload.previousTeamBStrokes,
+                        },
+                    });
+                    // Update tracked state with new values
+                    holeStateMap.set(payload.holeNumber, {
+                        id: '',
+                        matchId: event.matchId,
+                        holeNumber: payload.holeNumber,
+                        winner: payload.newWinner,
+                        teamAScore: payload.newTeamAStrokes,
+                        teamBScore: payload.newTeamBStrokes,
                     });
                 } else if (event.eventType === ScoringEventType.HoleUndone) {
-                    // An undo event means we should pop from the stack
-                    undoStack.pop();
+                    // An undo event means we should pop from the stack and revert state
+                    const popped = undoStack.pop();
+                    if (popped) {
+                        if (popped.previousResult) {
+                            holeStateMap.set(popped.holeNumber, popped.previousResult);
+                        } else {
+                            holeStateMap.delete(popped.holeNumber);
+                        }
+                    }
                 }
             }
 
@@ -273,6 +330,18 @@ export const useScoringStore = create<ScoringState>((set, get) => ({
                         updatedAt: new Date().toISOString(),
                     };
                     queueSyncOperation('match', activeMatch.id, 'update', session.tripId, matchToSync);
+
+                    // BUG-007 FIX: Persist match status to local database (not just sync queue)
+                    // Update local match record with new status when closeout occurs
+                    if (newMatchState.isClosedOut || newMatchState.holesRemaining === 0) {
+                        await db.matches.update(activeMatch.id, {
+                            status: 'completed' as const,
+                            result: matchToSync.result,
+                            margin: matchToSync.margin,
+                            holesRemaining: matchToSync.holesRemaining,
+                            updatedAt: matchToSync.updatedAt,
+                        });
+                    }
                 }
             }
 

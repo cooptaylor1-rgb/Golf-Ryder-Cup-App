@@ -166,10 +166,14 @@ export async function getStatLeaderboard(
     }
 
     // Get player names
+    // BUG-023 FIX: Proper type narrowing instead of non-null assertion
     const players = await db.players.bulkGet([...playerTotals.keys()]);
-    const playerNames = new Map(
-        players.filter(Boolean).map(p => [p!.id, `${p!.firstName} ${p!.lastName}`])
-    );
+    const playerNames = new Map<UUID, string>();
+    for (const player of players) {
+        if (player && player.id && player.firstName && player.lastName) {
+            playerNames.set(player.id, `${player.firstName} ${player.lastName}`);
+        }
+    }
 
     // Sort by value (descending) and assign ranks
     const entries: StatLeaderboardEntry[] = [...playerTotals.entries()]

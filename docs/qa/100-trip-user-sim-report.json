@@ -1,0 +1,228 @@
+{
+    "reportMetadata": {
+        "date": "2025-01-24",
+        "version": "1.0",
+        "environment": {
+            "nextjs": "16.1.1",
+            "react": "19.2.3",
+            "typescript": "5"
+        },
+        "summary": {
+            "totalIssues": 23,
+            "p0Count": 2,
+            "p1Count": 7,
+            "p2Count": 9,
+            "p3Count": 5
+        }
+    },
+    "bugs": [
+        {
+            "id": "BUG-001",
+            "severity": "P0",
+            "category": "data",
+            "title": "Race Condition in Undo Stack Reconstruction",
+            "file": "src/lib/stores/scoringStore.ts",
+            "lines": "163-185",
+            "description": "When reconstructing the undo stack from scoring events, the code finds previous result by searching current holeResults, but this doesn't match the actual previous state before the event was recorded.",
+            "impact": "Undo may restore incorrect state",
+            "reproSteps": [
+                "Score hole 1 (Team A wins)",
+                "Edit hole 1 (change to halved)",
+                "Edit hole 1 again (Team B wins)",
+                "Undo → Expected: halved, Actual: Team A wins"
+            ],
+            "suggestedFix": "Store the actual previous result in the event payload or reconstruct state chronologically by replaying events."
+        },
+        {
+            "id": "BUG-002",
+            "severity": "P0",
+            "category": "crash",
+            "title": "Division by Zero in Handicap Calculation",
+            "file": "src/lib/services/handicapCalculator.ts",
+            "lines": "47",
+            "description": "If slopeRating is 0 or NaN (from malformed course data), the handicap calculation produces Infinity or NaN.",
+            "impact": "App displays NaN values, potential crash",
+            "reproSteps": [
+                "Import course with slope rating = 0",
+                "Create match with that course",
+                "View handicap strokes"
+            ],
+            "suggestedFix": "Add validation: if (!Number.isFinite(slopeRating) || slopeRating <= 0) { slopeRating = 113; }"
+        },
+        {
+            "id": "BUG-003",
+            "severity": "P1",
+            "category": "ux",
+            "title": "Missing Null Check in User Match Lookup",
+            "file": "src/app/page.tsx",
+            "lines": "80-92",
+            "description": "currentUserPlayer lookup can fail silently when currentUser has undefined firstName/lastName"
+        },
+        {
+            "id": "BUG-004",
+            "severity": "P1",
+            "category": "data",
+            "title": "Stale Closure in useEffect Dependencies",
+            "file": "src/app/page.tsx",
+            "lines": "68-73",
+            "description": "loadTrip function may change reference causing effect issues"
+        },
+        {
+            "id": "BUG-005",
+            "severity": "P1",
+            "category": "data",
+            "title": "Award Calculation Win Percentage Division by Zero",
+            "file": "src/lib/services/awardsService.ts",
+            "lines": "106-108",
+            "description": "Players with 0 matches may have undefined rankings"
+        },
+        {
+            "id": "BUG-006",
+            "severity": "P1",
+            "category": "data",
+            "title": "Hardcoded Team USA Check in Fairness Score",
+            "file": "src/lib/services/tournamentEngine.ts",
+            "lines": "381",
+            "description": "Hardcoded 'Team USA' comparison fails for custom team names",
+            "suggestedFix": "Use team.id instead of team.name comparison"
+        },
+        {
+            "id": "BUG-007",
+            "severity": "P1",
+            "category": "data",
+            "title": "Match State Not Updated After Closeout",
+            "file": "src/lib/stores/scoringStore.ts",
+            "lines": "266-284",
+            "description": "Match record in database remains 'inProgress' after closeout"
+        },
+        {
+            "id": "BUG-008",
+            "severity": "P1",
+            "category": "data",
+            "title": "Empty Hole Handicaps Array Causes Invalid Stroke Allocation",
+            "file": "src/lib/services/handicapCalculator.ts",
+            "lines": "73-78",
+            "description": "Returns empty array without warning when hole handicaps invalid"
+        },
+        {
+            "id": "BUG-009",
+            "severity": "P1",
+            "category": "data",
+            "title": "Tournament Engine Magic Number Uses Hardcoded 14.5",
+            "file": "src/lib/services/tournamentEngine.ts",
+            "lines": "309",
+            "description": "Points to win hardcoded as 14.5 ignoring trip settings"
+        },
+        {
+            "id": "BUG-010",
+            "severity": "P2",
+            "category": "security",
+            "title": "No Session Lock Check in undoLastScore",
+            "file": "src/lib/services/scoringEngine.ts",
+            "lines": "280-358"
+        },
+        {
+            "id": "BUG-011",
+            "severity": "P2",
+            "category": "ux",
+            "title": "Missing Error Boundary in Match List",
+            "file": "src/app/score/page.tsx",
+            "lines": "207-232"
+        },
+        {
+            "id": "BUG-012",
+            "severity": "P2",
+            "category": "data",
+            "title": "Projected Points Missing Holes Remaining Weight",
+            "file": "src/lib/services/tournamentEngine.ts",
+            "lines": "89-103"
+        },
+        {
+            "id": "BUG-013",
+            "severity": "P2",
+            "category": "crash",
+            "title": "LocalStorage JSON Parse Error Not Fully Handled",
+            "file": "src/lib/stores/authStore.ts",
+            "lines": "80-89"
+        },
+        {
+            "id": "BUG-014",
+            "severity": "P2",
+            "category": "ux",
+            "title": "useLiveQuery Loading State Not Distinct from Empty",
+            "file": "src/app/score/page.tsx",
+            "lines": "79-93"
+        },
+        {
+            "id": "BUG-015",
+            "severity": "P2",
+            "category": "data",
+            "title": "Player Stats Double-Counting Partners",
+            "file": "src/lib/services/awardsService.ts",
+            "lines": "96-104"
+        },
+        {
+            "id": "BUG-016",
+            "severity": "P2",
+            "category": "data",
+            "title": "pointsToWin Fallback Uses || Instead of ??",
+            "file": "src/app/standings/page.tsx",
+            "lines": "268"
+        },
+        {
+            "id": "BUG-017",
+            "severity": "P2",
+            "category": "data",
+            "title": "Match Result Type Doesn't Handle All Margins",
+            "file": "src/lib/services/scoringEngine.ts",
+            "lines": "392-418"
+        },
+        {
+            "id": "BUG-018",
+            "severity": "P2",
+            "category": "data",
+            "title": "Greensomes Handicap Missing Validation",
+            "file": "src/lib/services/handicapCalculator.ts",
+            "lines": "409-416"
+        },
+        {
+            "id": "BUG-019",
+            "severity": "P3",
+            "category": "performance",
+            "title": "Console Warning in Production",
+            "file": "src/lib/services/handicapCalculator.ts",
+            "lines": "75"
+        },
+        {
+            "id": "BUG-020",
+            "severity": "P3",
+            "category": "code-quality",
+            "title": "MomentumCard Unused Component (Dead Code)",
+            "file": "src/app/page.tsx",
+            "lines": "989-1009"
+        },
+        {
+            "id": "BUG-021",
+            "severity": "P3",
+            "category": "code-quality",
+            "title": "Inconsistent Team Color Constants",
+            "file": "multiple"
+        },
+        {
+            "id": "BUG-022",
+            "severity": "P3",
+            "category": "accessibility",
+            "title": "Missing aria-labels on Tab Buttons",
+            "file": "src/app/standings/page.tsx",
+            "lines": "340-365"
+        },
+        {
+            "id": "BUG-023",
+            "severity": "P3",
+            "category": "code-quality",
+            "title": "Type Assertion Without Validation",
+            "file": "src/lib/services/tripStatsService.ts",
+            "lines": "171"
+        }
+    ]
+}

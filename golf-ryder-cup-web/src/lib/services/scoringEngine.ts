@@ -389,6 +389,7 @@ export async function getCurrentHole(matchId: string): Promise<number | null> {
 
 /**
  * Calculate the match result type when match is complete.
+ * BUG-017 FIX: Properly handle all margin/holesRemaining combinations.
  *
  * @param matchState - Current match state
  * @returns Match result type
@@ -405,21 +406,36 @@ export function calculateMatchResult(matchState: MatchState): MatchResultType {
     const absScore = Math.abs(matchState.currentScore);
     const holesRemaining = matchState.holesRemaining;
 
-    // Special cases
-    if (holesRemaining === 0 && absScore === 1) {
-        return 'oneUp'; // Won 1-up on 18th
+    // Match play closeout: you win X & Y when ahead by X with Y holes remaining
+    // e.g., 3&2 = 3 up with 2 to play (can't be caught)
+    // The minimum holesRemaining for a closeout is absScore - 1
+
+    // Special case: Won on 18th (no holes remaining)
+    if (holesRemaining === 0) {
+        // Can only be 1-up on 18th (otherwise would have closed out earlier)
+        return 'oneUp';
     }
 
-    // Standard closed out result
-    // e.g., 3&2 means won by 3 with 2 holes remaining
-    // Convert to result type (we'll use the score for display)
+    // Validate closeout is mathematically possible
+    // To close out X & Y, you need to be X up with Y remaining (X > Y)
+    if (absScore <= holesRemaining) {
+        // This shouldn't happen - match should still be in progress
+        return 'incomplete';
+    }
+
+    // Map to result types based on margin
+    // We use the actual score and holes remaining for accurate reporting
     switch (absScore) {
-        case 1: return 'oneUp';
-        case 2: return holesRemaining >= 1 ? 'twoAndOne' : 'incomplete';
-        case 3: return holesRemaining >= 2 ? 'threeAndTwo' : 'incomplete';
-        case 4: return holesRemaining >= 3 ? 'fourAndThree' : 'incomplete';
-        case 5: return holesRemaining >= 4 ? 'fiveAndFour' : 'incomplete';
-        default: return 'sixAndFive'; // Larger wins
+        case 1: return 'oneUp'; // Only possible with 0 remaining (handled above)
+        case 2: return 'twoAndOne';    // 2&1
+        case 3: return 'threeAndTwo';  // 3&2
+        case 4: return 'fourAndThree'; // 4&3
+        case 5: return 'fiveAndFour';  // 5&4
+        case 6: return 'sixAndFive';   // 6&5
+        default:
+            // For larger margins (7&6, 8&7, 9&8, 10&7 etc.), use sixAndFive as catch-all
+            // These are rare but possible in aggressive team games
+            return 'sixAndFive';
     }
 }
 
