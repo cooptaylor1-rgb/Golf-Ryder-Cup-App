@@ -53,7 +53,7 @@ test.describe('Standings Display', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for numeric scores or point displays
-        const scoreElements = page.locator('text=/\\d+\\.?\\d*/');
+        const _scoreElements = page.locator('text=/\\d+\\.?\\d*/');
 
         // Page should render
         const body = page.locator('body');
@@ -65,7 +65,7 @@ test.describe('Standings Display', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for magic number / clinch scenario
-        const magicNumber = page.locator('text=/magic|clinch|need|to win/i');
+        const _magicNumber = page.locator('text=/magic|clinch|need|to win/i');
 
         // If standings are competitive, magic number might show
         const body = page.locator('body');
@@ -92,7 +92,7 @@ test.describe('Player Statistics', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for individual player stats
-        const playerStats = page.locator('text=/w-l|wins|record|points/i');
+        const _playerStats = page.locator('text=/w-l|wins|record|points/i');
 
         // Page should load
         const body = page.locator('body');
@@ -136,7 +136,7 @@ test.describe('Match Results History', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for match result indicators
-        const matchResults = page.locator('text=/completed|final|&\\d|up|dn|as/i');
+        const _matchResults = page.locator('text=/completed|final|&\\d|up|dn|as/i');
 
         // Page should render
         const body = page.locator('body');
@@ -168,7 +168,7 @@ test.describe('Path to Victory', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for scenario/path indicators
-        const pathIndicators = page.locator('text=/path|scenario|if|need/i');
+        const _pathIndicators = page.locator('text=/path|scenario|if|need/i');
 
         // Page should load
         const body = page.locator('body');
@@ -193,7 +193,7 @@ test.describe('Standings Accessibility', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for aria labels or role attributes
-        const accessibleElements = page.locator('[aria-label], [role="region"], [role="table"]');
+        const _accessibleElements = page.locator('[aria-label], [role="region"], [role="table"]');
 
         // Page should have some accessible structure
         const body = page.locator('body');

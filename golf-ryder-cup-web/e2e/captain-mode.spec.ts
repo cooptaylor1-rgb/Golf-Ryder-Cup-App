@@ -47,8 +47,8 @@ test.describe('Captain Mode Toggle', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for PIN input or verification
-        const pinInput = page.locator('input[type="password"], input[type="tel"], input[pattern]');
-        const pinPrompt = page.locator('text=/pin|code|verify|password/i');
+        const _pinInput = page.locator('input[type="password"], input[type="tel"], input[pattern]');
+        const _pinPrompt = page.locator('text=/pin|code|verify|password/i');
 
         // Either PIN input or prompt might be present
         const body = page.locator('body');
@@ -60,7 +60,7 @@ test.describe('Captain Mode Toggle', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for captain-specific controls
-        const captainControls = page.locator('button').filter({
+        const _captainControls = page.locator('button').filter({
             hasText: /lock|unlock|manage|lineup|draft/i
         });
 
@@ -76,7 +76,7 @@ test.describe('Session Locking', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for lock indicators
-        const lockIndicator = page.locator('text=/locked|unlocked|lock/i, [data-testid*="lock"]');
+        const _lockIndicator = page.locator('text=/locked|unlocked|lock/i, [data-testid*="lock"]');
 
         // Page should load
         const body = page.locator('body');
@@ -94,7 +94,7 @@ test.describe('Session Locking', () => {
             await unlockButton.first().click();
 
             // Should show confirmation dialog
-            const confirmDialog = page.locator('text=/confirm|sure|warning/i, [role="dialog"], [role="alertdialog"]');
+            const _confirmDialog = page.locator('text=/confirm|sure|warning/i, [role="dialog"], [role="alertdialog"]');
 
             // Either dialog or some confirmation UI should appear
             await page.waitForTimeout(300);
@@ -108,7 +108,7 @@ test.describe('Session Locking', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for auto-lock messaging
-        const autoLockMessage = page.locator('text=/auto|automatic|scoring|locked/i');
+        const _autoLockMessage = page.locator('text=/auto|automatic|scoring|locked/i');
 
         // Page should render
         const body = page.locator('body');
@@ -120,7 +120,7 @@ test.describe('Session Locking', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for audit/history section
-        const auditSection = page.locator('text=/history|audit|log|changes/i');
+        const _auditSection = page.locator('text=/history|audit|log|changes/i');
 
         // Page should load
         const body = page.locator('body');
@@ -146,7 +146,7 @@ test.describe('Captain Quick Actions', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for draft action
-        const draftAction = page.locator('a, button').filter({ hasText: /draft/i });
+        const _draftAction = page.locator('a, button').filter({ hasText: /draft/i });
 
         // Page should load
         const body = page.locator('body');
@@ -158,7 +158,7 @@ test.describe('Captain Quick Actions', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for session management
-        const sessionAction = page.locator('a, button').filter({ hasText: /session|manage/i });
+        const _sessionAction = page.locator('a, button').filter({ hasText: /session|manage/i });
 
         // Page should load
         const body = page.locator('body');
@@ -170,7 +170,7 @@ test.describe('Captain Quick Actions', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for publish action
-        const publishAction = page.locator('button').filter({ hasText: /publish|announce/i });
+        const _publishAction = page.locator('button').filter({ hasText: /publish|announce/i });
 
         // Page should load
         const body = page.locator('body');
@@ -184,7 +184,7 @@ test.describe('Captain Mode Permissions', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for restricted/disabled state
-        const restrictedMessage = page.locator('text=/captain|restricted|view only|locked/i');
+        const _restrictedMessage = page.locator('text=/captain|restricted|view only|locked/i');
 
         // Page should load
         const body = page.locator('body');
@@ -196,7 +196,7 @@ test.describe('Captain Mode Permissions', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for captain indicator/badge
-        const captainBadge = page.locator('[data-testid="captain-badge"], text=/captain mode/i');
+        const _captainBadge = page.locator('[data-testid="captain-badge"], text=/captain mode/i');
 
         // Page should load
         const body = page.locator('body');

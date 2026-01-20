@@ -4,6 +4,7 @@ import { PWAProvider } from '@/components/PWAProvider';
 import { PWABanners } from '@/components/PWABanners';
 import { PWAUpdateToast } from '@/components/PWAUpdateToast';
 import { ToastContainer } from '@/components/ui/Toast';
+import { KeyboardShortcutsProvider } from '@/components/ui/KeyboardShortcutsProvider';
 import { AppOnboardingProvider } from '@/components/AppOnboardingProvider';
 import { NotificationProvider } from '@/components/live-play';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
@@ -109,6 +110,7 @@ export default function RootLayout({
             <ToastContainer />
             <PWABanners />
             <PWAUpdateToast />
+            <KeyboardShortcutsProvider />
           </ThemeProvider>
         </PWAProvider>
       </body>

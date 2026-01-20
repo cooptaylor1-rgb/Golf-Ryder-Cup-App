@@ -286,3 +286,7 @@ export {
   EmptyState as EmptyStateIllustrated,
   type EmptyStateType,
 } from './EmptyStateIllustrations';
+
+// Keyboard Shortcuts
+export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
+export { KeyboardShortcutsProvider } from './KeyboardShortcutsProvider';

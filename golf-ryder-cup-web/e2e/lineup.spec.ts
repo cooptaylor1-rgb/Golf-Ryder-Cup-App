@@ -41,7 +41,7 @@ test.describe('Lineup Builder Flow', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for drag handles or sortable elements
-        const dragIndicators = page.locator('[data-testid="drag-handle"], [draggable="true"], .dnd-handle');
+        const _dragIndicators = page.locator('[data-testid="drag-handle"], [draggable="true"], .dnd-handle');
 
         // If lineup builder is populated, drag elements should exist
         const pageContent = await page.textContent('body');
@@ -99,7 +99,7 @@ test.describe('Lineup Validation', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for validation messages
-        const validationMessage = page.locator('text=/duplicate|already|conflict/i');
+        const _validationMessage = page.locator('text=/duplicate|already|conflict/i');
 
         // Page should load without showing duplicate error initially
         const body = page.locator('body');
@@ -137,7 +137,7 @@ test.describe('Lineup Captain Controls', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Look for captain controls
-        const captainControls = page.locator('button').filter({ hasText: /lock|publish|finalize/i });
+        const _captainControls = page.locator('button').filter({ hasText: /lock|publish|finalize/i });
 
         // Captain controls should be accessible
         const body = page.locator('body');

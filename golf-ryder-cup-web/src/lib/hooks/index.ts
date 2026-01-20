@@ -83,3 +83,10 @@ export {
   type ScoringTrend,
   type Achievement,
 } from './usePlayerStats';
+
+// Keyboard shortcuts
+export {
+  useKeyboardShortcuts,
+  useScoringShortcuts,
+  type ShortcutConfig,
+} from './useKeyboardShortcuts';

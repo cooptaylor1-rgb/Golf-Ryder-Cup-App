@@ -236,8 +236,114 @@ self.addEventListener('message', (event) => {
 self.addEventListener('sync', (event) => {
     if (event.tag === 'sync-scores') {
         console.log('[SW] Background sync: uploading scores...');
-        // Phase 2: Implement score sync with server
+        event.waitUntil(syncScoresToServer());
     }
 });
+
+/**
+ * Sync pending scores to the server
+ * Called by Background Sync API when connection is restored
+ */
+async function syncScoresToServer() {
+    try {
+        // Open IndexedDB to get pending scores
+        const dbRequest = indexedDB.open('GolfRyderCupDB');
+
+        return new Promise((resolve, reject) => {
+            dbRequest.onerror = () => reject(dbRequest.error);
+            dbRequest.onsuccess = async () => {
+                const idb = dbRequest.result;
+
+                // Check if scoringEvents store exists
+                if (!idb.objectStoreNames.contains('scoringEvents')) {
+                    console.log('[SW] No scoringEvents store found');
+                    resolve();
+                    return;
+                }
+
+                const tx = idb.transaction('scoringEvents', 'readwrite');
+                const store = tx.objectStore('scoringEvents');
+
+                // Get all unsynced events using the synced index
+                const index = store.index('synced');
+                const request = index.getAll(IDBKeyRange.only(0)); // synced === false (0)
+
+                request.onsuccess = async () => {
+                    const pendingEvents = request.result || [];
+
+                    if (pendingEvents.length === 0) {
+                        console.log('[SW] No pending scores to sync');
+                        resolve();
+                        return;
+                    }
+
+                    console.log(`[SW] Syncing ${pendingEvents.length} pending scoring events`);
+
+                    // Group events by match
+                    const eventsByMatch = new Map();
+                    for (const event of pendingEvents) {
+                        const existing = eventsByMatch.get(event.matchId) || [];
+                        existing.push(event);
+                        eventsByMatch.set(event.matchId, existing);
+                    }
+
+                    // Sync each match's events
+                    const results = [];
+                    for (const [matchId, events] of eventsByMatch) {
+                        try {
+                            const response = await fetch('/api/sync/scores', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    matchId,
+                                    events: events.map(e => ({
+                                        id: e.id,
+                                        type: e.eventType,
+                                        holeNumber: e.holeNumber,
+                                        data: e.data,
+                                        timestamp: e.timestamp,
+                                    })),
+                                }),
+                            });
+
+                            if (response.ok) {
+                                // Mark events as synced
+                                const updateTx = idb.transaction('scoringEvents', 'readwrite');
+                                const updateStore = updateTx.objectStore('scoringEvents');
+                                for (const event of events) {
+                                    event.synced = true;
+                                    updateStore.put(event);
+                                }
+                                results.push({ matchId, success: true, count: events.length });
+                                console.log(`[SW] Synced ${events.length} events for match ${matchId}`);
+                            } else {
+                                results.push({ matchId, success: false, error: `HTTP ${response.status}` });
+                            }
+                        } catch (error) {
+                            results.push({ matchId, success: false, error: error.message });
+                            console.error(`[SW] Failed to sync match ${matchId}:`, error);
+                        }
+                    }
+
+                    // Notify clients of sync completion
+                    const clients = await self.clients.matchAll();
+                    for (const client of clients) {
+                        client.postMessage({
+                            type: 'SYNC_COMPLETE',
+                            results,
+                        });
+                    }
+
+                    resolve();
+                };
+
+                request.onerror = () => reject(request.error);
+            };
+        });
+    } catch (error) {
+        console.error('[SW] Background sync failed:', error);
+        throw error;
+    }
+}
 
 console.log('[SW] Service worker loaded');
