@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -20,10 +20,8 @@ import {
     Save,
     Trash2,
     Plus,
-    Flag,
     ChevronDown,
     ChevronUp,
-    AlertCircle,
     CheckCircle,
     Clock,
     Zap,
@@ -45,7 +43,7 @@ interface SessionWithMatches extends RyderCupSession {
 
 export default function CaptainManagePage() {
     const router = useRouter();
-    const { currentTrip, players, updateSession } = useTripStore();
+    const { currentTrip, players, updateSession: _updateSession } = useTripStore();
     const { isCaptainMode, showToast } = useUIStore();
 
     const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set());
@@ -458,7 +456,7 @@ interface MatchEditorProps {
     onDelete: () => void;
 }
 
-function MatchEditor({ match, players, getPlayerNames, isEditing, onEdit, onSave, onCancel, onDelete }: MatchEditorProps) {
+function MatchEditor({ match, players: _players, getPlayerNames, isEditing, onEdit, onSave, onCancel, onDelete }: MatchEditorProps) {
     const [teamAAllowance, setTeamAAllowance] = useState(match.teamAHandicapAllowance);
     const [teamBAllowance, setTeamBAllowance] = useState(match.teamBHandicapAllowance);
     const [status, setStatus] = useState(match.status);

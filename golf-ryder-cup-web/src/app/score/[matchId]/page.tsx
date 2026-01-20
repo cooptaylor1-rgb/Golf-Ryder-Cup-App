@@ -31,7 +31,6 @@ import {
     Mic,
     Trophy,
     X,
-    Flag,
 } from 'lucide-react';
 import type { HoleWinner } from '@/lib/types/models';
 import {
@@ -43,7 +42,6 @@ import {
     StrokeAlertBanner,
     PressTracker,
     StrokeScoreEntry,
-    HoleScoreDisplay,
     OneHandedScoringPanel,
     type Press,
 } from '@/components/scoring';

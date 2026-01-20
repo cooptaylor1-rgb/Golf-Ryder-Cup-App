@@ -242,21 +242,45 @@ export function getAllTimeStandings(
 }
 
 /**
+ * Player's team membership for a trip
+ */
+export interface PlayerTeamMembership {
+    tripId: UUID;
+    teamId: UUID;
+    teamColor: 'usa' | 'europe';
+}
+
+/**
  * Get player all-time stats across trips
+ *
+ * @param playerId - The player's ID
+ * @param tripStats - Map of trip ID to player's statistics for that trip
+ * @param archives - Array of archived trip results
+ * @param player - The player entity
+ * @param teamMemberships - Optional array of player's team memberships per trip
  */
 export function getPlayerAllTimeStats(
     playerId: UUID,
     tripStats: Map<UUID, PlayerStatistics>,
     archives: TripArchive[],
-    player: Player
+    player: Player,
+    teamMemberships?: PlayerTeamMembership[]
 ): PlayerCareerStats {
     let totalMatches = 0;
     let totalWins = 0;
     let totalLosses = 0;
     let totalHalves = 0;
     let totalPoints = 0;
-    const cupWins = 0; // TODO: Calculate from archive data when team context is available
+    let cupWins = 0;
     let mvpAwards = 0;
+
+    // Create a lookup map for team memberships
+    const membershipByTrip = new Map<UUID, PlayerTeamMembership>();
+    if (teamMemberships) {
+        for (const membership of teamMemberships) {
+            membershipByTrip.set(membership.tripId, membership);
+        }
+    }
 
     const byYear: PlayerCareerStats['byYear'] = [];
 
@@ -274,8 +298,18 @@ export function getPlayerAllTimeStats(
             mvpAwards++;
         }
 
-        // Check if player's team won
-        // This would need more context about which team the player was on
+        // Calculate cup wins using team membership data
+        const membership = membershipByTrip.get(archive.tripId);
+        if (membership && archive.winner !== 'tie') {
+            // Determine if player was on winning team
+            // Team A is typically USA, Team B is Europe
+            const playerOnTeamA = membership.teamColor === 'usa';
+            const teamAWon = archive.winner === 'A';
+
+            if ((playerOnTeamA && teamAWon) || (!playerOnTeamA && !teamAWon)) {
+                cupWins++;
+            }
+        }
 
         byYear.push({
             year: archive.year,

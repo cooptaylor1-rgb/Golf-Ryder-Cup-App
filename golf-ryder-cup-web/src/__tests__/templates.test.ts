@@ -4,7 +4,7 @@
  * Tests for template generation, trip duplication, and data integrity.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
     TRIP_TEMPLATES,
     getTemplateById,

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { PWAProvider } from '@/components/PWAProvider';
 import { PWABanners } from '@/components/PWABanners';
+import { PWAUpdateToast } from '@/components/PWAUpdateToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { AppOnboardingProvider } from '@/components/AppOnboardingProvider';
 import { NotificationProvider } from '@/components/live-play';
@@ -107,6 +108,7 @@ export default function RootLayout({
             <TripSyncInitializer />
             <ToastContainer />
             <PWABanners />
+            <PWAUpdateToast />
           </ThemeProvider>
         </PWAProvider>
       </body>

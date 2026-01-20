@@ -14,12 +14,10 @@ import {
   Target,
   Trophy,
   MessageCircle,
-  Camera,
   Award,
   Flame,
   Tv,
   Zap,
-  TrendingUp,
   Sparkles,
   Shield,
   Users,
@@ -303,7 +301,7 @@ export default function HomePage() {
 
   // Calculate real counts
   const liveMatchesCount = liveMatches?.length || 0;
-  const recentPhotosCount = 0; // Photos not implemented yet
+  const _recentPhotosCount = 0; // Photos not implemented yet
   const unreadMessages = banterPosts?.length || 0;
   const activeSideBetsCount = sideBets?.filter(b => b.status === 'active').length || 0;
 
@@ -363,7 +361,7 @@ export default function HomePage() {
       <JoinTripModal
         isOpen={showJoinTrip}
         onClose={() => setShowJoinTrip(false)}
-        onSuccess={(tripId) => {
+        onSuccess={(_tripId) => {
           setShowJoinTrip(false);
           router.push('/');
         }}

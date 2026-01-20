@@ -25,18 +25,18 @@ import {
     calculateScrambleTeamHandicap,
     isOneBallFormat,
     isIndividualBallFormat,
-    TEAM_FORMAT_ALLOWANCES,
+    TEAM_FORMAT_ALLOWANCES as _TEAM_FORMAT_ALLOWANCES,
 } from '@/lib/services/handicapCalculator';
 import {
     calculateStrokesPerHole,
     scoreStablefordHole,
-    calculateStablefordRound,
-    calculateCourseHandicap as stablefordCourseHandicap,
+    calculateStablefordRound as _calculateStablefordRound,
+    calculateCourseHandicap as _stablefordCourseHandicap,
 } from '@/lib/services/stablefordService';
 import {
     calculateStablefordPoints as formatStablefordPoints,
-    STABLEFORD_POINTS,
-    MODIFIED_STABLEFORD_POINTS,
+    STABLEFORD_POINTS as _STABLEFORD_POINTS,
+    MODIFIED_STABLEFORD_POINTS as _MODIFIED_STABLEFORD_POINTS,
 } from '@/lib/types/scoringFormats';
 
 // ============================================

@@ -23,7 +23,7 @@ import {
   AlertCircle,
   Clock,
 } from 'lucide-react';
-import type { Match, RyderCupSession } from '@/lib/types/models';
+import type { Match } from '@/lib/types/models';
 import { SessionTypeDisplay } from '@/lib/types/models';
 
 /**
@@ -60,7 +60,7 @@ interface DaySchedule {
 
 export default function SchedulePage() {
   const router = useRouter();
-  const { currentTrip, sessions, players, teams, teamMembers } = useTripStore();
+  const { currentTrip, sessions, players, teams: _teams, teamMembers: _teamMembers } = useTripStore();
   const { currentUser, isAuthenticated } = useAuthStore();
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedTab, setSelectedTab] = useState<'my' | 'all'>('my');
@@ -134,7 +134,7 @@ export default function SchedulePage() {
   };
 
   // Get user's team in a match
-  const getUserTeam = (match: Match): 'A' | 'B' | null => {
+  const _getUserTeam = (match: Match): 'A' | 'B' | null => {
     if (!currentUserPlayer) return null;
     if (match.teamAPlayerIds.includes(currentUserPlayer.id)) return 'A';
     if (match.teamBPlayerIds.includes(currentUserPlayer.id)) return 'B';
