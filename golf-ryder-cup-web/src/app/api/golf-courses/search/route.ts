@@ -179,18 +179,18 @@ async function searchGHIN(
     }
 }
 
-// Search RapidAPI Golf Course Database
+// Search RapidAPI Golf Course Finder Database
 async function searchRapidAPI(
     query: string,
     apiKey: string
 ): Promise<CourseSearchResult[]> {
     try {
         const response = await fetch(
-            `https://golf-course-api.p.rapidapi.com/search?name=${encodeURIComponent(query)}`,
+            `https://golf-course-finder.p.rapidapi.com/api/courses?name=${encodeURIComponent(query)}`,
             {
                 headers: {
                     'X-RapidAPI-Key': apiKey,
-                    'X-RapidAPI-Host': 'golf-course-api.p.rapidapi.com',
+                    'X-RapidAPI-Host': 'golf-course-finder.p.rapidapi.com',
                 },
             }
         );
