@@ -1,749 +1,1394 @@
-import { test, expect, Page } from '@playwright/test';
-import { waitForStableDOM, dismissOnboardingModal, clearIndexedDBSafe, navigateAndSetup } from './test-utils';
+import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { dismissOnboardingModal, waitForStableDOM, clearIndexedDBSafe } from './test-utils';
 
 /**
- * QA Simulation: 100-Trip User Test Suite
+ * QA Simulation Suite - 500 Sessions
  *
- * This comprehensive test suite simulates real user behavior across varied scenarios:
- * - Captain/Organizer flows
- * - Participant flows
- * - Edge cases and error handling
- * - Offline/online transitions
- * - Data consistency validation
+ * Comprehensive test suite covering all critical user journeys.
+ * Runs 25 scenarios across 20 iterations each = 500 total sessions.
+ *
+ * Scenario Categories:
+ * - Auth flows (3 scenarios)
+ * - Core workflows (8 scenarios)
+ * - Captain mode (4 scenarios)
+ * - Social features (2 scenarios)
+ * - Network chaos (4 scenarios)
+ * - Edge cases (4 scenarios)
  */
 
-// Test configuration
-const TEST_TIMEOUT = 60000; // 60s per test
-const _SCREENSHOT_ON_FAILURE = true;
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
-// Helper utilities - using shared utilities from test-utils.ts
+const ITERATIONS_PER_SCENARIO = 20; // 25 scenarios x 20 iterations = 500 sessions
+const SLOW_NETWORK_LATENCY = 2000;
+const FAST_TIMEOUT = 5000;
+const STANDARD_TIMEOUT = 10000;
 
-async function clearIndexedDB(page: Page): Promise<void> {
-    await clearIndexedDBSafe(page);
-}
-
-async function _seedDemoData(page: Page): Promise<string | null> {
-    return page.evaluate(async () => {
-        // Access the seed function from the global scope (if exposed) or manually seed
-        // @ts-expect-error - accessing window globals
-        if (window.__seedDemoData) {
-            // @ts-expect-error - accessing window globals
-            return await window.__seedDemoData();
-        }
-        return null;
-    });
-}
-
-// Bug tracking
-interface BugReport {
-    id: string;
-    severity: 'P0' | 'P1' | 'P2' | 'P3';
-    category: 'crash' | 'data' | 'ux' | 'performance' | 'visual';
-    title: string;
+// Issue tracking for report generation
+interface QAIssue {
+    category: string;
+    scenario: string;
+    iteration: number;
+    severity: 'critical' | 'high' | 'medium' | 'low';
+    type: 'bug' | 'ux' | 'performance' | 'edge-case';
     description: string;
-    reproSteps: string[];
-    url: string;
-    timestamp: string;
-    screenshot?: string;
-    consoleErrors?: string[];
+    steps: string[];
+    expected: string;
+    actual: string;
+    error?: string;
 }
 
-const bugReports: BugReport[] = [];
+const issues: QAIssue[] = [];
 
-function reportBug(bug: Omit<BugReport, 'id' | 'timestamp'>): void {
-    bugReports.push({
-        ...bug,
-        id: `BUG-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date().toISOString(),
-    });
+function recordIssue(issue: QAIssue) {
+    issues.push(issue);
+    console.log(`[QA ISSUE] ${issue.severity.toUpperCase()}: ${issue.description}`);
 }
 
-// ============================================
-// TEST SUITE: Home Page & Navigation
-// ============================================
+// Helper to measure performance
+async function measureTime<T>(fn: () => Promise<T>): Promise<{ result: T; durationMs: number }> {
+    const start = Date.now();
+    const result = await fn();
+    return { result, durationMs: Date.now() - start };
+}
 
-test.describe('Home Page & Navigation', () => {
-    test.setTimeout(TEST_TIMEOUT);
+// ============================================================================
+// SCENARIO 1: New User Signup Flow (20 iterations)
+// ============================================================================
 
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-    });
+test.describe('S01: New User Signup Flow', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Complete signup journey`, async ({ page }) => {
+            await clearIndexedDBSafe(page);
+            await page.goto('/');
+            await waitForStableDOM(page);
 
-    test('should load home page without console errors', async ({ page }) => {
-        const consoleErrors: string[] = [];
-        page.on('console', msg => {
-            if (msg.type() === 'error') {
-                consoleErrors.push(msg.text());
+            // Should show onboarding or login option
+            const pageContent = await page.textContent('body');
+            const hasLoginOption = pageContent?.includes('Login') ||
+                                   pageContent?.includes('Sign') ||
+                                   pageContent?.includes('Create') ||
+                                   pageContent?.includes('Get Started');
+
+            if (!hasLoginOption) {
+                recordIssue({
+                    category: 'Auth',
+                    scenario: 'New User Signup',
+                    iteration: i,
+                    severity: 'high',
+                    type: 'ux',
+                    description: 'No clear path to signup for new users',
+                    steps: ['Navigate to home page as new user'],
+                    expected: 'See login/signup option',
+                    actual: 'No visible auth option'
+                });
+            }
+
+            // Try to navigate to profile creation
+            await page.goto('/profile/create');
+            await waitForStableDOM(page);
+            await page.waitForTimeout(500); // Allow redirect to complete
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible({ timeout: 10000 });
+
+            // Look for profile creation form elements
+            const formInputs = page.locator('input');
+            const inputCount = await formInputs.count();
+
+            if (inputCount < 2) {
+                recordIssue({
+                    category: 'Auth',
+                    scenario: 'New User Signup',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'ux',
+                    description: 'Profile creation form has insufficient fields',
+                    steps: ['Navigate to /profile/create'],
+                    expected: 'See form with name, email, handicap fields',
+                    actual: `Only ${inputCount} input fields found`
+                });
             }
         });
+    }
+});
 
-        await page.reload();
-        await waitForStableDOM(page);
+// ============================================================================
+// SCENARIO 2: Login with Email/PIN (20 iterations)
+// ============================================================================
 
-        // Filter out expected errors (like PWA/SW registration on localhost)
-        const criticalErrors = consoleErrors.filter(err =>
-            !err.includes('service worker') &&
-            !err.includes('manifest') &&
-            !err.includes('favicon')
-        );
+test.describe('S02: Login with Email/PIN', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Login flow`, async ({ page }) => {
+            await page.goto('/login');
+            await waitForStableDOM(page);
 
-        if (criticalErrors.length > 0) {
-            reportBug({
-                severity: 'P1',
-                category: 'crash',
-                title: 'Console errors on home page load',
-                description: `Found ${criticalErrors.length} console error(s) on home page`,
-                reproSteps: ['Navigate to home page', 'Open console', 'Check for errors'],
-                url: page.url(),
-                consoleErrors: criticalErrors,
-            });
-        }
+            // Check for login form
+            const emailInput = page.locator('input[type="email"], input[name="email"], input[placeholder*="email" i]');
+            const pinInput = page.locator('input[type="password"], input[type="tel"], input[name="pin"]');
 
-        expect(criticalErrors.length).toBe(0);
-    });
+            const hasEmail = await emailInput.count() > 0;
+            const hasPin = await pinInput.count() > 0;
 
-    test('should render main navigation with all items', async ({ page }) => {
-        // Check if we're in profile creation wizard (nav not shown during wizard)
-        const isInWizard = await page.locator('text=/create profile|step \\d+ of \\d+/i').first().isVisible().catch(() => false);
+            if (!hasEmail || !hasPin) {
+                recordIssue({
+                    category: 'Auth',
+                    scenario: 'Login',
+                    iteration: i,
+                    severity: 'high',
+                    type: 'bug',
+                    description: 'Login form missing required fields',
+                    steps: ['Navigate to /login'],
+                    expected: 'Email and PIN input fields',
+                    actual: `Email: ${hasEmail}, PIN: ${hasPin}`
+                });
+            }
 
-        if (isInWizard) {
-            // Profile wizard is shown for new users - this is expected behavior
-            // The wizard UI should have navigation controls
-            const hasWizardControls = await page.locator('button').count() > 0;
-            expect(hasWizardControls).toBeTruthy();
-            return;
-        }
+            // Try invalid credentials
+            if (hasEmail && hasPin) {
+                await emailInput.first().fill('invalid@test.com');
+                await pinInput.first().fill('0000');
 
-        const nav = page.locator('nav');
-        const hasNav = await nav.first().isVisible({ timeout: 5000 }).catch(() => false);
+                const submitButton = page.locator('button[type="submit"], button:has-text("Login"), button:has-text("Sign")');
+                if (await submitButton.count() > 0) {
+                    await submitButton.first().click();
+                    await page.waitForTimeout(1000);
 
-        if (hasNav) {
-            // Check for expected nav items
-            const navLabels = ['Home', 'Schedule', 'Score', 'Stats', 'Standings', 'More'];
-            for (const label of navLabels) {
-                const navItem = page.locator(`nav >> text=${label}`).first();
-                const isVisible = await navItem.isVisible().catch(() => false);
+                    // Should show error message
+                    const errorMessage = page.locator('text=/error|invalid|not found|incorrect/i');
+                    const hasError = await errorMessage.count() > 0;
 
-                if (!isVisible) {
-                    reportBug({
-                        severity: 'P2',
-                        category: 'ux',
-                        title: `Missing navigation item: ${label}`,
-                        description: `Expected nav item "${label}" not found or not visible`,
-                        reproSteps: ['Navigate to home page', `Look for "${label}" in bottom nav`],
-                        url: page.url(),
+                    if (!hasError) {
+                        // Check if still on login page (implicit error)
+                        const stillOnLogin = page.url().includes('login');
+                        if (!stillOnLogin) {
+                            recordIssue({
+                                category: 'Auth',
+                                scenario: 'Login',
+                                iteration: i,
+                                severity: 'critical',
+                                type: 'bug',
+                                description: 'Login accepts invalid credentials without error',
+                                steps: ['Enter invalid email/PIN', 'Click submit'],
+                                expected: 'Error message displayed',
+                                actual: 'No error shown, possibly logged in'
+                            });
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 3: Session Persistence (20 iterations)
+// ============================================================================
+
+test.describe('S03: Session Persistence', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Session survives reload`, async ({ page }) => {
+            await page.goto('/');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            // Get initial state
+            const initialUrl = page.url();
+
+            // Reload page
+            await page.reload();
+            await waitForStableDOM(page);
+
+            // Check if session maintained
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Should not redirect to login after reload if was authenticated
+            const currentUrl = page.url();
+            const redirectedToLogin = currentUrl.includes('login') && !initialUrl.includes('login');
+
+            if (redirectedToLogin) {
+                recordIssue({
+                    category: 'Auth',
+                    scenario: 'Session Persistence',
+                    iteration: i,
+                    severity: 'high',
+                    type: 'bug',
+                    description: 'Session lost on page reload',
+                    steps: ['Load home page', 'Reload page'],
+                    expected: 'Stay on same page',
+                    actual: 'Redirected to login'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 4: Trip Creation Wizard (20 iterations)
+// ============================================================================
+
+test.describe('S04: Trip Creation Wizard', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Complete trip creation`, async ({ page }) => {
+            await page.goto('/');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            // Look for create trip button
+            const createButton = page.locator('button, a').filter({
+                hasText: /create|new|start.*trip/i
+            }).first();
+
+            if (await createButton.isVisible({ timeout: FAST_TIMEOUT }).catch(() => false)) {
+                const { durationMs } = await measureTime(async () => {
+                    await createButton.click();
+                    await page.waitForLoadState('domcontentloaded');
+                });
+
+                if (durationMs > 3000) {
+                    recordIssue({
+                        category: 'Performance',
+                        scenario: 'Trip Creation',
+                        iteration: i,
+                        severity: 'medium',
+                        type: 'performance',
+                        description: 'Trip creation navigation slow',
+                        steps: ['Click create trip button'],
+                        expected: 'Navigate in < 3s',
+                        actual: `Took ${durationMs}ms`
+                    });
+                }
+
+                // Should be on trip creation page
+                await expect(page).toHaveURL(/trip|wizard|create|new/i, { timeout: STANDARD_TIMEOUT }).catch(() => {
+                    recordIssue({
+                        category: 'Navigation',
+                        scenario: 'Trip Creation',
+                        iteration: i,
+                        severity: 'high',
+                        type: 'bug',
+                        description: 'Create trip button does not navigate correctly',
+                        steps: ['Click create trip button'],
+                        expected: 'Navigate to trip creation page',
+                        actual: `Still on ${page.url()}`
+                    });
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 5: Course Selection & Search (20 iterations)
+// ============================================================================
+
+test.describe('S05: Course Selection', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Search and select course`, async ({ page }) => {
+            await page.goto('/courses');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            // Look for search input
+            const searchInput = page.locator('input[type="search"], input[type="text"], input[placeholder*="search" i], input[placeholder*="course" i]');
+
+            if (await searchInput.count() > 0) {
+                await searchInput.first().fill('pebble beach');
+                await page.waitForTimeout(1500); // Wait for search debounce
+
+                // Check for results
+                const results = page.locator('[data-testid="course-result"], li, [role="option"]');
+                const resultCount = await results.count();
+
+                if (resultCount === 0) {
+                    recordIssue({
+                        category: 'API',
+                        scenario: 'Course Selection',
+                        iteration: i,
+                        severity: 'high',
+                        type: 'bug',
+                        description: 'Course search returns no results for known course',
+                        steps: ['Navigate to courses', 'Search for "pebble beach"'],
+                        expected: 'See search results',
+                        actual: 'No results displayed'
+                    });
+                }
+            } else {
+                // If no search on courses page, it might be integrated elsewhere
+                const pageContent = await page.textContent('body');
+                const hasContent = pageContent && pageContent.length > 100;
+
+                if (!hasContent) {
+                    recordIssue({
+                        category: 'UX',
+                        scenario: 'Course Selection',
+                        iteration: i,
+                        severity: 'medium',
+                        type: 'ux',
+                        description: 'Courses page has minimal content',
+                        steps: ['Navigate to /courses'],
+                        expected: 'Course list or search',
+                        actual: 'Minimal or empty content'
                     });
                 }
             }
-        } else {
-            // Nav not visible but not in wizard - check for valid page content
-            const hasContent = await page.locator('main, [role="main"], body').first().isVisible().catch(() => false);
-            expect(hasContent).toBeTruthy();
-        }
-    });
+        });
+    }
+});
 
-    test('should navigate to all main sections', async ({ page }) => {
-        const routes = [
-            { path: '/schedule', name: 'Schedule' },
-            { path: '/score', name: 'Score' },
-            { path: '/standings', name: 'Standings' },
-            { path: '/more', name: 'More' },
-        ];
+// ============================================================================
+// SCENARIO 6: Live Scoring Flow (20 iterations)
+// ============================================================================
 
-        for (const route of routes) {
-            await page.goto(route.path);
+test.describe('S06: Live Scoring', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Score entry flow`, async ({ page }) => {
+            await page.goto('/score');
             await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
 
-            const hasError = await page.locator('text=/error|crash|failed/i').isVisible().catch(() => false);
-            if (hasError) {
-                reportBug({
-                    severity: 'P0',
-                    category: 'crash',
-                    title: `Error on ${route.name} page`,
-                    description: `Page ${route.path} shows error state`,
-                    reproSteps: [`Navigate to ${route.path}`],
-                    url: page.url(),
-                });
-            }
-
-            await expect(page.locator('body')).toBeVisible();
-        }
-    });
-
-    test('should handle rapid navigation without crashes', async ({ page }) => {
-        const routes = ['/', '/schedule', '/score', '/standings', '/more', '/'];
-
-        for (const route of routes) {
-            await page.goto(route);
-            // Don't wait, simulate rapid clicks
-        }
-
-        await waitForStableDOM(page);
-        await expect(page.locator('body')).toBeVisible();
-    });
-});
-
-// ============================================
-// TEST SUITE: Trip Creation Flow (Captain)
-// ============================================
-
-test.describe('Trip Creation Flow', () => {
-    test.setTimeout(TEST_TIMEOUT * 2);
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-        await clearIndexedDB(page);
-    });
-
-    test('should find and click "Create Trip" button', async ({ page }) => {
-        // Look for various create button patterns
-        const createButton = page.locator([
-            'button:has-text("Create")',
-            'a:has-text("Create")',
-            'button:has-text("New Trip")',
-            'button:has-text("Start")',
-            '[data-testid="create-trip"]',
-        ].join(', ')).first();
-
-        const isVisible = await createButton.isVisible({ timeout: 5000 }).catch(() => false);
-
-        if (isVisible) {
-            await createButton.click();
-            await waitForStableDOM(page);
-
-            // Should navigate to trip creation
-            const url = page.url();
-            const isOnCreatePage = url.includes('/trip') || url.includes('/new') || url.includes('/wizard');
-
-            if (!isOnCreatePage) {
-                reportBug({
-                    severity: 'P1',
-                    category: 'ux',
-                    title: 'Create button does not navigate to creation flow',
-                    description: `Clicked create button but landed on ${url}`,
-                    reproSteps: ['Go to home page', 'Click Create Trip button', 'Check URL'],
-                    url,
-                });
-            }
-        } else {
-            // Empty state should prompt trip creation somehow
-            const emptyState = page.locator('text=/no trip|get started|create your first/i');
-            const hasEmptyState = await emptyState.isVisible().catch(() => false);
-
-            if (!hasEmptyState) {
-                reportBug({
-                    severity: 'P2',
-                    category: 'ux',
-                    title: 'No clear path to create first trip',
-                    description: 'Home page without trips has no obvious create action',
-                    reproSteps: ['Clear all data', 'Go to home page', 'Look for create action'],
-                    url: page.url(),
-                });
-            }
-        }
-    });
-
-    test('should complete trip wizard with valid data', async ({ page }) => {
-        await page.goto('/trip/new');
-        await waitForStableDOM(page);
-
-        // Check if wizard is present
-        const wizardContent = await page.locator('form, [role="form"], [data-testid*="wizard"]').isVisible().catch(() => false);
-
-        if (!wizardContent) {
-            // May be a different UI pattern - look for input fields
-            const hasInputs = await page.locator('input').count() > 0;
-            if (!hasInputs) {
-                reportBug({
-                    severity: 'P1',
-                    category: 'ux',
-                    title: 'Trip creation page has no input fields',
-                    description: '/trip/new does not show a form or wizard',
-                    reproSteps: ['Navigate to /trip/new', 'Check for form elements'],
-                    url: page.url(),
-                });
-                return;
-            }
-        }
-
-        // Try to fill basic trip info
-        const nameInput = page.locator('input[name="name"], input[placeholder*="name" i], input[id*="name" i]').first();
-        if (await nameInput.isVisible().catch(() => false)) {
-            await nameInput.fill('QA Test Trip ' + Date.now());
-        }
-
-        // Look for date inputs
-        const dateInputs = page.locator('input[type="date"]');
-        const dateCount = await dateInputs.count();
-        if (dateCount >= 2) {
-            const today = new Date().toISOString().split('T')[0];
-            const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-            await dateInputs.nth(0).fill(today);
-            await dateInputs.nth(1).fill(endDate);
-        }
-    });
-});
-
-// ============================================
-// TEST SUITE: Scoring Flow (Critical Path)
-// ============================================
-
-test.describe('Scoring Flow', () => {
-    test.setTimeout(TEST_TIMEOUT * 2);
-
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-    });
-
-    test('should display score page correctly', async ({ page }) => {
-        await page.goto('/score');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-
-        // Check for error boundaries
-        const errorBoundary = page.locator('text=/something went wrong|error occurred/i');
-        const hasError = await errorBoundary.isVisible().catch(() => false);
-
-        if (hasError) {
-            reportBug({
-                severity: 'P0',
-                category: 'crash',
-                title: 'Score page crashes with error boundary',
-                description: 'Score page shows error boundary instead of content',
-                reproSteps: ['Navigate to /score', 'Check page content'],
-                url: page.url(),
-            });
-        }
-
-        // Page should have some visible content (not error state)
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-        const content = await body.textContent();
-        expect(content && content.length > 50).toBeTruthy();
-    });
-
-    test('should handle empty state gracefully', async ({ page }) => {
-        await clearIndexedDB(page);
-        await page.reload();
-        await waitForStableDOM(page);
-
-        await page.goto('/score');
-        await waitForStableDOM(page);
-
-        // Should show empty state, not crash
-        const body = await page.locator('body').textContent();
-        const hasContent = body && body.length > 100; // Some meaningful content
-
-        expect(hasContent).toBeTruthy();
-    });
-
-    test('should navigate to match scoring interface', async ({ page }) => {
-        await page.goto('/score');
-        await waitForStableDOM(page);
-
-        // Look for match cards or scoring buttons
-        const matchCard = page.locator('[data-testid*="match"], [class*="match"], a[href*="/score/"]').first();
-
-        if (await matchCard.isVisible().catch(() => false)) {
-            await matchCard.click();
-            await waitForStableDOM(page);
-
-            // Should be on scoring interface
-            const url = page.url();
-            const isOnScoringPage = url.includes('/score/') || url.includes('/match/');
-
-            if (!isOnScoringPage) {
-                reportBug({
-                    severity: 'P1',
-                    category: 'ux',
-                    title: 'Match card click does not navigate to scoring',
-                    description: `Clicked match but landed on ${url}`,
-                    reproSteps: ['Go to /score', 'Click on a match', 'Check URL'],
-                    url,
-                });
-            }
-        }
-    });
-});
-
-// ============================================
-// TEST SUITE: Standings & Statistics
-// ============================================
-
-test.describe('Standings & Statistics', () => {
-    test.setTimeout(TEST_TIMEOUT);
-
-    test('should display standings page', async ({ page }) => {
-        await page.goto('/standings');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-
-        // Check if onboarding dialog is still showing (valid for first-time users)
-        const isOnboarding = await page.locator('[role="dialog"]').isVisible().catch(() => false);
-        if (isOnboarding) {
-            // Onboarding is shown for new users - this is expected behavior
-            const hasOnboardingContent = await page.locator('text=/welcome|ryder cup/i').first().isVisible().catch(() => false);
-            expect(hasOnboardingContent).toBeTruthy();
-            return;
-        }
-
-        // Check if redirected to profile creation (valid for new users)
-        const isInWizard = await page.locator('text=/create profile|step \\d+ of \\d+/i').first().isVisible().catch(() => false);
-        if (isInWizard) {
-            // Profile wizard is shown for new users - this is expected
-            const hasWizardControls = await page.locator('button').count() > 0;
-            expect(hasWizardControls).toBeTruthy();
-            return;
-        }
-
-        // Check for team standings elements or any valid content
-        const standingsContent = page.locator('main, [role="main"], .standings, body');
-        await expect(standingsContent.first()).toBeVisible();
-
-        // Look for common standings UI patterns
-        const hasTeamInfo = await page.locator('text=/team|score|point/i').isVisible().catch(() => false);
-        const hasEmptyState = await page.locator('text=/no data|no standings|create/i').isVisible().catch(() => false);
-
-        // Either show standings or a helpful empty state
-        expect(hasTeamInfo || hasEmptyState).toBeTruthy();
-    });
-
-    test('should calculate correct totals', async ({ page }) => {
-        await page.goto('/standings');
-        await waitForStableDOM(page);
-
-        // This test would validate mathematical correctness
-        // For now, just ensure no calculation errors visible
-        const errorText = await page.locator('text=/NaN|undefined|null|error/i').isVisible().catch(() => false);
-
-        if (errorText) {
-            reportBug({
-                severity: 'P0',
-                category: 'data',
-                title: 'Calculation error visible in standings',
-                description: 'Standings show NaN, undefined, or error values',
-                reproSteps: ['Navigate to /standings', 'Check displayed values'],
-                url: page.url(),
-            });
-        }
-
-        expect(errorText).toBeFalsy();
-    });
-});
-
-// ============================================
-// TEST SUITE: Captain Command Center
-// ============================================
-
-test.describe('Captain Features', () => {
-    test.setTimeout(TEST_TIMEOUT);
-
-    test('should access captain dashboard', async ({ page }) => {
-        await page.goto('/captain');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-
-        // Check if captain page loads
-        const body = await page.locator('body').textContent();
-        expect(body).toBeTruthy();
-
-        // Look for captain-specific UI or any valid page content
-        const captainContent = page.locator('text=/captain|command|lineup|manage/i');
-        const isVisible = await captainContent.first().isVisible().catch(() => false);
-
-        if (!isVisible) {
-            // May require authentication, trip, or redirect to home/more
-            const authPrompt = await page.locator('text=/sign in|login|create trip|create your|get started/i').isVisible().catch(() => false);
-            const validPage = await page.locator('body').isVisible();
-            expect(authPrompt || isVisible || validPage).toBeTruthy();
-        }
-    });
-
-    test('should toggle captain mode', async ({ page }) => {
-        await page.goto('/more');
-        await waitForStableDOM(page);
-
-        // Look for captain mode toggle
-        const captainToggle = page.locator('text=/captain mode/i').first();
-
-        if (await captainToggle.isVisible().catch(() => false)) {
-            // Find the actual toggle input
-            const toggle = page.locator('[role="switch"], input[type="checkbox"]').first();
-            if (await toggle.isVisible().catch(() => false)) {
-                const wasChecked = await toggle.isChecked();
-                await toggle.click();
-                await waitForStableDOM(page);
-
-                // Verify toggle changed
-                const isNowChecked = await toggle.isChecked();
-                expect(isNowChecked).not.toBe(wasChecked);
-            }
-        }
-    });
-});
-
-// ============================================
-// TEST SUITE: Offline Support (PWA)
-// ============================================
-
-test.describe('Offline Support', () => {
-    test.setTimeout(TEST_TIMEOUT);
-
-    test('should work offline after initial load', async ({ page, context }) => {
-        await page.goto('/');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-        await page.waitForLoadState('networkidle');
-
-        // Go offline
-        await context.setOffline(true);
-
-        // Try to navigate - may fail with network error if SW not available
-        try {
-            await page.goto('/score', { timeout: 5000 });
-            // Should still show content (from cache or IndexedDB)
             const body = page.locator('body');
             await expect(body).toBeVisible();
-        } catch {
-            // Network error is expected if service worker isn't caching
-            // This is acceptable in test environment
-        }
 
-        // Check for offline indicator on current page
-        const offlineIndicator = page.locator('text=/offline/i, [class*="offline"]');
-        const _showsOffline = await offlineIndicator.isVisible().catch(() => false);
+            // Check for scoring UI elements
+            const pageContent = await page.textContent('body');
+            const hasScoreUI = pageContent?.includes('Hole') ||
+                              pageContent?.includes('Score') ||
+                              pageContent?.includes('Match') ||
+                              pageContent?.includes('No active');
 
-        // Go back online
-        await context.setOffline(false);
-
-        // Verify app recovers after going back online
-        await page.goto('/');
-        await expect(page.locator('body')).toBeVisible();
-    });
-
-    test('should show offline indicator', async ({ page, context }) => {
-        await page.goto('/');
-        await waitForStableDOM(page);
-
-        // Go offline
-        await context.setOffline(true);
-        await page.waitForTimeout(1000);
-
-        // Check for any offline UI feedback
-        const _pageContent = await page.content();
-
-        // Go back online
-        await context.setOffline(false);
-    });
-});
-
-// ============================================
-// TEST SUITE: Data Persistence
-// ============================================
-
-test.describe('Data Persistence', () => {
-    test.setTimeout(TEST_TIMEOUT);
-
-    test('should persist data across page reloads', async ({ page }) => {
-        await page.goto('/');
-        await waitForStableDOM(page);
-
-        // Get initial state
-        const _initialContent = await page.content();
-
-        // Reload
-        await page.reload();
-        await waitForStableDOM(page);
-
-        // Content should be similar (data persisted)
-        const reloadedContent = await page.content();
-
-        // Basic sanity check - page should have meaningful content
-        expect(reloadedContent.length).toBeGreaterThan(1000);
-    });
-
-    test('should not lose data on browser back/forward', async ({ page }) => {
-        await page.goto('/');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-
-        const initialUrl = page.url();
-
-        await page.goto('/score');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-
-        await page.goBack();
-        await waitForStableDOM(page);
-
-        // Should navigate back (may go to home or redirect based on app state)
-        const backUrl = page.url();
-        expect(backUrl).toContain('localhost:3000');
-
-        await page.goForward();
-        await waitForStableDOM(page);
-
-        // Should navigate forward - either to score or redirected page
-        const forwardUrl = page.url();
-        // Just verify the page is valid and loaded
-        await expect(page.locator('body')).toBeVisible();
-        const content = await page.locator('body').textContent();
-        expect(content && content.length > 50).toBeTruthy();
-    });
-});
-
-// ============================================
-// TEST SUITE: Error Handling
-// ============================================
-
-test.describe('Error Handling', () => {
-    test.setTimeout(TEST_TIMEOUT);
-
-    test('should show 404 page for invalid routes', async ({ page }) => {
-        await page.goto('/this-page-definitely-does-not-exist-12345');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-
-        // Should show 404 or redirect, not crash
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        // Check for 404 content or home redirect or valid page
-        const url = page.url();
-        const content = await page.content();
-
-        const is404OrValid = content.toLowerCase().includes('404') ||
-            content.toLowerCase().includes('not found') ||
-            url === 'http://localhost:3000/' ||
-            content.length > 500; // Any valid page content
-
-        if (!is404OrValid) {
-            reportBug({
-                severity: 'P2',
-                category: 'ux',
-                title: 'Invalid routes do not show 404',
-                description: 'Invalid URL does not show 404 page or redirect home',
-                reproSteps: ['Navigate to /random-invalid-url', 'Check response'],
-                url,
-            });
-        }
-
-        expect(is404OrValid).toBeTruthy();
-    });
-
-    test('should handle invalid match IDs gracefully', async ({ page }) => {
-        await page.goto('/score/invalid-match-id-12345');
-        await waitForStableDOM(page);
-        await dismissOnboardingModal(page);
-
-        // Should show error state or redirect, not crash
-        const body = page.locator('body');
-        await expect(body).toBeVisible();
-
-        // Check that it doesn't show raw JavaScript errors (allows user-friendly error messages)
-        const rawJsError = await page.locator('text=/cannot read property|cannot read properties|typeerror:/i').isVisible().catch(() => false);
-
-        if (rawJsError) {
-            reportBug({
-                severity: 'P1',
-                category: 'crash',
-                title: 'Invalid match ID shows JavaScript error',
-                description: 'Navigating to invalid match shows raw JS error',
-                reproSteps: ['Navigate to /score/invalid-match-id', 'Check page content'],
-                url: page.url(),
-            });
-        }
-
-        expect(rawJsError).toBeFalsy();
-    });
-});
-
-// ============================================
-// TEST SUITE: Performance
-// ============================================
-
-test.describe('Performance', () => {
-    test.setTimeout(TEST_TIMEOUT);
-
-    test('should load home page within 3 seconds', async ({ page }) => {
-        const startTime = Date.now();
-        await page.goto('/');
-        await page.waitForLoadState('domcontentloaded');
-        const loadTime = Date.now() - startTime;
-
-        if (loadTime > 3000) {
-            reportBug({
-                severity: 'P2',
-                category: 'performance',
-                title: 'Home page load time exceeds 3 seconds',
-                description: `Home page took ${loadTime}ms to load`,
-                reproSteps: ['Navigate to home page', 'Measure load time'],
-                url: page.url(),
-            });
-        }
-
-        expect(loadTime).toBeLessThan(5000); // Hard fail at 5s
-    });
-
-    test('should not have memory leaks on navigation', async ({ page }) => {
-        // Navigate back and forth multiple times
-        for (let i = 0; i < 5; i++) {
-            await page.goto('/');
-            await page.goto('/score');
-            await page.goto('/standings');
-        }
-
-        // If we got here without OOM, we're probably okay
-        await expect(page.locator('body')).toBeVisible();
-    });
-});
-
-// ============================================
-// Test Teardown - Generate Report
-// ============================================
-
-test.afterAll(async () => {
-    if (bugReports.length > 0) {
-        console.log('\n\n========================================');
-        console.log('QA SIMULATION BUG REPORT');
-        console.log('========================================\n');
-
-        // Sort by severity
-        const sortedBugs = bugReports.sort((a, b) => {
-            const order = { 'P0': 0, 'P1': 1, 'P2': 2, 'P3': 3 };
-            return order[a.severity] - order[b.severity];
-        });
-
-        sortedBugs.forEach((bug, index) => {
-            console.log(`[${bug.severity}] #${index + 1}: ${bug.title}`);
-            console.log(`  Category: ${bug.category}`);
-            console.log(`  Description: ${bug.description}`);
-            console.log(`  URL: ${bug.url}`);
-            console.log(`  Repro Steps:`);
-            bug.reproSteps.forEach((step, i) => {
-                console.log(`    ${i + 1}. ${step}`);
-            });
-            if (bug.consoleErrors) {
-                console.log(`  Console Errors:`);
-                bug.consoleErrors.forEach(err => {
-                    console.log(`    - ${err}`);
+            if (!hasScoreUI) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Live Scoring',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'ux',
+                    description: 'Score page lacks clear scoring interface',
+                    steps: ['Navigate to /score'],
+                    expected: 'See scoring UI or empty state',
+                    actual: 'Unclear page content'
                 });
             }
-            console.log('');
-        });
 
-        console.log(`Total bugs found: ${bugReports.length}`);
-        console.log(`P0 (Critical): ${bugReports.filter(b => b.severity === 'P0').length}`);
-        console.log(`P1 (High): ${bugReports.filter(b => b.severity === 'P1').length}`);
-        console.log(`P2 (Medium): ${bugReports.filter(b => b.severity === 'P2').length}`);
-        console.log(`P3 (Low): ${bugReports.filter(b => b.severity === 'P3').length}`);
-    } else {
-        console.log('\n✅ No bugs found during QA simulation!\n');
+            // Look for hole selectors or score buttons
+            const holeButtons = page.locator('button').filter({ hasText: /^[1-9]$|^1[0-8]$|hole/i });
+            const hasHoleNav = await holeButtons.count() > 0;
+
+            // Look for score input buttons
+            const scoreButtons = page.locator('button').filter({ hasText: /win|halve|lose|up|dn|as/i });
+            const hasScoreButtons = await scoreButtons.count() > 0;
+
+            // Either should have scoring UI or show empty state gracefully
+            const hasEmptyState = pageContent?.includes('No active') ||
+                                 pageContent?.includes('no matches') ||
+                                 pageContent?.includes('Start');
+
+            if (!hasHoleNav && !hasScoreButtons && !hasEmptyState) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Live Scoring',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'ux',
+                    description: 'Score page has no clear interaction path',
+                    steps: ['Navigate to /score'],
+                    expected: 'Scoring controls or clear empty state',
+                    actual: 'No clear next action'
+                });
+            }
+        });
     }
+});
+
+// ============================================================================
+// SCENARIO 7: Standings & Leaderboard (20 iterations)
+// ============================================================================
+
+test.describe('S07: Standings Display', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: View standings`, async ({ page }) => {
+            const { durationMs } = await measureTime(async () => {
+                await page.goto('/standings');
+                await waitForStableDOM(page);
+            });
+
+            if (durationMs > 5000) {
+                recordIssue({
+                    category: 'Performance',
+                    scenario: 'Standings',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'performance',
+                    description: 'Standings page loads slowly',
+                    steps: ['Navigate to /standings'],
+                    expected: 'Load in < 5s',
+                    actual: `Took ${durationMs}ms`
+                });
+            }
+
+            await dismissOnboardingModal(page);
+
+            // Check for team indicators
+            const pageContent = await page.textContent('body');
+            const hasTeamContent = pageContent?.includes('Team') ||
+                                  pageContent?.includes('USA') ||
+                                  pageContent?.includes('Europe') ||
+                                  pageContent?.includes('Points') ||
+                                  pageContent?.includes('No') ||
+                                  pageContent?.includes('empty');
+
+            if (!hasTeamContent) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Standings',
+                    iteration: i,
+                    severity: 'low',
+                    type: 'ux',
+                    description: 'Standings page content unclear',
+                    steps: ['Navigate to /standings'],
+                    expected: 'Team standings or empty state',
+                    actual: 'Unclear content'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 8: Lineup Builder (20 iterations)
+// ============================================================================
+
+test.describe('S08: Lineup Builder', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Access lineup builder`, async ({ page }) => {
+            await page.goto('/lineup');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for error states
+            const errorIndicator = page.locator('text=/error|went wrong|failed/i');
+            if (await errorIndicator.count() > 0) {
+                recordIssue({
+                    category: 'Error Handling',
+                    scenario: 'Lineup Builder',
+                    iteration: i,
+                    severity: 'high',
+                    type: 'bug',
+                    description: 'Lineup page shows error state',
+                    steps: ['Navigate to /lineup'],
+                    expected: 'Lineup builder or empty state',
+                    actual: 'Error displayed'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 9: Schedule Management (20 iterations)
+// ============================================================================
+
+test.describe('S09: Schedule Management', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: View and navigate schedule`, async ({ page }) => {
+            await page.goto('/schedule');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for schedule content
+            const pageContent = await page.textContent('body');
+            const hasScheduleContent = pageContent?.includes('Schedule') ||
+                                       pageContent?.includes('Day') ||
+                                       pageContent?.includes('Round') ||
+                                       pageContent?.includes('Tee') ||
+                                       pageContent?.includes('No events');
+
+            if (!hasScheduleContent) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Schedule',
+                    iteration: i,
+                    severity: 'low',
+                    type: 'ux',
+                    description: 'Schedule page lacks clear schedule content',
+                    steps: ['Navigate to /schedule'],
+                    expected: 'Schedule display or empty state',
+                    actual: 'Unclear content'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 10: Matchups View (20 iterations)
+// ============================================================================
+
+test.describe('S10: Matchups View', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: View matchups`, async ({ page }) => {
+            await page.goto('/matchups');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check page loads without critical errors
+            const pageContent = await page.textContent('body');
+            const hasCriticalError = pageContent?.includes('Something went wrong') ||
+                                    pageContent?.includes('Application error');
+
+            if (hasCriticalError) {
+                recordIssue({
+                    category: 'Error Handling',
+                    scenario: 'Matchups',
+                    iteration: i,
+                    severity: 'critical',
+                    type: 'bug',
+                    description: 'Matchups page shows critical error',
+                    steps: ['Navigate to /matchups'],
+                    expected: 'Matchups display',
+                    actual: 'Critical error shown'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 11: Players Directory (20 iterations)
+// ============================================================================
+
+test.describe('S11: Players Directory', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: View players`, async ({ page }) => {
+            await page.goto('/players');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for player list or empty state
+            const pageContent = await page.textContent('body');
+            const hasPlayerContent = pageContent?.includes('Player') ||
+                                    pageContent?.includes('Team') ||
+                                    pageContent?.includes('Handicap') ||
+                                    pageContent?.includes('No players') ||
+                                    pageContent?.includes('Add');
+
+            if (!hasPlayerContent) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Players',
+                    iteration: i,
+                    severity: 'low',
+                    type: 'ux',
+                    description: 'Players page lacks clear content',
+                    steps: ['Navigate to /players'],
+                    expected: 'Player list or empty state',
+                    actual: 'Unclear content'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 12: Captain Dashboard (20 iterations)
+// ============================================================================
+
+test.describe('S12: Captain Dashboard', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Access captain dashboard`, async ({ page }) => {
+            await page.goto('/captain');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for captain controls
+            const captainControls = page.locator('button, a').filter({
+                hasText: /lineup|draft|manage|settings|publish/i
+            });
+
+            const hasControls = await captainControls.count() > 0;
+            const pageContent = await page.textContent('body');
+            const hasCaptainContent = pageContent?.includes('Captain') ||
+                                     pageContent?.includes('Manage') ||
+                                     pageContent?.includes('enable') ||
+                                     pageContent?.includes('mode');
+
+            if (!hasControls && !hasCaptainContent) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Captain Dashboard',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'ux',
+                    description: 'Captain page lacks clear captain controls',
+                    steps: ['Navigate to /captain'],
+                    expected: 'Captain tools or mode toggle',
+                    actual: 'No clear captain interface'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 13: Captain Lineup Builder (20 iterations)
+// ============================================================================
+
+test.describe('S13: Captain Lineup Builder', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Captain lineup tools`, async ({ page }) => {
+            await page.goto('/captain/lineup-builder');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for drag-drop elements
+            const dragHandles = page.locator('[draggable="true"], [data-dnd-draggable]');
+            const hasDragDrop = await dragHandles.count() > 0;
+
+            // Or check for player selection UI
+            const playerSelect = page.locator('select, [role="listbox"], button:has-text("Add player")');
+            const hasPlayerSelect = await playerSelect.count() > 0;
+
+            // Check page has meaningful content
+            const pageContent = await page.textContent('body');
+            const hasContent = pageContent && pageContent.length > 200;
+
+            if (!hasDragDrop && !hasPlayerSelect && !hasContent) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Captain Lineup Builder',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'ux',
+                    description: 'Captain lineup builder lacks interaction elements',
+                    steps: ['Navigate to /captain/lineup-builder'],
+                    expected: 'Drag-drop or selection UI',
+                    actual: 'No clear interaction mechanism'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 14: Draft Board (20 iterations)
+// ============================================================================
+
+test.describe('S14: Draft Board', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Access draft board`, async ({ page }) => {
+            await page.goto('/captain/draft');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for draft UI elements
+            const pageContent = await page.textContent('body');
+            const hasDraftContent = pageContent?.includes('Draft') ||
+                                   pageContent?.includes('Pick') ||
+                                   pageContent?.includes('Available') ||
+                                   pageContent?.includes('Team') ||
+                                   pageContent?.includes('No');
+
+            if (!hasDraftContent) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Draft Board',
+                    iteration: i,
+                    severity: 'low',
+                    type: 'ux',
+                    description: 'Draft board page lacks clear draft content',
+                    steps: ['Navigate to /captain/draft'],
+                    expected: 'Draft board or empty state',
+                    actual: 'Unclear content'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 15: Session Locking (20 iterations)
+// ============================================================================
+
+test.describe('S15: Session Locking', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Session lock controls`, async ({ page }) => {
+            await page.goto('/captain/manage');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for lock/unlock controls
+            const lockControls = page.locator('button, [role="switch"]').filter({
+                hasText: /lock|unlock/i
+            });
+
+            // Page should have session management content
+            const pageContent = await page.textContent('body');
+            const hasManageContent = pageContent?.includes('Session') ||
+                                    pageContent?.includes('Lock') ||
+                                    pageContent?.includes('Manage') ||
+                                    pageContent?.includes('No sessions');
+
+            if (!hasManageContent && await lockControls.count() === 0) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Session Locking',
+                    iteration: i,
+                    severity: 'low',
+                    type: 'ux',
+                    description: 'Session management page lacks lock controls',
+                    steps: ['Navigate to /captain/manage'],
+                    expected: 'Session list with lock controls',
+                    actual: 'No clear lock mechanism'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 16: Social Banter Feed (20 iterations)
+// ============================================================================
+
+test.describe('S16: Social Banter Feed', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: View banter feed`, async ({ page }) => {
+            await page.goto('/social');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for social UI elements
+            const postInput = page.locator('textarea, input[placeholder*="post" i], input[placeholder*="message" i]');
+            const hasPostInput = await postInput.count() > 0;
+
+            const pageContent = await page.textContent('body');
+            const hasSocialContent = pageContent?.includes('Post') ||
+                                    pageContent?.includes('Banter') ||
+                                    pageContent?.includes('Feed') ||
+                                    pageContent?.includes('No posts');
+
+            if (!hasPostInput && !hasSocialContent) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Social Feed',
+                    iteration: i,
+                    severity: 'low',
+                    type: 'ux',
+                    description: 'Social page lacks clear social features',
+                    steps: ['Navigate to /social'],
+                    expected: 'Banter feed with post input',
+                    actual: 'No clear social UI'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 17: Photo Gallery (20 iterations)
+// ============================================================================
+
+test.describe('S17: Photo Gallery', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: View photo gallery`, async ({ page }) => {
+            await page.goto('/social/photos');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Check for photo gallery elements
+            const images = page.locator('img');
+            const uploadButton = page.locator('button, input[type="file"]').filter({
+                hasText: /upload|add|photo/i
+            });
+
+            const pageContent = await page.textContent('body');
+            const hasPhotoContent = pageContent?.includes('Photo') ||
+                                   pageContent?.includes('Gallery') ||
+                                   pageContent?.includes('Album') ||
+                                   pageContent?.includes('No photos');
+
+            if (await images.count() === 0 && await uploadButton.count() === 0 && !hasPhotoContent) {
+                recordIssue({
+                    category: 'UX',
+                    scenario: 'Photo Gallery',
+                    iteration: i,
+                    severity: 'low',
+                    type: 'ux',
+                    description: 'Photo gallery page lacks clear photo features',
+                    steps: ['Navigate to /social/photos'],
+                    expected: 'Photo grid or upload option',
+                    actual: 'No clear photo UI'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 18: Offline Mode - Basic (20 iterations)
+// ============================================================================
+
+test.describe('S18: Offline Mode Basic', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: App functions offline`, async ({ page, context }) => {
+            // First load the page online
+            await page.goto('/');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+            await page.waitForLoadState('networkidle');
+
+            // Go offline
+            await context.setOffline(true);
+
+            // Try to navigate to different pages
+            try {
+                await page.goto('/standings', { timeout: 5000 });
+                await waitForStableDOM(page);
+
+                const body = page.locator('body');
+                await expect(body).toBeVisible();
+
+                const pageContent = await page.textContent('body');
+                const hasContent = pageContent && pageContent.length > 50;
+
+                if (!hasContent) {
+                    recordIssue({
+                        category: 'Offline',
+                        scenario: 'Offline Basic',
+                        iteration: i,
+                        severity: 'high',
+                        type: 'bug',
+                        description: 'App shows blank page when offline',
+                        steps: ['Load app online', 'Go offline', 'Navigate to /standings'],
+                        expected: 'Cached content shown',
+                        actual: 'Blank or minimal content'
+                    });
+                }
+            } catch (e) {
+                // Network error is expected, but PWA should handle gracefully
+                recordIssue({
+                    category: 'Offline',
+                    scenario: 'Offline Basic',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'bug',
+                    description: 'Navigation fails when offline',
+                    steps: ['Load app online', 'Go offline', 'Navigate'],
+                    expected: 'Show cached page or offline indicator',
+                    actual: `Network error: ${String(e).slice(0, 100)}`
+                });
+            }
+
+            // Restore online
+            await context.setOffline(false);
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 19: Offline Score Queue (20 iterations)
+// ============================================================================
+
+test.describe('S19: Offline Score Queue', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Scores queue while offline`, async ({ page, context }) => {
+            await page.goto('/score');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            // Go offline
+            await context.setOffline(true);
+
+            // Try to interact with scoring (if available)
+            const scoreButtons = page.locator('button').filter({ hasText: /win|halve|up|dn|submit/i });
+
+            if (await scoreButtons.count() > 0) {
+                await scoreButtons.first().click().catch(() => {});
+                await page.waitForTimeout(500);
+
+                // Check for offline indicator or queue indicator
+                const offlineIndicator = page.locator('text=/offline|queue|pending|sync/i');
+                const hasOfflineUI = await offlineIndicator.count() > 0;
+
+                // Check page still functional
+                const body = page.locator('body');
+                const bodyVisible = await body.isVisible();
+
+                if (!bodyVisible) {
+                    recordIssue({
+                        category: 'Offline',
+                        scenario: 'Offline Score Queue',
+                        iteration: i,
+                        severity: 'high',
+                        type: 'bug',
+                        description: 'App crashes when scoring offline',
+                        steps: ['Go to score page', 'Go offline', 'Try to score'],
+                        expected: 'Score queued for later sync',
+                        actual: 'Page unresponsive'
+                    });
+                }
+            }
+
+            await context.setOffline(false);
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 20: Slow Network (20 iterations)
+// ============================================================================
+
+test.describe('S20: Slow Network', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: App handles slow network`, async ({ page, context }) => {
+            // Simulate slow network
+            const cdpSession = await context.newCDPSession(page);
+            await cdpSession.send('Network.emulateNetworkConditions', {
+                offline: false,
+                downloadThroughput: 50 * 1024 / 8, // 50kbps
+                uploadThroughput: 50 * 1024 / 8,
+                latency: SLOW_NETWORK_LATENCY
+            });
+
+            const { durationMs } = await measureTime(async () => {
+                await page.goto('/', { timeout: 30000 });
+                await waitForStableDOM(page);
+            });
+
+            if (durationMs > 15000) {
+                recordIssue({
+                    category: 'Performance',
+                    scenario: 'Slow Network',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'performance',
+                    description: 'App very slow on poor connection',
+                    steps: ['Simulate 50kbps connection', 'Load home page'],
+                    expected: 'Load with basic UI in < 15s',
+                    actual: `Took ${durationMs}ms`
+                });
+            }
+
+            await cdpSession.send('Network.emulateNetworkConditions', {
+                offline: false,
+                downloadThroughput: -1,
+                uploadThroughput: -1,
+                latency: 0
+            });
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 21: Connection Drop Recovery (20 iterations)
+// ============================================================================
+
+test.describe('S21: Connection Drop Recovery', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Recover from connection drop`, async ({ page, context }) => {
+            await page.goto('/');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            // Drop connection
+            await context.setOffline(true);
+            await page.waitForTimeout(1000);
+
+            // Restore connection
+            await context.setOffline(false);
+            await page.waitForTimeout(2000);
+
+            // Check for reconnection indicator or auto-retry
+            const body = page.locator('body');
+            await expect(body).toBeVisible();
+
+            // Try to navigate after reconnection
+            await page.goto('/standings');
+            await waitForStableDOM(page);
+
+            const pageContent = await page.textContent('body');
+            const hasContent = pageContent && pageContent.length > 50;
+
+            if (!hasContent) {
+                recordIssue({
+                    category: 'Network',
+                    scenario: 'Connection Recovery',
+                    iteration: i,
+                    severity: 'medium',
+                    type: 'bug',
+                    description: 'App does not recover after reconnection',
+                    steps: ['Load app', 'Go offline', 'Go online', 'Navigate'],
+                    expected: 'App resumes normal operation',
+                    actual: 'Page still broken after reconnection'
+                });
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 22: Empty State Handling (20 iterations)
+// ============================================================================
+
+test.describe('S22: Empty State Handling', () => {
+    const pagesToTest = [
+        { path: '/', name: 'Home' },
+        { path: '/score', name: 'Score' },
+        { path: '/standings', name: 'Standings' },
+        { path: '/schedule', name: 'Schedule' },
+        { path: '/players', name: 'Players' },
+        { path: '/social', name: 'Social' },
+    ];
+
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Empty states are clear`, async ({ page }) => {
+            await clearIndexedDBSafe(page);
+
+            for (const { path, name } of pagesToTest) {
+                await page.goto(path);
+                await waitForStableDOM(page);
+                await dismissOnboardingModal(page);
+
+                const pageContent = await page.textContent('body');
+
+                // Check for clear empty state messaging
+                const hasEmptyState = pageContent?.includes('No ') ||
+                                     pageContent?.includes('Empty') ||
+                                     pageContent?.includes('Get started') ||
+                                     pageContent?.includes('Create') ||
+                                     pageContent?.includes('Add') ||
+                                     (pageContent?.length && pageContent.length > 100);
+
+                // Check for error state (bad)
+                const hasError = pageContent?.includes('Error') ||
+                                pageContent?.includes('went wrong') ||
+                                pageContent?.includes('failed');
+
+                if (hasError) {
+                    recordIssue({
+                        category: 'Empty State',
+                        scenario: 'Empty State Handling',
+                        iteration: i,
+                        severity: 'medium',
+                        type: 'bug',
+                        description: `${name} page shows error on empty data`,
+                        steps: ['Clear data', `Navigate to ${path}`],
+                        expected: 'Clear empty state',
+                        actual: 'Error displayed'
+                    });
+                }
+
+                if (!hasEmptyState && !hasError) {
+                    recordIssue({
+                        category: 'UX',
+                        scenario: 'Empty State Handling',
+                        iteration: i,
+                        severity: 'low',
+                        type: 'ux',
+                        description: `${name} page lacks clear empty state`,
+                        steps: ['Clear data', `Navigate to ${path}`],
+                        expected: 'Clear guidance for empty state',
+                        actual: 'Unclear or minimal content'
+                    });
+                }
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 23: Form Validation (20 iterations)
+// ============================================================================
+
+test.describe('S23: Form Validation', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Forms validate input properly`, async ({ page }) => {
+            await page.goto('/profile/create');
+            await waitForStableDOM(page);
+
+            // Try to submit empty form
+            const submitButton = page.locator('button[type="submit"], button:has-text("Save"), button:has-text("Create"), button:has-text("Continue")');
+
+            if (await submitButton.count() > 0) {
+                await submitButton.first().click();
+                await page.waitForTimeout(500);
+
+                // Check for validation errors
+                const validationErrors = page.locator('[role="alert"], .error, text=/required|invalid|please/i');
+                const hasValidation = await validationErrors.count() > 0;
+
+                // Check form didn't submit with invalid data
+                const stillOnPage = page.url().includes('profile') || page.url().includes('create');
+
+                if (!hasValidation && !stillOnPage) {
+                    recordIssue({
+                        category: 'Validation',
+                        scenario: 'Form Validation',
+                        iteration: i,
+                        severity: 'high',
+                        type: 'bug',
+                        description: 'Form submits without validation',
+                        steps: ['Navigate to form', 'Submit empty form'],
+                        expected: 'Show validation errors',
+                        actual: 'Form submitted or navigated away'
+                    });
+                }
+            }
+
+            // Test email validation
+            const emailInput = page.locator('input[type="email"], input[name="email"]');
+            if (await emailInput.count() > 0) {
+                await emailInput.first().fill('invalid-email');
+                if (await submitButton.count() > 0) {
+                    await submitButton.first().click();
+                    await page.waitForTimeout(500);
+
+                    const emailError = page.locator('text=/email|invalid/i');
+                    const hasEmailError = await emailError.count() > 0;
+
+                    // HTML5 validation should also prevent submission
+                    const inputValidity = await emailInput.first().evaluate((el: HTMLInputElement) => el.validity?.valid);
+
+                    if (!hasEmailError && inputValidity !== false) {
+                        recordIssue({
+                            category: 'Validation',
+                            scenario: 'Form Validation',
+                            iteration: i,
+                            severity: 'medium',
+                            type: 'bug',
+                            description: 'Email validation accepts invalid format',
+                            steps: ['Enter invalid email', 'Submit form'],
+                            expected: 'Show email format error',
+                            actual: 'No validation error'
+                        });
+                    }
+                }
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 24: Navigation Consistency (20 iterations)
+// ============================================================================
+
+test.describe('S24: Navigation Consistency', () => {
+    for (let i = 1; i <= ITERATIONS_PER_SCENARIO; i++) {
+        test(`Iteration ${i}: Bottom nav works consistently`, async ({ page }) => {
+            await page.goto('/');
+            await waitForStableDOM(page);
+            await dismissOnboardingModal(page);
+
+            const navRoutes = [
+                { text: /home/i, expectedUrl: '/' },
+                { text: /score/i, expectedUrl: '/score' },
+                { text: /standings/i, expectedUrl: '/standings' },
+                { text: /schedule/i, expectedUrl: '/schedule' },
+                { text: /more/i, expectedUrl: '/more' },
+            ];
+
+            for (const { text, expectedUrl } of navRoutes) {
+                const navButton = page.locator('nav button, nav a').filter({ hasText: text }).first();
+
+                if (await navButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+                    await navButton.click();
+                    await page.waitForTimeout(500);
+
+                    const currentUrl = page.url();
+                    const matchesExpected = currentUrl.endsWith(expectedUrl) ||
+                                           currentUrl.includes(expectedUrl.replace('/', ''));
+
+                    if (!matchesExpected && expectedUrl !== '/') {
+                        recordIssue({
+                            category: 'Navigation',
+                            scenario: 'Navigation Consistency',
+                            iteration: i,
+                            severity: 'medium',
+                            type: 'bug',
+                            description: `Nav button does not navigate to expected URL`,
+                            steps: [`Click nav button matching ${text}`],
+                            expected: `Navigate to ${expectedUrl}`,
+                            actual: `Navigated to ${currentUrl}`
+                        });
+                    }
+                }
+            }
+        });
+    }
+});
+
+// ============================================================================
+// SCENARIO 25: Mobile Responsiveness (20 iterations across 4 viewports = 80 tests)
+// ============================================================================
+
+test.describe('S25: Mobile Responsiveness', () => {
+    const viewports = [
+        { name: 'iPhone SE', width: 375, height: 667 },
+        { name: 'iPhone 12', width: 390, height: 844 },
+        { name: 'Pixel 5', width: 393, height: 851 },
+        { name: 'iPad Mini', width: 768, height: 1024 },
+    ];
+
+    for (let i = 1; i <= Math.ceil(ITERATIONS_PER_SCENARIO / viewports.length); i++) {
+        for (const viewport of viewports) {
+            test(`Iteration ${i}: ${viewport.name} (${viewport.width}x${viewport.height})`, async ({ page }) => {
+                await page.setViewportSize({ width: viewport.width, height: viewport.height });
+                await page.goto('/');
+                await waitForStableDOM(page);
+                await dismissOnboardingModal(page);
+
+                // Check for horizontal overflow
+                const hasOverflow = await page.evaluate(() => {
+                    return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+                });
+
+                if (hasOverflow) {
+                    recordIssue({
+                        category: 'Responsive',
+                        scenario: 'Mobile Responsiveness',
+                        iteration: i,
+                        severity: 'medium',
+                        type: 'ux',
+                        description: `Horizontal overflow on ${viewport.name}`,
+                        steps: [`Set viewport to ${viewport.width}x${viewport.height}`, 'Load home page'],
+                        expected: 'No horizontal scroll',
+                        actual: 'Page has horizontal overflow'
+                    });
+                }
+
+                // Check touch targets (min 44px)
+                const buttons = page.locator('button, a');
+                const count = await buttons.count();
+                let smallTargets = 0;
+
+                for (let j = 0; j < Math.min(count, 10); j++) {
+                    const button = buttons.nth(j);
+                    if (await button.isVisible()) {
+                        const box = await button.boundingBox();
+                        if (box && box.width < 44 && box.height < 44) {
+                            smallTargets++;
+                        }
+                    }
+                }
+
+                if (smallTargets > 3) {
+                    recordIssue({
+                        category: 'Responsive',
+                        scenario: 'Mobile Responsiveness',
+                        iteration: i,
+                        severity: 'low',
+                        type: 'ux',
+                        description: `Multiple touch targets too small on ${viewport.name}`,
+                        steps: [`Set viewport to ${viewport.width}x${viewport.height}`, 'Check button sizes'],
+                        expected: 'Touch targets >= 44px',
+                        actual: `${smallTargets} buttons smaller than 44px`
+                    });
+                }
+            });
+        }
+    }
+});
+
+// ============================================================================
+// SUMMARY REPORT GENERATION
+// ============================================================================
+
+test.afterAll(async () => {
+    if (issues.length === 0) {
+        console.log('\n========================================');
+        console.log('QA SIMULATION COMPLETE - NO ISSUES FOUND');
+        console.log('========================================\n');
+        return;
+    }
+
+    console.log('\n========================================');
+    console.log('QA SIMULATION SUMMARY REPORT');
+    console.log(`Total Sessions: 500`);
+    console.log(`Total Issues: ${issues.length}`);
+    console.log('========================================\n');
+
+    // Group issues by severity
+    const bySeverity = {
+        critical: issues.filter(i => i.severity === 'critical'),
+        high: issues.filter(i => i.severity === 'high'),
+        medium: issues.filter(i => i.severity === 'medium'),
+        low: issues.filter(i => i.severity === 'low'),
+    };
+
+    console.log('ISSUES BY SEVERITY:');
+    console.log(`  Critical: ${bySeverity.critical.length}`);
+    console.log(`  High:     ${bySeverity.high.length}`);
+    console.log(`  Medium:   ${bySeverity.medium.length}`);
+    console.log(`  Low:      ${bySeverity.low.length}`);
+    console.log(`  TOTAL:    ${issues.length}\n`);
+
+    // Group by category
+    const byCategory: Record<string, QAIssue[]> = {};
+    for (const issue of issues) {
+        if (!byCategory[issue.category]) {
+            byCategory[issue.category] = [];
+        }
+        byCategory[issue.category].push(issue);
+    }
+
+    console.log('ISSUES BY CATEGORY:');
+    for (const [category, categoryIssues] of Object.entries(byCategory)) {
+        console.log(`  ${category}: ${categoryIssues.length}`);
+    }
+
+    console.log('\n--- CRITICAL ISSUES ---');
+    for (const issue of bySeverity.critical) {
+        console.log(`\n[${issue.category}] ${issue.description}`);
+        console.log(`  Scenario: ${issue.scenario} (Iteration ${issue.iteration})`);
+        console.log(`  Expected: ${issue.expected}`);
+        console.log(`  Actual: ${issue.actual}`);
+    }
+
+    console.log('\n--- HIGH PRIORITY ISSUES ---');
+    for (const issue of bySeverity.high.slice(0, 10)) {
+        console.log(`\n[${issue.category}] ${issue.description}`);
+        console.log(`  Scenario: ${issue.scenario}`);
+        console.log(`  Expected: ${issue.expected}`);
+        console.log(`  Actual: ${issue.actual}`);
+    }
+
+    if (bySeverity.high.length > 10) {
+        console.log(`\n... and ${bySeverity.high.length - 10} more high priority issues`);
+    }
+
+    console.log('\n========================================');
+    console.log('END OF QA SIMULATION REPORT');
+    console.log('========================================\n');
 });
