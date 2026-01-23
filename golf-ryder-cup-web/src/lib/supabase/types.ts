@@ -591,6 +591,38 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            scoring_events: {
+                Row: {
+                    id: string;
+                    match_id: string;
+                    event_type: string;
+                    hole_number: number | null;
+                    data: Record<string, unknown>;
+                    created_at: string;
+                    synced_at: string;
+                    device_id: string | null;
+                    processed: boolean;
+                };
+                Insert: {
+                    id: string;
+                    match_id: string;
+                    event_type: string;
+                    hole_number?: number | null;
+                    data: Record<string, unknown>;
+                    created_at: string;
+                    synced_at?: string;
+                    device_id?: string | null;
+                    processed?: boolean;
+                };
+                Update: {
+                    event_type?: string;
+                    hole_number?: number | null;
+                    data?: Record<string, unknown>;
+                    synced_at?: string;
+                    device_id?: string | null;
+                    processed?: boolean;
+                };
+            };
         };
         Views: {
             [_ in never]: never;
@@ -620,3 +652,4 @@ export type SideBet = Database['public']['Tables']['side_bets']['Row'];
 export type Achievement = Database['public']['Tables']['achievements']['Row'];
 export type CourseLibrary = Database['public']['Tables']['course_library']['Row'];
 export type CourseLibraryTeeSet = Database['public']['Tables']['course_library_tee_sets']['Row'];
+export type ScoringEventRecord = Database['public']['Tables']['scoring_events']['Row'];

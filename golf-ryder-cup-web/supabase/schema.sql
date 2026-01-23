@@ -375,6 +375,26 @@ CREATE INDEX idx_audit_log_trip_id ON audit_log(trip_id);
 CREATE INDEX idx_audit_log_timestamp ON audit_log(timestamp DESC);
 
 -- ============================================
+-- SCORING EVENTS (Background Sync)
+-- ============================================
+-- Stores scoring events from offline clients for sync
+CREATE TABLE IF NOT EXISTS scoring_events (
+    id UUID PRIMARY KEY,
+    match_id UUID NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL,
+    hole_number INTEGER CHECK (hole_number >= 1 AND hole_number <= 18),
+    data JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    synced_at TIMESTAMPTZ DEFAULT NOW(),
+    device_id TEXT,
+    processed BOOLEAN DEFAULT FALSE
+);
+
+CREATE INDEX idx_scoring_events_match_id ON scoring_events(match_id);
+CREATE INDEX idx_scoring_events_created_at ON scoring_events(created_at DESC);
+CREATE INDEX idx_scoring_events_unprocessed ON scoring_events(match_id) WHERE processed = FALSE;
+
+-- ============================================
 -- UPDATED_AT TRIGGERS
 -- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -479,6 +499,7 @@ ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE side_bets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE scoring_events ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
 -- RLS POLICIES FOR APPLICATION TABLES
@@ -570,6 +591,12 @@ CREATE POLICY "audit_log_select_all" ON audit_log FOR SELECT USING (true);
 CREATE POLICY "audit_log_insert_all" ON audit_log FOR INSERT WITH CHECK (true);
 CREATE POLICY "audit_log_update_all" ON audit_log FOR UPDATE USING (true);
 CREATE POLICY "audit_log_delete_all" ON audit_log FOR DELETE USING (true);
+
+-- SCORING_EVENTS policies (server-side only via service role)
+CREATE POLICY "scoring_events_select_all" ON scoring_events FOR SELECT USING (true);
+CREATE POLICY "scoring_events_insert_all" ON scoring_events FOR INSERT WITH CHECK (true);
+CREATE POLICY "scoring_events_update_all" ON scoring_events FOR UPDATE USING (true);
+CREATE POLICY "scoring_events_delete_all" ON scoring_events FOR DELETE USING (true);
 
 -- ============================================
 -- VIEWS

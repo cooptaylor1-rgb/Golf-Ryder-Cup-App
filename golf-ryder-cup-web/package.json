@@ -27,6 +27,10 @@
     "test:simulate:1000": "npx tsx scripts/testing/simulate-1000.ts",
     "test:seed:small": "npx tsx scripts/testing/seed-small.ts",
     "test:seed:large": "npx tsx scripts/testing/seed-large.ts",
+    "test:db": "vitest run src/__tests__/schemaVerification.test.ts",
+    "db:lint": "vitest run src/__tests__/schemaVerification.test.ts",
+    "db:diff": "supabase db diff",
+    "db:push": "supabase db push",
     "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
