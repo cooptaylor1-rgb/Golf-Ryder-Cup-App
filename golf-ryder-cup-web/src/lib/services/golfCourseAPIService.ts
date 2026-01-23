@@ -70,7 +70,7 @@ let configuredCache: boolean | null = null;
 
 /**
  * Check if the Golf Course API is configured (via server-side API route)
- * 
+ *
  * Note: We always return true because we have a free OSM-based fallback
  * that works even without the paid API key.
  */
@@ -107,7 +107,7 @@ export function isGolfCourseAPIConfigured(): boolean {
 
 /**
  * Search for golf courses by name or location
- * 
+ *
  * Falls back to free OSM-based search if the paid API is not configured.
  */
 export async function searchCourses(query: string): Promise<GolfCourseAPICourse[]> {
@@ -151,7 +151,7 @@ async function searchCoursesFree(query: string): Promise<GolfCourseAPICourse[]> 
         }
 
         const data = await response.json();
-        
+
         // Convert free API results to GolfCourseAPICourse format
         return (data.results || []).map((result: {
             id: string;
