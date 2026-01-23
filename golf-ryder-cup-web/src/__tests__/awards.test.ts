@@ -66,7 +66,7 @@ describe('Award Definitions', () => {
 
 describe('Player Stats Calculation', () => {
     it('should correctly calculate win percentage', () => {
-        const stats = createMockStats({
+        const _stats = createMockStats({
             matchesPlayed: 10,
             wins: 5,
             losses: 3,

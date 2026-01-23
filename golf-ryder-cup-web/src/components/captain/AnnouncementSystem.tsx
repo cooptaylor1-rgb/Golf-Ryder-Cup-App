@@ -16,7 +16,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Megaphone,

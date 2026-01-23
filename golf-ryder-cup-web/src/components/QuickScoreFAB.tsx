@@ -20,9 +20,9 @@ import { useTripStore } from '@/lib/stores';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { calculateMatchState } from '@/lib/services/scoringEngine';
-import { Target, ChevronRight, Zap } from 'lucide-react';
+import { ChevronRight, Zap } from 'lucide-react';
 import { QuickScoreModal } from './QuickScoreModal';
-import type { Match, HoleResult } from '@/lib/types/models';
+import type { Match } from '@/lib/types/models';
 
 export function QuickScoreFAB() {
     const pathname = usePathname();

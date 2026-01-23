@@ -655,7 +655,7 @@ interface BetManagementCardProps {
 
 function BetManagementCard({
     bet,
-    players,
+    players: _players,
     getPlayer,
     getBetIcon,
     getBetColor,

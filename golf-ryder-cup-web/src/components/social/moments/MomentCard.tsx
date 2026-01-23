@@ -354,7 +354,15 @@ export function MomentCard({
                                         }}
                                     >
                                         {player.avatarUrl ? (
-                                            <img src={player.avatarUrl} alt="" className="w-full h-full rounded-full" />
+                                            <img
+                                                src={player.avatarUrl}
+                                                alt=""
+                                                className="w-full h-full rounded-full"
+                                                loading="lazy"
+                                                decoding="async"
+                                                width={24}
+                                                height={24}
+                                            />
                                         ) : (
                                             <span className="text-white">{player.name.charAt(0)}</span>
                                         )}
@@ -422,7 +430,15 @@ export function MomentCard({
                         <div className="flex items-start gap-2 p-2 rounded-lg" style={{ background: 'var(--rule)' }}>
                             <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-[10px] font-bold shrink-0">
                                 {previewComment.userAvatar ? (
-                                    <img src={previewComment.userAvatar} alt="" className="w-full h-full rounded-full" />
+                                    <img
+                                        src={previewComment.userAvatar}
+                                        alt=""
+                                        className="w-full h-full rounded-full"
+                                        loading="lazy"
+                                        decoding="async"
+                                        width={24}
+                                        height={24}
+                                    />
                                 ) : (
                                     previewComment.userName.charAt(0)
                                 )}

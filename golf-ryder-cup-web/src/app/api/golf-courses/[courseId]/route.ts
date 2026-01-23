@@ -182,7 +182,7 @@ async function fetchFromGHIN(
 
 // Try scraping from Blue Golf (many courses use this)
 async function tryBlueGolfScrape(
-    courseId: string
+    _courseId: string
 ): Promise<CourseDetailsResponse | null> {
     // This would require server-side scraping which has legal/TOS implications
     // For now, return null and rely on OCR

@@ -37,7 +37,8 @@ interface CourseSearchResult {
     source: 'ghin' | 'rapidapi' | 'osm';
 }
 
-interface CourseDetails {
+// Reserved for future use when full course details fetching is implemented
+interface _CourseDetails {
     id: string;
     name: string;
     address?: string;
@@ -255,13 +256,13 @@ async function searchRapidAPI(
         for (const club of (Array.isArray(data) ? data : [])) {
             // Check if club name matches query
             const clubNameMatches = club.club_name?.toLowerCase().includes(queryLower) ||
-                                   queryLower.includes(club.club_name?.toLowerCase());
+                queryLower.includes(club.club_name?.toLowerCase());
 
             // Add individual courses from the club
             if (club.golf_courses && Array.isArray(club.golf_courses)) {
                 for (const course of club.golf_courses) {
                     const courseNameMatches = course.course_name?.toLowerCase().includes(queryLower) ||
-                                             queryLower.includes(course.course_name?.toLowerCase());
+                        queryLower.includes(course.course_name?.toLowerCase());
 
                     // Include if club or course name matches, or if within search area
                     if (clubNameMatches || courseNameMatches || results.length < 20) {

@@ -622,7 +622,15 @@ function MVPSection({ mvp }: { mvp: TripData['mvp'] }) {
                 {/* Avatar */}
                 <div className="w-20 h-20 rounded-full mx-auto my-4 bg-white flex items-center justify-center text-3xl overflow-hidden">
                     {mvp.avatarUrl ? (
-                        <img src={mvp.avatarUrl} alt={mvp.name} className="w-full h-full object-cover" />
+                        <img
+                            src={mvp.avatarUrl}
+                            alt={mvp.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            width={80}
+                            height={80}
+                        />
                     ) : (
                         '👑'
                     )}

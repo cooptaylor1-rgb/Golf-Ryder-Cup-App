@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTripStore, useAuthStore } from '@/lib/stores';
@@ -111,27 +111,27 @@ export default function SchedulePage() {
     );
   }, [currentUser, isAuthenticated, players]);
 
-  // Get player name helper
-  const getPlayerName = (playerId: string): string => {
+  // Get player name helper - memoized for stable reference
+  const getPlayerName = useCallback((playerId: string): string => {
     const player = players.find(p => p.id === playerId);
     return player ? `${player.firstName} ${player.lastName?.[0] || ''}`.trim() : 'Unknown';
-  };
+  }, [players]);
 
-  // Get player names for a match
-  const getMatchPlayerNames = (match: Match): { teamA: string; teamB: string } => {
+  // Get player names for a match - memoized for stable reference
+  const getMatchPlayerNames = useCallback((match: Match): { teamA: string; teamB: string } => {
     const teamA = match.teamAPlayerIds.map(getPlayerName).join(' & ');
     const teamB = match.teamBPlayerIds.map(getPlayerName).join(' & ');
     return { teamA, teamB };
-  };
+  }, [getPlayerName]);
 
-  // Check if user is in a match
-  const isUserInMatch = (match: Match): boolean => {
+  // Check if user is in a match - memoized for stable reference
+  const isUserInMatch = useCallback((match: Match): boolean => {
     if (!currentUserPlayer) return false;
     return (
       match.teamAPlayerIds.includes(currentUserPlayer.id) ||
       match.teamBPlayerIds.includes(currentUserPlayer.id)
     );
-  };
+  }, [currentUserPlayer]);
 
   // Get user's team in a match
   const _getUserTeam = (match: Match): 'A' | 'B' | null => {
@@ -221,7 +221,7 @@ export default function SchedulePage() {
     }
 
     return days;
-  }, [currentTrip, sessions, matches, currentUserPlayer, players]);
+  }, [currentTrip, sessions, matches, currentUserPlayer, players, getMatchPlayerNames, isUserInMatch]);
 
   // Filter for user's schedule
   const mySchedule = useMemo(() => {

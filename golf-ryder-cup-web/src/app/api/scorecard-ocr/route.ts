@@ -214,8 +214,8 @@ export async function POST(request: NextRequest) {
     return jsonError;
   }
 
-  // Debug logging only in development
-  const isDev = process.env.NODE_ENV === 'development';
+  // Debug logging enabled in development (used in catch blocks below)
+  const _isDev = process.env.NODE_ENV === 'development';
 
   try {
     const body: RequestBody = await request.json();

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTripStore, useUIStore } from '@/lib/stores';
@@ -56,12 +56,14 @@ export default function AvailabilityPage() {
     [sessions]
   );
 
-  // Auto-select first session when none selected
+  // Auto-select first session when none selected - using a ref to avoid setState-in-effect pattern
+  const hasInitializedSession = useRef(false);
   useEffect(() => {
-    if (!selectedSession && activeSessions.length > 0) {
+    if (!hasInitializedSession.current && !selectedSession && activeSessions.length > 0) {
+      hasInitializedSession.current = true;
       setSelectedSession(activeSessions[0].id);
     }
-  }, [activeSessions.length, selectedSession, activeSessions]);
+  }, [activeSessions, selectedSession]);
 
   // Get team for a player
   const getPlayerTeam = useCallback((playerId: string): 'A' | 'B' => {

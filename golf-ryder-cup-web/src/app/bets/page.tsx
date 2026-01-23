@@ -38,7 +38,7 @@ import {
 
 export default function BetsPage() {
   const router = useRouter();
-  const { currentTrip, players, sessions } = useTripStore();
+  const { currentTrip, players, sessions: _sessions } = useTripStore();
   const { showToast } = useUIStore();
   const [selectedTab, setSelectedTab] = useState<'active' | 'completed'>('active');
   const [showCreateModal, setShowCreateModal] = useState(false);

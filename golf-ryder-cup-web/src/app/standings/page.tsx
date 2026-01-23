@@ -1041,7 +1041,7 @@ function PlayerRow({ entry, rank, isTeamA, animationDelay = 0 }: PlayerRowProps)
 /* ============================================
    Loading & Empty States
    ============================================ */
-function LoadingState() {
+function _LoadingState() {
   return (
     <div
       className="section text-center"

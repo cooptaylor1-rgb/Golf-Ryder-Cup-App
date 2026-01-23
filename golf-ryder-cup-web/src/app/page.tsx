@@ -490,7 +490,7 @@ export default function HomePage() {
                 <SetupStep
                   number={2}
                   label="Assign Teams"
-                  done={teams.length >= 2 && players.some(p => teams.some(t => t.id))}
+                  done={teams.length >= 2 && players.some(_p => teams.some(t => t.id))}
                   href="/captain/draft"
                   hint="Draft players to teams"
                 />

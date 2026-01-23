@@ -16,14 +16,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Minus, ChevronLeft, ChevronRight, Trophy, Users, AlertCircle } from 'lucide-react';
+import { X, Check, Minus, ChevronLeft, ChevronRight, Trophy, AlertCircle } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
-import { useTripStore, useScoringStore } from '@/lib/stores';
+import { useTripStore } from '@/lib/stores';
 import { calculateMatchState, recordHoleResult } from '@/lib/services/scoringEngine';
 import { useHaptic } from '@/lib/hooks/useHaptic';
 import { scoringLogger } from '@/lib/utils/logger';
-import type { Match, Player, HoleResult, HoleWinner } from '@/lib/types/models';
+import type { Player, HoleWinner } from '@/lib/types/models';
 import type { MatchState } from '@/lib/types/computed';
 
 interface QuickScoreModalProps {

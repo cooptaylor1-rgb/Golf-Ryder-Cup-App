@@ -1,14 +1,22 @@
 # Gap Analysis - Captain's Toolkit Upgrade
 
-**Date:** January 12, 2026  
-**Version:** 1.1 Planning Document  
+**Date:** January 12, 2026
+**Version:** 1.1 Planning Document
 **Author:** Engineering Team
+
+---
+
+> **Note:** This document was originally written for the Swift/iOS version of the app.
+> The app has since been migrated to a Progressive Web App (PWA) using Next.js, TypeScript,
+> and IndexedDB. The feature gaps and priorities remain relevant, but file references
+> (e.g., `.swift` files) should be mapped to their TypeScript equivalents in `golf-ryder-cup-web/src/`.
+> Many items have been completed in the web version - see [CHANGELOG.md](CHANGELOG.md) for details.
 
 ---
 
 ## Executive Summary
 
-After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation with SwiftUI + SwiftData (MVVM), good model design, and premium UX patterns. However, several gaps exist around **captain workflow safety**, **lineup building friction**, and **real-time tournament awareness**. This document outlines the top friction points, reliability risks, and delight opportunities with a prioritized implementation plan.
+After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation with a TypeScript/React architecture (originally SwiftUI + SwiftData), good model design, and premium UX patterns. However, several gaps exist around **captain workflow safety**, **lineup building friction**, and **real-time tournament awareness**. This document outlines the top friction points, reliability risks, and delight opportunities with a prioritized implementation plan.
 
 ---
 
@@ -68,6 +76,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 ### P0 - Captain's Toolkit Core (Must Ship)
 
 #### P0.1 Captain Mode (Locks + Safe Editing)
+
 **Effort:** 2-3 days | **Priority:** Critical
 
 - [ ] Add `isCaptainModeEnabled` and `isSessionLocked` properties to Trip/Session
@@ -81,6 +90,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
   - Require hole handicaps before session start
 
 **Files to modify:**
+
 - `Models/Trip.swift` - Add captain mode properties
 - `Models/RyderCupSession.swift` - Lock state
 - New `Models/AuditLogEntry.swift`
@@ -89,6 +99,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - New `Views/Captain/CaptainModeView.swift`
 
 #### P0.2 Lineup Builder (Fast, Draggable, Fairness-Aware)
+
 **Effort:** 3-4 days | **Priority:** Critical
 
 - [ ] New `LineupBuilderView` with two-column team layout
@@ -106,6 +117,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - [ ] "Publish Lineup" action → auto Banter post, pin to top
 
 **Files to modify:**
+
 - New `Views/Lineup/LineupBuilderView.swift`
 - New `Views/Lineup/PlayerChipView.swift`
 - New `Views/Lineup/FairnessScoreView.swift`
@@ -114,6 +126,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - `Models/BanterPost.swift` - Add lineup publish helper
 
 #### P0.3 Trip Command Center Upgrade (Home Tab)
+
 **Effort:** 2 days | **Priority:** Critical
 
 - [ ] Prominent "Next Up" card with big countdown timer
@@ -125,6 +138,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - [ ] Performance: ViewModel-based, minimize view recomputation
 
 **Files to modify:**
+
 - `Views/Home/HomeTabView.swift` - Major upgrade
 - New `ViewModels/HomeViewModel.swift`
 - `Extensions/DesignSystem.swift` - Countdown timer component
@@ -134,6 +148,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 ### P1 - High-Impact Upgrades (Pick 2-3)
 
 #### P1.A Side Games (Skins/Nassau/KP/Long Drive)
+
 **Effort:** 4-5 days | **Priority:** High value, high effort
 
 - [ ] New `SideGame` model with types: skins, nassau, kp, longDrive
@@ -144,6 +159,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - [ ] Offline-first, big buttons, quick entry
 
 **Files to create:**
+
 - `Models/SideGame.swift`
 - `Models/SideGameEntry.swift`
 - `Views/SideGames/SideGamesTabView.swift`
@@ -153,6 +169,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - `Services/SideGameEngine.swift`
 
 #### P1.B Share/Export
+
 **Effort:** 2-3 days | **Priority:** Medium effort, high delight
 
 - [ ] One-tap share cards:
@@ -169,12 +186,14 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - [ ] "Share after match final" prompt (dismissible)
 
 **Files to modify:**
+
 - `Views/Standings/StandingsTabView.swift` - Add share functionality
 - New `Views/Share/ShareCardView.swift`
 - New `Views/Share/TripRecapView.swift`
 - New `Services/ShareCardRenderer.swift`
 
 #### P1.C Draft Board
+
 **Effort:** 3-4 days | **Priority:** Medium
 
 - [ ] Draft Board screen with snake draft support
@@ -183,11 +202,13 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - [ ] Posts draft updates to Banter
 
 **Files to create:**
+
 - `Views/Draft/DraftBoardView.swift`
 - `Models/DraftPick.swift`
 - `Services/DraftService.swift`
 
 #### P1.D Local Notifications for Tee Times
+
 **Effort:** 1-2 days | **Priority:** Low effort, medium value
 
 - [ ] Schedule local notifications: "Tee time in 45 minutes", "10 minutes"
@@ -195,6 +216,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - [ ] Based on ScheduleItem times
 
 **Files to create:**
+
 - `Services/NotificationService.swift`
 - `Views/Settings/NotificationSettingsView.swift`
 
@@ -215,18 +237,21 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 ## Architecture Recommendations
 
 ### Current Strengths
+
 - Clean MVVM with SwiftData works well
 - Design system with tokens is excellent
 - ScoringEngine state machine is solid
 - Test coverage for core engines
 
 ### Improvements Needed
+
 1. **Introduce ViewModels** for complex screens (Home, Lineup Builder)
 2. **Protocol-based services** for testability (e.g., `LineupServiceProtocol`)
 3. **Data validation layer** that runs pre-session-start
 4. **Audit log** for critical actions
 
 ### Performance Considerations
+
 - Home tab should minimize `@Query` overhead - use ViewModel
 - Lineup drag-drop needs smooth 60fps - use lightweight state
 - SwiftData fetches should avoid N+1 (use `#Predicate` filters)
@@ -236,6 +261,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 ## Testing Strategy
 
 ### Unit Tests to Add
+
 - [ ] LineupAutoFillService determinism
 - [ ] Handicap allowances with edge cases (plus handicaps, huge deltas)
 - [ ] Session lock state machine
@@ -243,6 +269,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 - [ ] Fairness score calculation
 
 ### Integration Tests
+
 - [ ] Full lineup → publish → lock → score → finalize flow
 - [ ] Undo/redo across session boundaries
 
@@ -251,6 +278,7 @@ After comprehensive repo recon, the Golf Ryder Cup App has a solid foundation wi
 ## Implementation Order
 
 **Week 1:**
+
 1. P0.1 Captain Mode (models + lock logic + UI)
 2. P0.3 Command Center basic upgrades
 

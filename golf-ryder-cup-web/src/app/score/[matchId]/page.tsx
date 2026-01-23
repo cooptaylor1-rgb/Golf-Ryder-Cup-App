@@ -177,6 +177,15 @@ export default function EnhancedMatchScoringPage() {
         return matchState.holeResults.find(r => r.holeNumber === currentHole);
     }, [matchState, currentHole]);
 
+    // Undo handler - defined first to avoid "accessed before declaration" error
+    const handleUndo = useCallback(async () => {
+        if (undoStack.length === 0) return;
+        haptic.warning();
+        await undoLastHole();
+        setUndoAction(null);
+        setToast({ message: 'Score undone', type: 'info' });
+    }, [undoStack.length, haptic, undoLastHole]);
+
     // Score handler with celebrations
     const handleScore = useCallback(async (winner: HoleWinner) => {
         if (isSaving || !matchState) return;
@@ -233,7 +242,7 @@ export default function EnhancedMatchScoringPage() {
             timestamp: Date.now(),
             onUndo: handleUndo,
         });
-    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, haptic, scoreHole, currentHole]);
+    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, haptic, scoreHole, currentHole, handleUndo]);
 
     // Score handler with stroke scores (gross/net)
     const handleScoreWithStrokes = useCallback(async (winner: HoleWinner, teamAStrokeScore: number, teamBStrokeScore: number) => {
@@ -292,16 +301,7 @@ export default function EnhancedMatchScoringPage() {
             timestamp: Date.now(),
             onUndo: handleUndo,
         });
-    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, teamAColor, teamBColor, haptic, scoreHole, currentHole]);
-
-    // Undo handler
-    const handleUndo = useCallback(async () => {
-        if (undoStack.length === 0) return;
-        haptic.warning();
-        await undoLastHole();
-        setUndoAction(null);
-        setToast({ message: 'Score undone', type: 'info' });
-    }, [undoStack.length, haptic, undoLastHole]);
+    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, teamAColor, teamBColor, haptic, scoreHole, currentHole, handleUndo]);
 
     // Voice score handler
     const handleVoiceScore = useCallback((winner: HoleWinner) => {
@@ -310,7 +310,7 @@ export default function EnhancedMatchScoringPage() {
     }, [handleScore]);
 
     // Photo capture handler
-    const handlePhotoCapture = useCallback((photo: { id: string }) => {
+    const handlePhotoCapture = useCallback((_photo: { id: string }) => {
         showToast('success', 'Photo saved to gallery');
     }, [showToast]);
 

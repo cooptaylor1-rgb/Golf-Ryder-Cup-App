@@ -78,4 +78,7 @@ npm run dev       # Development server
 npm run build     # Production build
 npm run lint      # ESLint
 npm run typecheck # TypeScript check
+npm test          # Unit tests (Vitest)
+npm run test:e2e  # E2E tests (Playwright)
+npm run analyze   # Bundle analysis
 ```

@@ -82,8 +82,17 @@ const sentryWebpackPluginOptions = {
 };
 
 // Only wrap with Sentry if DSN is configured
-const exportConfig = process.env.NEXT_PUBLIC_SENTRY_DSN
+let exportConfig: NextConfig = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(nextConfig, sentryWebpackPluginOptions)
   : nextConfig;
+
+// Add bundle analyzer if ANALYZE env is set
+if (process.env.ANALYZE === 'true') {
+  // Dynamic import for optional dependency
+  const withBundleAnalyzer = require('@next/bundle-analyzer')({
+    enabled: true,
+  });
+  exportConfig = withBundleAnalyzer(exportConfig);
+}
 
 export default exportConfig;

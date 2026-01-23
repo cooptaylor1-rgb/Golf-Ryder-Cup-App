@@ -1,4 +1,4 @@
-import { test, expect, Page, BrowserContext } from '@playwright/test';
+import { test, expect, type Page as _Page, type BrowserContext as _BrowserContext } from '@playwright/test';
 import { dismissOnboardingModal, waitForStableDOM, clearIndexedDBSafe, expectPageReady } from './test-utils';
 
 /**
@@ -21,7 +21,7 @@ import { dismissOnboardingModal, waitForStableDOM, clearIndexedDBSafe, expectPag
 // ============================================================================
 
 const ITERATIONS_PER_SCENARIO = 20; // 25 scenarios x 20 iterations = 500 sessions
-const SLOW_NETWORK_LATENCY = 2000;
+const _SLOW_NETWORK_LATENCY = 2000; // Reserved for network chaos tests
 const FAST_TIMEOUT = 5000;
 const STANDARD_TIMEOUT = 10000;
 
@@ -931,7 +931,7 @@ test.describe('S19: Offline Score Queue', () => {
 
                 // Check for offline indicator or queue indicator
                 const offlineIndicator = page.locator('text=/offline|queue|pending|sync/i');
-                const hasOfflineUI = await offlineIndicator.count() > 0;
+                const _hasOfflineUI = await offlineIndicator.count() > 0; // Used for debugging
 
                 // Check page still functional
                 const body = page.locator('body');

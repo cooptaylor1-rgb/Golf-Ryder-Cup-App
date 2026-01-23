@@ -80,7 +80,7 @@ export default function SessionPage() {
       }
     }
     loadMatches();
-  }, [sessionId, getSessionMatches]);
+  }, [sessionId, getSessionMatches, showToast]);
 
   // Get team players
   const getTeamPlayers = useCallback((teamId: string) => {

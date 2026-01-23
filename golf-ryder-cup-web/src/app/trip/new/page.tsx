@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout';
 import { TripTemplatePicker } from '@/components/trip-setup';
-import { TRIP_TEMPLATES, type TripTemplate } from '@/lib/types/templates';
+import { type TripTemplate } from '@/lib/types/templates';
 import {
     createTripFromTemplate,
     previewTemplateTrip,
@@ -19,14 +19,13 @@ import {
     Users,
     Sunset,
     Pencil,
-    ChevronRight,
     Calendar,
     MapPin,
     Check,
-    ArrowLeft,
 } from 'lucide-react';
 
-const TEMPLATE_ICONS: Record<string, React.ReactNode> = {
+// Template icons mapping - reserved for template card rendering
+const _TEMPLATE_ICONS: Record<string, React.ReactNode> = {
     'classic-ryder-cup': <Trophy className="w-8 h-8" />,
     'weekend-warrior': <Zap className="w-8 h-8" />,
     'singles-showdown': <Target className="w-8 h-8" />,

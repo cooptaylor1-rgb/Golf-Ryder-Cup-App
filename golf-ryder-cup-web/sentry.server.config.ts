@@ -29,7 +29,7 @@ Sentry.init({
     ],
 
     // Before sending, validate the error
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) {
         // Don't send errors in development
         if (process.env.NODE_ENV !== 'production') {
             return null;

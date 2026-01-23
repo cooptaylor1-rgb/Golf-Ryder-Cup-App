@@ -11,7 +11,7 @@
  * - Respects user's reduced motion preferences
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     WifiOff,
@@ -22,7 +22,6 @@ import {
     Upload,
     ChevronDown,
     ChevronUp,
-    AlertCircle,
     Clock,
 } from 'lucide-react';
 import { usePWA } from './PWAProvider';
