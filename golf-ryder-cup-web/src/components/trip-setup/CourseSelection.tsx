@@ -20,12 +20,15 @@ import {
     TreePine,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { createLogger } from '@/lib/utils/logger';
 import {
     searchCourses as searchCoursesAPI,
     checkGolfCourseAPIConfigured,
     formatCourseLocation,
     type GolfCourseAPICourse,
 } from '@/lib/services/golfCourseAPIService';
+
+const logger = createLogger('CourseSelection');
 
 export interface CourseInfo {
     id: string;
@@ -168,7 +171,7 @@ export function CourseSelection({
                     setSearchResults(results);
                 }
             } catch (error) {
-                console.error('Course search error:', error);
+                logger.error('Course search error:', error);
                 // Fallback to demo on error
                 const query = searchQuery.toLowerCase();
                 const results = DEMO_COURSES.filter(

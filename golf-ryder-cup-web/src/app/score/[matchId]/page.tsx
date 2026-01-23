@@ -54,6 +54,7 @@ import {
     WeatherAlerts,
     type UndoAction,
 } from '@/components/live-play';
+import { useConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 // Demo side bets for testing - in production these come from the bets store
 const DEMO_SIDE_BETS = [
@@ -115,6 +116,7 @@ export default function EnhancedMatchScoringPage() {
     const [scoringMode, setScoringMode] = useState<'swipe' | 'buttons' | 'strokes' | 'oneHanded'>(
         scoringPreferences.oneHandedMode ? 'oneHanded' : 'swipe'
     );
+    const { showConfirm, ConfirmDialogComponent } = useConfirmDialog();
 
     // Celebration state
     const [celebration, setCelebration] = useState<{
@@ -177,7 +179,7 @@ export default function EnhancedMatchScoringPage() {
         return matchState.holeResults.find(r => r.holeNumber === currentHole);
     }, [matchState, currentHole]);
 
-    // Undo handler - defined first to avoid "accessed before declaration" error
+    // Undo handler - must be defined before executeScore to avoid "accessed before declaration" error
     const handleUndo = useCallback(async () => {
         if (undoStack.length === 0) return;
         haptic.warning();
@@ -185,6 +187,73 @@ export default function EnhancedMatchScoringPage() {
         setUndoAction(null);
         setToast({ message: 'Score undone', type: 'info' });
     }, [undoStack.length, haptic, undoLastHole]);
+
+    // Execute score after confirmation
+    const executeScore = useCallback(async (winner: HoleWinner, teamAStrokeScore?: number, teamBStrokeScore?: number) => {
+        if (!matchState) return;
+
+        // Score the hole
+        haptic.scorePoint();
+        if (teamAStrokeScore !== undefined && teamBStrokeScore !== undefined) {
+            await scoreHole(winner, teamAStrokeScore, teamBStrokeScore);
+        } else {
+            await scoreHole(winner);
+        }
+
+        // Check for match closeout
+        const wouldCloseOut =
+            Math.abs(matchState.currentScore + (winner === 'teamA' ? 1 : winner === 'teamB' ? -1 : 0))
+            > (matchState.holesRemaining - 1);
+
+        // Show celebration
+        if (wouldCloseOut && winner !== 'halved') {
+            setCelebration({
+                type: 'matchWon',
+                winner,
+                teamName: winner === 'teamA' ? teamAName : teamBName,
+                teamColor: winner === 'teamA' ? teamAColor : teamBColor,
+                finalScore: matchState.displayScore,
+            });
+        } else if (winner === 'halved') {
+            if (teamAStrokeScore !== undefined && teamBStrokeScore !== undefined) {
+                setToast({
+                    message: `Hole ${currentHole} halved (${teamAStrokeScore}-${teamBStrokeScore})`,
+                    type: 'success',
+                });
+            } else {
+                setCelebration({
+                    type: 'holeHalved',
+                    holeNumber: currentHole,
+                });
+            }
+        } else {
+            // Show brief toast instead of full celebration for normal holes
+            const scoreText = teamAStrokeScore !== undefined ? ` (${teamAStrokeScore}-${teamBStrokeScore})` : '';
+            setToast({
+                message: `Hole ${currentHole}: ${winner === 'teamA' ? teamAName : teamBName} wins${scoreText}`,
+                type: 'success',
+            });
+        }
+
+        // Show undo banner
+        setUndoAction({
+            id: crypto.randomUUID(),
+            type: 'score',
+            description: teamAStrokeScore !== undefined
+                ? `Hole ${currentHole}: ${teamAStrokeScore}-${teamBStrokeScore}`
+                : `Hole ${currentHole} scored`,
+            metadata: {
+                holeNumber: currentHole,
+                result: winner === 'none' ? undefined : winner,
+                teamAName,
+                teamBName,
+                teamAScore: teamAStrokeScore,
+                teamBScore: teamBStrokeScore,
+            },
+            timestamp: Date.now(),
+            onUndo: handleUndo,
+        });
+    }, [matchState, haptic, scoreHole, teamAName, teamBName, teamAColor, teamBColor, currentHole, handleUndo]);
 
     // Score handler with celebrations
     const handleScore = useCallback(async (winner: HoleWinner) => {
@@ -197,52 +266,19 @@ export default function EnhancedMatchScoringPage() {
 
         if (scoringPreferences.confirmCloseout && wouldCloseOut && winner !== 'halved') {
             const winningTeam = winner === 'teamA' ? teamAName : teamBName;
-            if (!confirm(`This will end the match with ${winningTeam} winning. Continue?`)) {
-                return;
-            }
+            showConfirm({
+                title: 'End Match?',
+                message: `This will end the match with ${winningTeam} winning. Are you sure?`,
+                confirmLabel: 'End Match',
+                cancelLabel: 'Cancel',
+                variant: 'warning',
+                onConfirm: () => executeScore(winner),
+            });
+            return;
         }
 
-        // Score the hole
-        haptic.scorePoint();
-        await scoreHole(winner);
-
-        // Show celebration
-        if (wouldCloseOut && winner !== 'halved') {
-            setCelebration({
-                type: 'matchWon',
-                winner,
-                teamName: winner === 'teamA' ? teamAName : teamBName,
-                teamColor: winner === 'teamA' ? teamAColor : teamBColor,
-                finalScore: matchState.displayScore,
-            });
-        } else if (winner === 'halved') {
-            setCelebration({
-                type: 'holeHalved',
-                holeNumber: currentHole,
-            });
-        } else {
-            // Show brief toast instead of full celebration for normal holes
-            setToast({
-                message: `Hole ${currentHole}: ${winner === 'teamA' ? teamAName : teamBName} wins`,
-                type: 'success',
-            });
-        }
-
-        // Show undo banner
-        setUndoAction({
-            id: crypto.randomUUID(),
-            type: 'score',
-            description: `Hole ${currentHole} scored`,
-            metadata: {
-                holeNumber: currentHole,
-                result: winner === 'none' ? undefined : winner,
-                teamAName,
-                teamBName,
-            },
-            timestamp: Date.now(),
-            onUndo: handleUndo,
-        });
-    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, haptic, scoreHole, currentHole, handleUndo]);
+        await executeScore(winner);
+    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, showConfirm, executeScore]);
 
     // Score handler with stroke scores (gross/net)
     const handleScoreWithStrokes = useCallback(async (winner: HoleWinner, teamAStrokeScore: number, teamBStrokeScore: number) => {
@@ -255,53 +291,19 @@ export default function EnhancedMatchScoringPage() {
 
         if (scoringPreferences.confirmCloseout && wouldCloseOut && winner !== 'halved') {
             const winningTeam = winner === 'teamA' ? teamAName : teamBName;
-            if (!confirm(`This will end the match with ${winningTeam} winning. Continue?`)) {
-                return;
-            }
+            showConfirm({
+                title: 'End Match?',
+                message: `This will end the match with ${winningTeam} winning. Are you sure?`,
+                confirmLabel: 'End Match',
+                cancelLabel: 'Cancel',
+                variant: 'warning',
+                onConfirm: () => executeScore(winner, teamAStrokeScore, teamBStrokeScore),
+            });
+            return;
         }
 
-        // Score the hole with stroke scores
-        haptic.scorePoint();
-        await scoreHole(winner, teamAStrokeScore, teamBStrokeScore);
-
-        // Show celebration/toast
-        if (wouldCloseOut && winner !== 'halved') {
-            setCelebration({
-                type: 'matchWon',
-                winner,
-                teamName: winner === 'teamA' ? teamAName : teamBName,
-                teamColor: winner === 'teamA' ? teamAColor : teamBColor,
-                finalScore: matchState.displayScore,
-            });
-        } else if (winner === 'halved') {
-            setToast({
-                message: `Hole ${currentHole} halved (${teamAStrokeScore}-${teamBStrokeScore})`,
-                type: 'success',
-            });
-        } else {
-            setToast({
-                message: `Hole ${currentHole}: ${winner === 'teamA' ? teamAName : teamBName} wins (${teamAStrokeScore}-${teamBStrokeScore})`,
-                type: 'success',
-            });
-        }
-
-        // Show undo banner
-        setUndoAction({
-            id: crypto.randomUUID(),
-            type: 'score',
-            description: `Hole ${currentHole}: ${teamAStrokeScore}-${teamBStrokeScore}`,
-            metadata: {
-                holeNumber: currentHole,
-                result: winner === 'none' ? undefined : winner,
-                teamAName,
-                teamBName,
-                teamAScore: teamAStrokeScore,
-                teamBScore: teamBStrokeScore,
-            },
-            timestamp: Date.now(),
-            onUndo: handleUndo,
-        });
-    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, teamAColor, teamBColor, haptic, scoreHole, currentHole, handleUndo]);
+        await executeScore(winner, teamAStrokeScore, teamBStrokeScore);
+    }, [isSaving, matchState, scoringPreferences.confirmCloseout, teamAName, teamBName, showConfirm, executeScore]);
 
     // Voice score handler
     const handleVoiceScore = useCallback((winner: HoleWinner) => {
@@ -949,6 +951,9 @@ export default function EnhancedMatchScoringPage() {
                     </button>
                 </div>
             )}
+
+            {/* Confirm Dialog */}
+            {ConfirmDialogComponent}
         </div>
     );
 }

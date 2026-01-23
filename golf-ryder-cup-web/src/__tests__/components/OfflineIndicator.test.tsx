@@ -65,7 +65,7 @@ describe('OfflineIndicator Component', () => {
         it('renders nothing when online with no pending items', () => {
             mockIsOnline.mockReturnValue(true);
 
-            const { container } = render(<OfflineIndicator />);
+            const { container: _container } = render(<OfflineIndicator />);
 
             // Should not render visible offline banner when online
             expect(screen.queryByText(/offline/i)).not.toBeInTheDocument();

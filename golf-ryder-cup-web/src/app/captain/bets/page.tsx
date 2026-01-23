@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useTripStore, useUIStore } from '@/lib/stores';
 import { betsLogger } from '@/lib/utils/logger';
+import { useConfirmDialog } from '@/components/ui/ConfirmDialog';
 import type { SideBet, SideBetType, Player } from '@/lib/types/models';
 import {
     ChevronLeft,
@@ -48,6 +49,7 @@ export default function CaptainBetsPage() {
     const router = useRouter();
     const { currentTrip, players } = useTripStore();
     const { isCaptainMode, showToast } = useUIStore();
+    const { showConfirm, ConfirmDialogComponent } = useConfirmDialog();
 
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingBet, setEditingBet] = useState<SideBet | null>(null);
@@ -82,6 +84,35 @@ export default function CaptainBetsPage() {
         []
     );
 
+    // Define all hooks BEFORE any early return (React Rules of Hooks)
+    const executeDeleteBet = useCallback(async (betId: string) => {
+        if (!currentTrip) return;
+        setIsSubmitting(true);
+        try {
+            await db.sideBets.delete(betId);
+            showToast('success', 'Bet deleted');
+        } catch (error) {
+            betsLogger.error('Failed to delete bet:', error);
+            showToast('error', 'Failed to delete bet. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [currentTrip, showToast]);
+
+    const handleDeleteBet = useCallback((betId: string) => {
+        showConfirm({
+            title: 'Delete Bet',
+            message: 'Are you sure you want to delete this bet? This action cannot be undone.',
+            confirmLabel: 'Delete',
+            cancelLabel: 'Cancel',
+            variant: 'danger',
+            onConfirm: async () => {
+                await executeDeleteBet(betId);
+            },
+        });
+    }, [showConfirm, executeDeleteBet]);
+
+    // Early return for loading state
     if (!currentTrip || !isCaptainMode) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--canvas)' }}>
@@ -163,21 +194,6 @@ export default function CaptainBetsPage() {
         } catch (error) {
             betsLogger.error('Failed to update bet:', error);
             showToast('error', 'Failed to update bet. Please try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleDeleteBet = async (betId: string) => {
-        if (!confirm('Delete this bet?') || isSubmitting) return;
-        setIsSubmitting(true);
-
-        try {
-            await db.sideBets.delete(betId);
-            showToast('success', 'Bet deleted');
-        } catch (error) {
-            betsLogger.error('Failed to delete bet:', error);
-            showToast('error', 'Failed to delete bet. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -636,6 +652,9 @@ export default function CaptainBetsPage() {
                     <span>More</span>
                 </Link>
             </nav>
+
+            {/* Confirm Dialog */}
+            {ConfirmDialogComponent}
         </div>
     );
 }

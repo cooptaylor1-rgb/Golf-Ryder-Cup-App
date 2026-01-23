@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useTripStore, useUIStore } from '@/lib/stores';
 import { captainLogger } from '@/lib/utils/logger';
+import { useConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
     ChevronLeft,
     Settings,
@@ -45,6 +46,7 @@ export default function CaptainManagePage() {
     const router = useRouter();
     const { currentTrip, players, updateSession: _updateSession } = useTripStore();
     const { isCaptainMode, showToast } = useUIStore();
+    const { showConfirm, ConfirmDialogComponent } = useConfirmDialog();
 
     const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set());
     const [editingMatch, setEditingMatch] = useState<string | null>(null);
@@ -66,6 +68,74 @@ export default function CaptainManagePage() {
         [],
         [] as Match[]
     );
+
+    // Define all useCallback hooks BEFORE any early returns (React rules of hooks)
+    const executeDeleteMatch = useCallback(async (matchId: string) => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            // Delete hole results first, then the match
+            await db.holeResults.where('matchId').equals(matchId).delete();
+            await db.matches.delete(matchId);
+            showToast('success', 'Match deleted');
+        } catch (error) {
+            captainLogger.error('Failed to delete match:', error);
+            showToast('error', 'Failed to delete match');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [isSubmitting, showToast]);
+
+    const handleDeleteMatch = useCallback((matchId: string) => {
+        if (isSubmitting) return;
+        showConfirm({
+            title: 'Delete Match',
+            message: 'Are you sure you want to delete this match? All scores will be lost.',
+            confirmLabel: 'Delete Match',
+            cancelLabel: 'Cancel',
+            variant: 'danger',
+            onConfirm: async () => {
+                await executeDeleteMatch(matchId);
+            },
+        });
+    }, [isSubmitting, showConfirm, executeDeleteMatch]);
+
+    const executeDeleteSession = useCallback(async (sessionId: string) => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
+        try {
+            // Get all matches in session
+            const sessionMatches = matches.filter(m => m.sessionId === sessionId);
+            // Delete hole results for all matches first
+            for (const match of sessionMatches) {
+                await db.holeResults.where('matchId').equals(match.id).delete();
+            }
+            // Delete matches
+            await db.matches.where('sessionId').equals(sessionId).delete();
+            // Delete session
+            await db.sessions.delete(sessionId);
+            showToast('success', 'Session deleted');
+        } catch (error) {
+            captainLogger.error('Failed to delete session:', error);
+            showToast('error', 'Failed to delete session. Some data may be partially deleted.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    }, [isSubmitting, showToast, matches]);
+
+    const handleDeleteSession = useCallback((sessionId: string) => {
+        if (isSubmitting) return;
+        showConfirm({
+            title: 'Delete Session',
+            message: 'Are you sure you want to delete this session? All matches and scores will be lost.',
+            confirmLabel: 'Delete Session',
+            cancelLabel: 'Cancel',
+            variant: 'danger',
+            onConfirm: async () => {
+                await executeDeleteSession(sessionId);
+            },
+        });
+    }, [isSubmitting, showConfirm, executeDeleteSession]);
 
     useEffect(() => {
         if (!currentTrip) {
@@ -144,23 +214,6 @@ export default function CaptainManagePage() {
         }
     };
 
-    const handleDeleteMatch = async (matchId: string) => {
-        if (!confirm('Are you sure you want to delete this match? All scores will be lost.')) return;
-        if (isSubmitting) return;
-        setIsSubmitting(true);
-        try {
-            // Delete hole results first, then the match
-            await db.holeResults.where('matchId').equals(matchId).delete();
-            await db.matches.delete(matchId);
-            showToast('success', 'Match deleted');
-        } catch (error) {
-            captainLogger.error('Failed to delete match:', error);
-            showToast('error', 'Failed to delete match');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     const handleUpdatePlayer = async (playerId: string, updates: Partial<Player>) => {
         if (isSubmitting) return;
         setIsSubmitting(true);
@@ -171,30 +224,6 @@ export default function CaptainManagePage() {
         } catch (error) {
             captainLogger.error('Failed to update player:', error);
             showToast('error', 'Failed to update player');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleDeleteSession = async (sessionId: string) => {
-        if (!confirm('Are you sure you want to delete this session? All matches and scores will be lost.')) return;
-        if (isSubmitting) return;
-        setIsSubmitting(true);
-        try {
-            // Get all matches in session
-            const sessionMatches = matches.filter(m => m.sessionId === sessionId);
-            // Delete hole results for all matches first
-            for (const match of sessionMatches) {
-                await db.holeResults.where('matchId').equals(match.id).delete();
-            }
-            // Delete matches
-            await db.matches.where('sessionId').equals(sessionId).delete();
-            // Delete session
-            await db.sessions.delete(sessionId);
-            showToast('success', 'Session deleted');
-        } catch (error) {
-            captainLogger.error('Failed to delete session:', error);
-            showToast('error', 'Failed to delete session. Some data may be partially deleted.');
         } finally {
             setIsSubmitting(false);
         }
@@ -438,6 +467,9 @@ export default function CaptainManagePage() {
                     <span>More</span>
                 </Link>
             </nav>
+
+            {/* Confirm Dialog */}
+            {ConfirmDialogComponent}
         </div>
     );
 }

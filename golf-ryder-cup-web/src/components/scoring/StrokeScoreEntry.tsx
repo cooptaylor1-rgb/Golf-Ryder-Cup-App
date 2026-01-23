@@ -131,9 +131,8 @@ function TeamScoreInput({
             )}
             style={{
                 background: `${teamColor}10`,
-                // @ts-expect-error CSS custom property for Tailwind ring color
                 '--tw-ring-color': isWinner ? teamColor : undefined,
-            }}
+            } as React.CSSProperties}
         >
             {/* Team Name */}
             <div className="text-center mb-3">

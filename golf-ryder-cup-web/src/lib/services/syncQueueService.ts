@@ -11,6 +11,9 @@
 import { db } from '@/lib/db';
 import type { ScoringEvent } from '@/lib/types/events';
 import { ScoringEventType } from '@/lib/types/events';
+import { createLogger } from '@/lib/utils/logger';
+
+const logger = createLogger('SyncQueue');
 
 // ============================================
 // TYPES
@@ -171,7 +174,7 @@ export async function retrySyncItem(itemId: string, type: SyncQueueItem['type'])
         }
         return false;
     } catch (error) {
-        console.error('Failed to retry sync item:', error);
+        logger.error('Failed to retry sync item:', error);
         return false;
     }
 }
@@ -221,7 +224,7 @@ export async function discardSyncItem(itemId: string, type: SyncQueueItem['type'
         }
         return false;
     } catch (error) {
-        console.error('Failed to discard sync item:', error);
+        logger.error('Failed to discard sync item:', error);
         return false;
     }
 }
@@ -255,7 +258,7 @@ export async function discardAllPending(): Promise<number> {
 
         return discarded;
     } catch (error) {
-        console.error('Failed to discard all pending items:', error);
+        logger.error('Failed to discard all pending items:', error);
         return discarded;
     }
 }
@@ -286,7 +289,7 @@ export async function retryAllFailed(): Promise<number> {
 
         return retried;
     } catch (error) {
-        console.error('Failed to retry all failed items:', error);
+        logger.error('Failed to retry all failed items:', error);
         return retried;
     }
 }

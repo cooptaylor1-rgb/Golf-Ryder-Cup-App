@@ -17,7 +17,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
 import { useHaptic } from './useHaptic';
-import type { Match } from '../types/models';
+import type { Match, Player, RyderCupSession } from '../types/models';
 
 // ============================================
 // TYPES
@@ -28,10 +28,10 @@ export interface TripPlayer {
     name: string;
     email?: string;
     avatarUrl?: string;
-    team: 'usa' | 'europe';
+    team?: 'usa' | 'europe';
     handicap?: number;
-    isCaptain: boolean;
-    joinedAt: string;
+    isCaptain?: boolean;
+    joinedAt?: string;
     stats: {
         matchesPlayed: number;
         matchesWon: number;
@@ -43,10 +43,11 @@ export interface TripPlayer {
 
 export interface TripSession {
     id: string;
+    tripId: string;
     name: string;
-    date: string;
-    format: 'singles' | 'fourball' | 'foursomes' | 'mixed';
-    status: 'scheduled' | 'in_progress' | 'complete';
+    scheduledDate?: string;
+    sessionType?: string;
+    status: 'scheduled' | 'inProgress' | 'completed';
     matchCount: number;
     courseId?: string;
     courseName?: string;
@@ -246,9 +247,13 @@ export function useTripData({ tripId }: UseTripDataOptions): UseTripDataReturn {
 
     // Transform players with stats
     const players: TripPlayer[] = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (rawPlayers || []).map((p: any) => ({
-            ...p,
+        return (rawPlayers || []).map((p: Player) => ({
+            id: p.id,
+            name: `${p.firstName} ${p.lastName}`,
+            email: p.email,
+            avatarUrl: p.avatarUrl,
+            handicap: p.handicapIndex,
+            team: p.team,
             stats: {
                 matchesPlayed: 0,
                 matchesWon: 0,
@@ -261,9 +266,13 @@ export function useTripData({ tripId }: UseTripDataOptions): UseTripDataReturn {
 
     // Transform sessions
     const sessions: TripSession[] = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (rawSessions || []).map((s: any) => ({
-            ...s,
+        return (rawSessions || []).map((s: RyderCupSession) => ({
+            id: s.id,
+            tripId: s.tripId,
+            name: s.name,
+            scheduledDate: s.scheduledDate,
+            sessionType: s.sessionType,
+            status: s.status,
             matchCount: 0, // Would be calculated from matches
         }));
     }, [rawSessions]);
@@ -367,21 +376,19 @@ export function useTripData({ tripId }: UseTripDataOptions): UseTripDataReturn {
             setError(null);
             try {
                 const id = `session-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-                // Map TripSession format to RyderCupSession format
-                const formatToSessionType: Record<string, 'foursomes' | 'fourball' | 'singles'> = {
-                    foursomes: 'foursomes',
-                    fourball: 'fourball',
-                    singles: 'singles',
-                    mixed: 'fourball', // default mixed to fourball
-                };
+                // Map TripSession sessionType to RyderCupSession sessionType
+                const validSessionTypes = ['foursomes', 'fourball', 'singles'];
+                const sessionType = validSessionTypes.includes(session.sessionType || '')
+                    ? (session.sessionType as 'foursomes' | 'fourball' | 'singles')
+                    : 'singles';
 
                 await db.sessions.add({
                     id,
                     tripId,
                     name: session.name,
                     sessionNumber: 1, // Would be calculated from existing sessions
-                    sessionType: formatToSessionType[session.format] || 'singles',
-                    scheduledDate: session.date,
+                    sessionType,
+                    scheduledDate: session.scheduledDate,
                     status: 'scheduled',
                     createdAt: new Date().toISOString(),
                 });

@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
             errors: results.errors.length > 0 ? results.errors : undefined,
         });
     } catch (error) {
+        // Log server-side errors (API routes run server-side)
         console.error('[API] Score sync error:', error);
         return NextResponse.json(
             {

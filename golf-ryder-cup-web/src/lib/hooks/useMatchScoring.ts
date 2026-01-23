@@ -18,6 +18,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
 import { useHaptic } from './useHaptic';
 import { useOfflineQueue } from './useOfflineQueue';
+import type { HoleResult } from '../types/models';
 
 // ============================================
 // TYPES
@@ -298,8 +299,7 @@ export function useMatchScoring({
 
     // Transform to HoleScore format
     const scores: HoleScore[] = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (rawScores || []).map((result: any) => {
+        return (rawScores || []).map((result: HoleResult) => {
             const par = coursePars[result.holeNumber - 1] || 4;
             // Map from DB schema (teamAStrokes/teamBStrokes) to local schema (team1Score/team2Score)
             const team1Score = result.teamAStrokes ?? result.teamAScore ?? 0;

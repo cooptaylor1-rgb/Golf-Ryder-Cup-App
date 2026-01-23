@@ -114,9 +114,8 @@ function TeamScoreCard({
             style={{
                 background: `${teamColor}10`,
                 borderColor: isWinner ? teamColor : 'transparent',
-                // @ts-expect-error ringColor is a CSS custom property for Tailwind
                 '--tw-ring-color': isWinner ? teamColor : undefined,
-            }}
+            } as React.CSSProperties}
         >
             {/* Team Name */}
             <div className="text-center mb-2">

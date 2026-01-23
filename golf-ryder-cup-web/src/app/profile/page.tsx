@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import NextImage from 'next/image';
 import { useAuthStore, useUIStore, type UserProfile } from '@/lib/stores';
 import { createLogger } from '@/lib/utils/logger';
 import { Button, Card, CardContent, PageSkeleton, Skeleton } from '@/components/ui';
@@ -145,12 +146,15 @@ export default function ProfilePage() {
                     {/* Profile Header Card */}
                     <Card variant="elevated" className="overflow-hidden">
                         <div className="bg-gradient-to-br from-masters/20 to-masters/5 p-6 text-center">
-                            <div className="w-24 h-24 rounded-full bg-white mx-auto mb-4 flex items-center justify-center shadow-md">
+                            <div className="w-24 h-24 rounded-full bg-white mx-auto mb-4 flex items-center justify-center shadow-md overflow-hidden">
                                 {currentUser.avatarUrl ? (
-                                    <img
+                                    <NextImage
                                         src={currentUser.avatarUrl}
                                         alt={displayName}
-                                        className="w-full h-full rounded-full object-cover"
+                                        width={96}
+                                        height={96}
+                                        className="w-full h-full object-cover"
+                                        unoptimized
                                     />
                                 ) : (
                                     <span className="text-4xl font-bold text-masters">

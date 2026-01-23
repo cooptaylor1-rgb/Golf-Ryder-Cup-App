@@ -24,6 +24,7 @@ import {
     Loader2,
     RotateCcw,
 } from 'lucide-react';
+import { createLogger } from '@/lib/utils/logger';
 import {
     getSyncQueue,
     getSyncQueueStats,
@@ -35,6 +36,8 @@ import {
     type SyncQueueStats,
 } from '@/lib/services/syncQueueService';
 import { usePWA } from './PWAProvider';
+
+const logger = createLogger('OfflineQueue');
 
 interface OfflineQueuePanelProps {
     isOpen: boolean;
@@ -59,7 +62,7 @@ export function OfflineQueuePanel({ isOpen, onClose }: OfflineQueuePanelProps) {
             setItems(queueItems);
             setStats(queueStats);
         } catch (error) {
-            console.error('Failed to load sync queue:', error);
+            logger.error('Failed to load sync queue:', error);
         } finally {
             setLoading(false);
         }

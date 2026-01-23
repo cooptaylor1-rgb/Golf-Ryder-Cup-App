@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -352,15 +352,17 @@ interface PostCardProps {
 }
 
 function PostCard({ post, player }: PostCardProps) {
-  const timeAgo = (date: string) => {
-    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  // Memoize time calculation to avoid impure Date.now() during render
+  const timeAgo = useMemo(() => {
+    const now = Date.now();
+    const seconds = Math.floor((now - new Date(post.timestamp).getTime()) / 1000);
     if (seconds < 60) return 'Just now';
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
     return `${Math.floor(hours / 24)}d ago`;
-  };
+  }, [post.timestamp]);
 
   // Get display name - prefer player name, fall back to authorName
   const displayName = player
@@ -395,7 +397,7 @@ function PostCard({ post, player }: PostCardProps) {
           <p className="type-body-sm" style={{ fontWeight: 500 }}>
             {displayName}
           </p>
-          <p className="type-caption">{timeAgo(post.timestamp)}</p>
+          <p className="type-caption">{timeAgo}</p>
         </div>
         {post.postType !== 'message' && (
           <span

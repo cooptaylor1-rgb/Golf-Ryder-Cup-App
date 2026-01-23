@@ -105,7 +105,7 @@ interface UsePlayerStatsReturn {
         id: string;
         name: string;
         avatarUrl?: string;
-        team: 'usa' | 'europe';
+        team?: 'usa' | 'europe';
         handicap?: number;
     } | null;
 
@@ -333,13 +333,12 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
         }
 
         // Transform matches to stats format
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const statsMatches = allMatches.map((m: any) => {
-            const isTeam1 = m.team1PlayerIds?.includes(playerId);
+        const statsMatches = allMatches.map((m: Match) => {
+            const isTeamA = m.teamAPlayerIds?.includes(playerId);
             const result =
-                m.winnerId === null
+                m.result === 'halved'
                     ? ('halved' as const)
-                    : (isTeam1 && m.winnerId === 'team1') || (!isTeam1 && m.winnerId === 'team2')
+                    : (isTeamA && m.result === 'teamAWin') || (!isTeamA && m.result === 'teamBWin')
                         ? ('win' as const)
                         : ('loss' as const);
 
@@ -361,13 +360,12 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
     const tripStats = useMemo(() => {
         if (!tripMatches || tripMatches.length === 0) return null;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const statsMatches = tripMatches.map((m: any) => {
-            const isTeam1 = m.team1PlayerIds?.includes(playerId);
+        const statsMatches = tripMatches.map((m: Match) => {
+            const isTeamA = m.teamAPlayerIds?.includes(playerId);
             const result =
-                m.winnerId === null
+                m.result === 'halved'
                     ? ('halved' as const)
-                    : (isTeam1 && m.winnerId === 'team1') || (!isTeam1 && m.winnerId === 'team2')
+                    : (isTeamA && m.result === 'teamAWin') || (!isTeamA && m.result === 'teamBWin')
                         ? ('win' as const)
                         : ('loss' as const);
 
@@ -389,20 +387,19 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
     const recentRounds = useMemo((): RoundStats[] => {
         if (!allMatches) return [];
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return allMatches.slice(-10).map((m: any) => {
-            const isTeam1 = m.team1PlayerIds?.includes(playerId);
+        return allMatches.slice(-10).map((m: Match) => {
+            const isTeamA = m.teamAPlayerIds?.includes(playerId);
             const result =
-                m.winnerId === null
+                m.result === 'halved'
                     ? ('halved' as const)
-                    : (isTeam1 && m.winnerId === 'team1') || (!isTeam1 && m.winnerId === 'team2')
+                    : (isTeamA && m.result === 'teamAWin') || (!isTeamA && m.result === 'teamBWin')
                         ? ('win' as const)
                         : ('loss' as const);
 
             return {
                 roundId: m.id,
-                date: m.date || new Date().toISOString(),
-                courseName: m.courseName || 'Unknown Course',
+                date: m.createdAt || new Date().toISOString(),
+                courseName: 'Unknown Course', // Would need course lookup
                 score: 0,
                 toPar: 0,
                 birdies: 0,
@@ -410,7 +407,7 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
                 bogeys: 0,
                 doubleBogeys: 0,
                 matchResult: result,
-                format: (m.format as 'singles' | 'fourball' | 'foursomes') || 'singles',
+                format: 'singles' as const, // Would need to get from session
             };
         });
     }, [allMatches, playerId]);
@@ -419,14 +416,13 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
     const headToHead = useMemo(() => {
         if (!allMatches) return [];
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const h2hMatches = allMatches.map((m: any) => {
-            const isTeam1 = m.team1PlayerIds?.includes(playerId);
-            const opponentIds = isTeam1 ? m.team2PlayerIds : m.team1PlayerIds;
+        const h2hMatches = allMatches.map((m: Match) => {
+            const isTeamA = m.teamAPlayerIds?.includes(playerId);
+            const opponentIds = isTeamA ? m.teamBPlayerIds : m.teamAPlayerIds;
             const result =
-                m.winnerId === null
+                m.result === 'halved'
                     ? ('halved' as const)
-                    : (isTeam1 && m.winnerId === 'team1') || (!isTeam1 && m.winnerId === 'team2')
+                    : (isTeamA && m.result === 'teamAWin') || (!isTeamA && m.result === 'teamBWin')
                         ? ('win' as const)
                         : ('loss' as const);
 
@@ -523,8 +519,7 @@ export function usePlayerStats({ playerId, tripId }: UsePlayerStatsOptions): Use
                 id: player.id,
                 name: `${player.firstName} ${player.lastName}`,
                 avatarUrl: player.avatarUrl,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                team: (player as any)?.team,
+                team: player.team,
                 handicap: player.handicapIndex,
             }
             : null,

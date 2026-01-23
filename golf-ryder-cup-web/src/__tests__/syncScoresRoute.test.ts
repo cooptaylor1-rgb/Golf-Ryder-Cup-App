@@ -67,7 +67,7 @@ describe('Score Sync API Route', () => {
                 events: 'not-an-array',
             });
             const response = await POST(req);
-            const data = await response.json();
+            const _data = await response.json();
 
             expect(response.status).toBe(400);
         });
