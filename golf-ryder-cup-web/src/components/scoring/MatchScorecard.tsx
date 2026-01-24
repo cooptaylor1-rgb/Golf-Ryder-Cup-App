@@ -47,7 +47,7 @@ export interface MatchScorecardProps {
 }
 
 export function MatchScorecard({
-  _matchId,
+  matchId: _matchId,
   teamAName,
   teamBName,
   teamAPlayers,
@@ -59,7 +59,7 @@ export function MatchScorecard({
   matchScore = 0,
   scoringMode = 'net',
   showNetScores = true,
-  _compact = false,
+  compact: _compact = false,
   className,
 }: MatchScorecardProps) {
   const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null);

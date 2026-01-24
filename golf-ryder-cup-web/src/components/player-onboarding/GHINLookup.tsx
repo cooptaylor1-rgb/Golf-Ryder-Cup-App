@@ -110,7 +110,7 @@ const mockGHINLookup = async (ghinNumber: string): Promise<GHINResult | null> =>
 export function GHINLookup({
     onResult,
     initialGhin = '',
-    _autoPopulateName = true,
+    autoPopulateName: _autoPopulateName = true,
     className,
 }: GHINLookupProps) {
     const [ghinNumber, setGhinNumber] = useState(initialGhin);

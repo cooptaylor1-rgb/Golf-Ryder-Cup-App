@@ -256,7 +256,7 @@ function PressCard({
   pressNumber,
   teamAName,
   teamBName,
-  _betAmount,
+  betAmount: _betAmount,
   currentHole,
 }: PressCardProps) {
   const isTeamALeading = press.score > 0;

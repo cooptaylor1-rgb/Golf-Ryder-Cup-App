@@ -7,8 +7,8 @@ import {
   formatTeeSheetForDisplay,
   generatePrintableTeeSheet,
   type GeneratedTeeSheet,
-  type TeeTimeMode,
 } from '@/lib/services/teeTimeService';
+import type { TeeTimeMode } from '@/lib/types/captain';
 import { RyderCupSession, Match, Player, Team } from '@/lib/types';
 import {
   Clock,
@@ -30,7 +30,7 @@ export function TeeTimeGenerator({
   session,
   matches,
   players,
-  _teams,
+  teams: _teams,
   onSave,
 }: TeeTimeGeneratorProps) {
   const [teeSheet, setTeeSheet] = useState<GeneratedTeeSheet | null>(null);

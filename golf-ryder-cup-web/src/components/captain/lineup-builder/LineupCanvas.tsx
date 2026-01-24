@@ -124,13 +124,13 @@ interface PlayerPoolProps {
 }
 
 function PlayerPool({
-    _team,
+    team: _team,
     players,
     teamColor,
     teamName,
     isExpanded,
     onToggle,
-    _isLocked,
+    isLocked: _isLocked,
 }: PlayerPoolProps) {
     return (
         <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--canvas)', border: '1px solid var(--rule)' }}>

@@ -414,7 +414,7 @@ interface AchievementNotificationProps {
 export function AchievementNotification({
     achievement,
     onView,
-    _onDismiss,
+    onDismiss: _onDismiss,
 }: AchievementNotificationProps) {
     const haptic = useHaptic();
     const config = RARITY_CONFIG[achievement.rarity];

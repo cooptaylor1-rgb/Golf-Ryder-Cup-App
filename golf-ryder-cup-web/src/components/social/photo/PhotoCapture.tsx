@@ -478,7 +478,7 @@ function PhotoPreview({
 // ============================================
 
 export function PhotoCapture({
-    _tripId,
+    tripId: _tripId,
     currentMatchId,
     currentMatchNumber,
     currentHole,

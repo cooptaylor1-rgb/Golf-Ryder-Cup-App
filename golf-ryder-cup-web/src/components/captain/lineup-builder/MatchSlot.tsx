@@ -291,7 +291,7 @@ export function MatchSlot({
     isLocked = false,
     onToggleExpand,
     onRemovePlayer,
-    _onSetTeeTime,
+    onSetTeeTime: _onSetTeeTime,
     className,
 }: MatchSlotProps) {
     const teamAHandicap = useMemo(

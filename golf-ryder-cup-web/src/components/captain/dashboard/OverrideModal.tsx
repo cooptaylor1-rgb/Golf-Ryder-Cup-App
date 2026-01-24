@@ -411,7 +411,7 @@ function ImpactPreview({
     teamAColor,
     teamBColor,
     teamAName,
-    _teamBName,
+    teamBName: _teamBName,
 }: ImpactPreviewProps) {
     const hasImpact = originalMatchScore !== newMatchScore;
 

@@ -269,7 +269,7 @@ interface NotificationToastProps {
 export function NotificationToast({
     notification,
     onDismiss,
-    _onAction,
+    onAction: _onAction,
     autoHideDuration = 5000,
 }: NotificationToastProps) {
     const { trigger } = useHaptic();

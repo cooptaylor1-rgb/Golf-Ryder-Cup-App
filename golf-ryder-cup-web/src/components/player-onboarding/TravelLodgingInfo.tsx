@@ -82,7 +82,7 @@ export function TravelLodgingInfo({
     onInfoChange,
     initialInfo,
     tripStartDate,
-    _tripEndDate,
+    tripEndDate: _tripEndDate,
     teammates = [],
     className,
 }: TravelLodgingInfoProps) {

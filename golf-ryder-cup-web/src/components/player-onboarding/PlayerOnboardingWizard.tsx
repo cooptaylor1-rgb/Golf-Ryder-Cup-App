@@ -159,7 +159,7 @@ export function PlayerOnboardingWizard({
     teammates,
     invitedBy,
     onComplete,
-    _onSkip,
+    onSkip: _onSkip,
     initialData,
     className,
 }: PlayerOnboardingWizardProps) {
