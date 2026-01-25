@@ -213,7 +213,7 @@ export function useSessionTimeout(options: SessionTimeoutOptions): SessionTimeou
     intervalRef.current = setInterval(() => {
       const newRemaining = Math.max(0, timeout - (Date.now() - lastActivityRef.current));
       setTimeRemaining(newRemaining);
-      
+
       if (newRemaining <= warningTime && !hasCalledWarningRef.current) {
         hasCalledWarningRef.current = true;
         setIsWarningShown(true);
