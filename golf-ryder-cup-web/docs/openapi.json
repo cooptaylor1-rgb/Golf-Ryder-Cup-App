@@ -1,0 +1,650 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Golf Ryder Cup API",
+    "description": "API for the Golf Ryder Cup scoring and tracking application",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@golfrydercup.app"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.golfrydercup.app",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Health check and monitoring endpoints"
+    },
+    {
+      "name": "Trips",
+      "description": "Trip management operations"
+    },
+    {
+      "name": "Matches",
+      "description": "Match scoring and results"
+    },
+    {
+      "name": "Players",
+      "description": "Player management"
+    },
+    {
+      "name": "Courses",
+      "description": "Golf course operations"
+    },
+    {
+      "name": "Media",
+      "description": "OG images and media generation"
+    }
+  ],
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "description": "Returns the health status of the application including memory usage and uptime",
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "Application is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Application is unhealthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "tags": ["Health"],
+        "summary": "Quick health check",
+        "description": "Quick availability check for load balancers",
+        "operationId": "headHealth",
+        "responses": {
+          "200": {
+            "description": "Application is responding"
+          }
+        }
+      }
+    },
+    "/api/og": {
+      "get": {
+        "tags": ["Media"],
+        "summary": "Generate OG image",
+        "description": "Generates dynamic Open Graph images for social sharing",
+        "operationId": "getOgImage",
+        "parameters": [
+          {
+            "name": "title",
+            "in": "query",
+            "description": "Title text for the OG image",
+            "schema": {
+              "type": "string",
+              "default": "Golf Ryder Cup"
+            }
+          },
+          {
+            "name": "subtitle",
+            "in": "query",
+            "description": "Subtitle text for the OG image",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Type of OG image to generate",
+            "schema": {
+              "type": "string",
+              "enum": ["default", "match", "standings", "player"],
+              "default": "default"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OG image",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trips": {
+      "get": {
+        "tags": ["Trips"],
+        "summary": "List trips",
+        "description": "Returns a list of trips for the authenticated user",
+        "operationId": "listTrips",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of trips",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Trip"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Trips"],
+        "summary": "Create trip",
+        "description": "Creates a new golf trip",
+        "operationId": "createTrip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTripRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Trip created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trips/{tripId}": {
+      "get": {
+        "tags": ["Trips"],
+        "summary": "Get trip",
+        "description": "Returns details for a specific trip",
+        "operationId": "getTrip",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trip details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trip"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trip not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/matches/{matchId}/scores": {
+      "post": {
+        "tags": ["Matches"],
+        "summary": "Submit score",
+        "description": "Submit a hole score for a match",
+        "operationId": "submitScore",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "matchId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScoreSubmission"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Score submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoleResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid score",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses/search": {
+      "get": {
+        "tags": ["Courses"],
+        "summary": "Search courses",
+        "description": "Search for golf courses by name or location",
+        "operationId": "searchCourses",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum results to return",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Course"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Supabase JWT token"
+      }
+    },
+    "schemas": {
+      "HealthStatus": {
+        "type": "object",
+        "required": ["status", "timestamp", "version", "uptime", "environment", "checks"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "degraded", "unhealthy"]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "string"
+          },
+          "uptime": {
+            "type": "integer",
+            "description": "Uptime in seconds"
+          },
+          "environment": {
+            "type": "string"
+          },
+          "checks": {
+            "type": "object",
+            "properties": {
+              "memory": {
+                "$ref": "#/components/schemas/MemoryCheck"
+              },
+              "runtime": {
+                "$ref": "#/components/schemas/RuntimeCheck"
+              }
+            }
+          }
+        }
+      },
+      "MemoryCheck": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "warning", "critical"]
+          },
+          "heapUsedMB": {
+            "type": "integer"
+          },
+          "heapTotalMB": {
+            "type": "integer"
+          },
+          "percentUsed": {
+            "type": "integer"
+          }
+        }
+      },
+      "RuntimeCheck": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "nodeVersion": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          }
+        }
+      },
+      "Trip": {
+        "type": "object",
+        "required": ["id", "name", "startDate", "endDate", "captainId"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "captainId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "inviteCode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "active", "complete"]
+          },
+          "usaScore": {
+            "type": "number"
+          },
+          "europeScore": {
+            "type": "number"
+          }
+        }
+      },
+      "CreateTripRequest": {
+        "type": "object",
+        "required": ["name", "startDate", "endDate"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "ScoreSubmission": {
+        "type": "object",
+        "required": ["playerId", "holeNumber", "score"],
+        "properties": {
+          "playerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "holeNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 18
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 15
+          },
+          "putts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "fairwayHit": {
+            "type": "boolean"
+          },
+          "greenInRegulation": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HoleResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "matchId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "holeNumber": {
+            "type": "integer"
+          },
+          "player1Score": {
+            "type": "integer"
+          },
+          "player2Score": {
+            "type": "integer"
+          },
+          "winner": {
+            "type": "string",
+            "enum": ["player1", "player2", "tie"]
+          },
+          "matchStatus": {
+            "type": "string",
+            "description": "Current match status (e.g., '2 up', '1 down', 'A/S')"
+          }
+        }
+      },
+      "Course": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "rating": {
+            "type": "number"
+          },
+          "slope": {
+            "type": "integer"
+          },
+          "holes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Hole"
+            }
+          }
+        }
+      },
+      "Hole": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "integer"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "handicap": {
+            "type": "integer"
+          },
+          "yardage": {
+            "type": "integer"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

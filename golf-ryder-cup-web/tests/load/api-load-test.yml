@@ -1,0 +1,64 @@
+/**
+ * API Load Testing Configuration
+ *
+ * Focused load tests for API endpoints.
+ * Run with: npx artillery run tests/load/api-load-test.yml
+ */
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    # Gradual ramp-up
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 100
+      name: "API Load Test"
+
+  defaults:
+    headers:
+      User-Agent: "Artillery API Load Test"
+      Accept: "application/json"
+      Content-Type: "application/json"
+
+  ensure:
+    p95: 200      # APIs should be fast
+    p99: 500
+    maxErrorRate: 0.5
+
+  plugins:
+    expect: {}
+
+scenarios:
+  # Health endpoint stress test
+  - name: "Health Check Stress"
+    weight: 40
+    flow:
+      - loop:
+          - get:
+              url: "/api/health"
+              expect:
+                - statusCode: 200
+        count: 5
+
+  # OG Image generation (heavier endpoint)
+  - name: "OG Image Generation"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/og?title=Test%20Match&type=match"
+          expect:
+            - statusCode: 200
+            - contentType: image/png
+
+  # Simulated API calls
+  - name: "Mixed API Traffic"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/health"
+      - think: 1
+      - get:
+          url: "/"
+      - think: 2
+      - get:
+          url: "/standings"

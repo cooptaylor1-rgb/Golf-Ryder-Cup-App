@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -61,6 +64,9 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.1.4",
     "@playwright/test": "^1.57.0",
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/builder-vite": "^8.6.14",
+    "@storybook/react": "^8.6.14",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
@@ -78,6 +84,7 @@
     "jsdom": "^27.4.0",
     "lint-staged": "^16.2.7",
     "sharp": "^0.34.5",
+    "storybook": "^8.6.14",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.0.17"

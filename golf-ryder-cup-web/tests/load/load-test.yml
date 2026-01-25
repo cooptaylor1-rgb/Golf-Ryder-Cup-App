@@ -1,0 +1,111 @@
+/**
+ * Load Testing Configuration
+ *
+ * Artillery.io load test definitions for API endpoints.
+ * Run with: npx artillery run tests/load/load-test.yml
+ */
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    # Warm-up phase
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm up"
+    # Ramp-up phase
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 50
+      name: "Ramp up load"
+    # Sustained load
+    - duration: 120
+      arrivalRate: 50
+      name: "Sustained load"
+    # Spike test
+    - duration: 30
+      arrivalRate: 100
+      name: "Spike"
+    # Cool down
+    - duration: 30
+      arrivalRate: 10
+      name: "Cool down"
+
+  defaults:
+    headers:
+      User-Agent: "Artillery Load Test"
+      Accept: "application/json"
+
+  # Performance thresholds
+  ensure:
+    p95: 500      # 95th percentile < 500ms
+    p99: 1000     # 99th percentile < 1000ms
+    maxErrorRate: 1  # Error rate < 1%
+
+  plugins:
+    expect: {}
+
+scenarios:
+  # Health check - lightweight endpoint
+  - name: "Health Check"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/health"
+          expect:
+            - statusCode: 200
+            - contentType: application/json
+            - hasProperty: status
+
+  # Home page load
+  - name: "Home Page"
+    weight: 30
+    flow:
+      - get:
+          url: "/"
+          expect:
+            - statusCode: 200
+
+  # Standings page
+  - name: "Standings Page"
+    weight: 20
+    flow:
+      - get:
+          url: "/standings"
+          expect:
+            - statusCode: 200
+
+  # Live matches page
+  - name: "Live Matches"
+    weight: 15
+    flow:
+      - get:
+          url: "/live"
+          expect:
+            - statusCode: 200
+
+  # Players list
+  - name: "Players List"
+    weight: 10
+    flow:
+      - get:
+          url: "/players"
+          expect:
+            - statusCode: 200
+
+  # Course search
+  - name: "Course Search"
+    weight: 10
+    flow:
+      - get:
+          url: "/courses"
+          expect:
+            - statusCode: 200
+
+  # Profile page
+  - name: "Profile Page"
+    weight: 5
+    flow:
+      - get:
+          url: "/profile"
+          expect:
+            - statusCode: 200
