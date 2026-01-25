@@ -6,6 +6,7 @@
  */
 
 import { z } from 'zod';
+import { NextResponse } from 'next/server';
 
 // ============================================
 // COMMON SCHEMAS
@@ -180,7 +181,6 @@ export function formatZodError(error: z.ZodError<unknown>): string {
  * Create a standardized validation error response
  */
 export function validationErrorResponse(error: z.ZodError<unknown>) {
-    const { NextResponse } = require('next/server');
     const issues = error.issues || [];
     return NextResponse.json(
         {
