@@ -5,6 +5,7 @@
  *
  * Initializes the trip sync service on app startup.
  * Handles network listeners and queue processing.
+ * Properly cleans up on unmount to prevent memory leaks.
  */
 
 import { useEffect, useRef } from 'react';
@@ -18,13 +19,14 @@ interface TripSyncInitializerProps {
 
 export function TripSyncInitializer({ debug = false }: TripSyncInitializerProps) {
     const initialized = useRef(false);
+    const cleanupRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
         if (initialized.current) return;
         initialized.current = true;
 
-        // Initialize the sync service
-        initTripSyncService();
+        // Initialize the sync service and store cleanup function
+        cleanupRef.current = initTripSyncService();
 
         if (debug) {
             syncLogger.log('TripSyncInitializer initialized');
@@ -37,8 +39,23 @@ export function TripSyncInitializer({ debug = false }: TripSyncInitializerProps)
                 }
             }, 30000);
 
-            return () => clearInterval(statusInterval);
+            return () => {
+                clearInterval(statusInterval);
+                // Clean up sync service resources
+                if (cleanupRef.current) {
+                    cleanupRef.current();
+                    cleanupRef.current = null;
+                }
+            };
         }
+
+        // Cleanup on unmount (non-debug mode)
+        return () => {
+            if (cleanupRef.current) {
+                cleanupRef.current();
+                cleanupRef.current = null;
+            }
+        };
     }, [debug]);
 
     // Process queue when component mounts (in case of pending items)

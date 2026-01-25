@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchCloudCourses, getCloudCourse, incrementCourseUsage } from '@/lib/services/courseLibrarySyncService';
 import { apiLogger } from '@/lib/utils/logger';
+import {
+    courseLibrarySearchSchema,
+    courseLibraryGetSchema,
+    formatZodError,
+} from '@/lib/validations/api';
 
 /**
  * COURSE LIBRARY SEARCH API
@@ -28,14 +33,24 @@ interface SearchResult {
  */
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
 
-    if (!query || query.length < 2) {
+    // Validate query parameters with Zod
+    const parseResult = courseLibrarySearchSchema.safeParse({
+        q: searchParams.get('q'),
+    });
+
+    if (!parseResult.success) {
+        const details = formatZodError(parseResult.error);
         return NextResponse.json(
-            { error: 'Search query must be at least 2 characters' },
+            {
+                error: `Invalid parameters: ${details}`,
+                details,
+            },
             { status: 400 }
         );
     }
+
+    const { q: query } = parseResult.data;
 
     try {
         const courses = await searchCloudCourses(query);
@@ -80,15 +95,22 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { courseId } = body;
+        const rawBody = await request.json();
 
-        if (!courseId) {
+        // Validate request body with Zod
+        const parseResult = courseLibraryGetSchema.safeParse(rawBody);
+        if (!parseResult.success) {
+            const details = formatZodError(parseResult.error);
             return NextResponse.json(
-                { error: 'courseId is required' },
+                {
+                    error: `Invalid request: ${details}`,
+                    details,
+                },
                 { status: 400 }
             );
         }
+
+        const { courseId } = parseResult.data;
 
         const result = await getCloudCourse(courseId);
 

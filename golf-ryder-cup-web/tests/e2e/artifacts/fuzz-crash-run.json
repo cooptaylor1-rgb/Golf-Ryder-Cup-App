@@ -1,8 +1,8 @@
 {
   "seed": "fuzz-1769296949681",
-  "timestamp": "2026-01-24T23:25:30.088Z",
-  "actionCount": 18,
-  "failedActions": 0,
+  "timestamp": "2026-01-24T23:25:30.441Z",
+  "actionCount": 28,
+  "failedActions": 10,
   "actions": [
     {
       "type": "click_button",
@@ -148,6 +148,78 @@
         "reason": "No visible buttons"
       },
       "success": true
+    },
+    {
+      "type": "click_button",
+      "timestamp": 1769297130385,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "click_button",
+      "timestamp": 1769297130414,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "tab",
+      "timestamp": 1769297130417,
+      "details": {
+        "tabCount": 1
+      },
+      "success": false,
+      "error": "keyboard.press: Target page, context or browser has been closed"
+    },
+    {
+      "type": "click_button",
+      "timestamp": 1769297130420,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769297130424,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "click_button",
+      "timestamp": 1769297130427,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769297130431,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769297130434,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769297130437,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "fill_input",
+      "timestamp": 1769297130440,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
     }
   ]
 }

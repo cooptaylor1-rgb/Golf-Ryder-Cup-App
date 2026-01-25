@@ -121,25 +121,55 @@ let isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 let syncInProgress = false;
 let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-/**
- * Initialize network listeners for automatic sync on reconnect
- */
-export function initNetworkListeners(): void {
-    if (typeof window === 'undefined') return;
+// Store references for cleanup
+let onlineHandler: (() => void) | null = null;
+let offlineHandler: (() => void) | null = null;
 
-    window.addEventListener('online', () => {
+/**
+ * Initialize network listeners for automatic sync on reconnect.
+ * Returns a cleanup function to remove listeners.
+ */
+export function initNetworkListeners(): () => void {
+    if (typeof window === 'undefined') return () => { };
+
+    // Clean up any existing listeners first
+    cleanupNetworkListeners();
+
+    onlineHandler = () => {
         isOnline = true;
         logger.log('Network online - triggering sync');
         debouncedProcessQueue();
-    });
+    };
 
-    window.addEventListener('offline', () => {
+    offlineHandler = () => {
         isOnline = false;
         logger.log('Network offline - queuing syncs');
-    });
+    };
+
+    window.addEventListener('online', onlineHandler);
+    window.addEventListener('offline', offlineHandler);
 
     // Initial check
     isOnline = navigator.onLine;
+
+    // Return cleanup function
+    return cleanupNetworkListeners;
+}
+
+/**
+ * Clean up network listeners to prevent memory leaks
+ */
+export function cleanupNetworkListeners(): void {
+    if (typeof window === 'undefined') return;
+
+    if (onlineHandler) {
+        window.removeEventListener('online', onlineHandler);
+        onlineHandler = null;
+    }
+    if (offlineHandler) {
+        window.removeEventListener('offline', offlineHandler);
+        offlineHandler = null;
+    }
 }
 
 /**
@@ -895,11 +925,12 @@ export async function createAndSyncCourseProfile(
 // ============================================
 
 /**
- * Initialize the sync service
- * Call this on app startup
+ * Initialize the sync service.
+ * Call this on app startup.
+ * Returns a cleanup function to properly dispose of resources.
  */
-export function initCourseSyncService(): void {
-    initNetworkListeners();
+export function initCourseSyncService(): () => void {
+    const cleanupNetworkListeners = initNetworkListeners();
 
     // Process any pending items on startup (if online)
     if (canSync()) {
@@ -909,4 +940,14 @@ export function initCourseSyncService(): void {
             });
         }, 3000); // Delay to let app initialize
     }
+
+    // Return cleanup function
+    return () => {
+        cleanupNetworkListeners();
+        // Clear any pending debounce timers
+        if (syncDebounceTimer) {
+            clearTimeout(syncDebounceTimer);
+            syncDebounceTimer = null;
+        }
+    };
 }

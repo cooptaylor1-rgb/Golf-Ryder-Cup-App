@@ -9,7 +9,7 @@
 
 type _LogLevel = 'debug' | 'info' | 'log' | 'warn' | 'error';
 
-interface Logger {
+export interface Logger {
     debug: (...args: unknown[]) => void;
     info: (...args: unknown[]) => void;
     log: (...args: unknown[]) => void;

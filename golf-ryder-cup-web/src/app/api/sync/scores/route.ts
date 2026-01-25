@@ -7,35 +7,35 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import {
+    scoreSyncPayloadSchema,
+    formatZodError,
+    type ScoreSyncPayload,
+    type ScoringEvent,
+} from '@/lib/validations/api';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-interface ScoringEvent {
-    id: string;
-    type: string;
-    holeNumber?: number;
-    data: Record<string, unknown>;
-    timestamp: string;
-}
-
-interface SyncPayload {
-    matchId: string;
-    events: ScoringEvent[];
-}
-
 export async function POST(request: NextRequest) {
     try {
-        const payload: SyncPayload = await request.json();
+        const rawBody = await request.json();
 
-        // Validate payload
-        if (!payload.matchId || !Array.isArray(payload.events)) {
+        // Validate payload with Zod schema
+        const parseResult = scoreSyncPayloadSchema.safeParse(rawBody);
+        if (!parseResult.success) {
+            const details = formatZodError(parseResult.error);
             return NextResponse.json(
-                { error: 'Invalid payload: matchId and events array required' },
+                {
+                    error: `Invalid payload: ${details}`,
+                    details,
+                },
                 { status: 400 }
             );
         }
+
+        const payload: ScoreSyncPayload = parseResult.data;
 
         // If no Supabase configured, acknowledge receipt (local-only mode)
         if (!supabaseUrl || !supabaseServiceKey) {

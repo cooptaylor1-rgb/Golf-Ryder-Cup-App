@@ -15,31 +15,36 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthGuard } from '@/components/AuthGuard';
 import { CourseSyncInitializer } from '@/components/CourseSyncInitializer';
 import { TripSyncInitializer } from '@/components/TripSyncInitializer';
+import { baseMetadata, viewport as baseViewport } from '@/lib/utils/metadata';
 
 export const metadata: Metadata = {
-  title: 'Ryder Cup Tracker',
-  description: 'Track your Ryder Cup golf trip with offline-first scoring',
+  ...baseMetadata,
+  title: {
+    default: 'Golf Ryder Cup',
+    template: '%s | Golf Ryder Cup',
+  },
+  description: 'Track your Ryder Cup style golf trips with real-time scoring, team standings, and match play tracking.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Ryder Cup',
   },
-  formatDetection: {
-    telephone: false,
-  },
+  keywords: [
+    'golf',
+    'ryder cup',
+    'golf trip',
+    'match play',
+    'scoring',
+    'golf tracker',
+    'team golf',
+    'golf handicap',
+  ],
 };
 
 export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
+  ...baseViewport,
   userScalable: false,
-  viewportFit: 'cover',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f8fafc' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
-  ],
 };
 
 export default function RootLayout({

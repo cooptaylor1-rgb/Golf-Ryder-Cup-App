@@ -53,7 +53,7 @@ describe('Score Sync API Route', () => {
         });
 
         it('rejects missing events array', async () => {
-            const req = createMockRequest({ matchId: 'match-123' });
+            const req = createMockRequest({ matchId: '550e8400-e29b-41d4-a716-446655440000' });
             const response = await POST(req);
             const data = await response.json();
 
@@ -63,7 +63,7 @@ describe('Score Sync API Route', () => {
 
         it('rejects non-array events', async () => {
             const req = createMockRequest({
-                matchId: 'match-123',
+                matchId: '550e8400-e29b-41d4-a716-446655440000',
                 events: 'not-an-array',
             });
             const response = await POST(req);
@@ -76,10 +76,10 @@ describe('Score Sync API Route', () => {
     describe('Local-Only Mode (No Supabase)', () => {
         it('acknowledges events when no Supabase configured', async () => {
             const req = createMockRequest({
-                matchId: 'match-123',
+                matchId: '550e8400-e29b-41d4-a716-446655440000',
                 events: [
-                    { id: 'evt-1', type: 'SCORE', holeNumber: 1, data: { winner: 'teamA' }, timestamp: new Date().toISOString() },
-                    { id: 'evt-2', type: 'SCORE', holeNumber: 2, data: { winner: 'halved' }, timestamp: new Date().toISOString() },
+                    { id: '550e8400-e29b-41d4-a716-446655440001', type: 'SCORE', holeNumber: 1, data: { winner: 'teamA' }, timestamp: new Date().toISOString() },
+                    { id: '550e8400-e29b-41d4-a716-446655440002', type: 'SCORE', holeNumber: 2, data: { winner: 'halved' }, timestamp: new Date().toISOString() },
                 ],
             });
 
@@ -101,9 +101,9 @@ describe('Score Sync API Route', () => {
 
         it('syncs events to database successfully', async () => {
             const req = createMockRequest({
-                matchId: 'match-123',
+                matchId: '550e8400-e29b-41d4-a716-446655440000',
                 events: [
-                    { id: 'evt-1', type: 'SCORE', holeNumber: 1, data: { winner: 'teamA' }, timestamp: new Date().toISOString() },
+                    { id: '550e8400-e29b-41d4-a716-446655440001', type: 'SCORE', holeNumber: 1, data: { winner: 'teamA' }, timestamp: new Date().toISOString() },
                 ],
             });
 
@@ -116,11 +116,11 @@ describe('Score Sync API Route', () => {
 
         it('processes multiple events', async () => {
             const req = createMockRequest({
-                matchId: 'match-123',
+                matchId: '550e8400-e29b-41d4-a716-446655440000',
                 events: [
-                    { id: 'evt-1', type: 'SCORE', holeNumber: 1, data: { winner: 'teamA' }, timestamp: new Date().toISOString() },
-                    { id: 'evt-2', type: 'SCORE', holeNumber: 2, data: { winner: 'teamB' }, timestamp: new Date().toISOString() },
-                    { id: 'evt-3', type: 'UNDO', holeNumber: 2, data: {}, timestamp: new Date().toISOString() },
+                    { id: '550e8400-e29b-41d4-a716-446655440001', type: 'SCORE', holeNumber: 1, data: { winner: 'teamA' }, timestamp: new Date().toISOString() },
+                    { id: '550e8400-e29b-41d4-a716-446655440002', type: 'SCORE', holeNumber: 2, data: { winner: 'teamB' }, timestamp: new Date().toISOString() },
+                    { id: '550e8400-e29b-41d4-a716-446655440003', type: 'UNDO', holeNumber: 2, data: {}, timestamp: new Date().toISOString() },
                 ],
             });
 
@@ -135,7 +135,7 @@ describe('Score Sync API Route', () => {
     describe('Edge Cases', () => {
         it('handles empty events array', async () => {
             const req = createMockRequest({
-                matchId: 'match-123',
+                matchId: '550e8400-e29b-41d4-a716-446655440000',
                 events: [],
             });
 

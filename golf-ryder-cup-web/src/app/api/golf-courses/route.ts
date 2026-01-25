@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createLogger } from '@/lib/utils/logger';
 import { applyRateLimit, addRateLimitHeaders } from '@/lib/utils/apiMiddleware';
+import { courseSearchParamsSchema, formatZodError } from '@/lib/validations/api';
 
 const API_BASE_URL = 'https://api.golfcourseapi.com/v1';
 const logger = createLogger('api:golf-courses');
@@ -44,9 +45,25 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const action = searchParams.get('action');
-    const query = searchParams.get('q');
-    const courseId = searchParams.get('id');
+
+    // Validate query parameters with Zod
+    const parseResult = courseSearchParamsSchema.safeParse({
+        action: searchParams.get('action'),
+        q: searchParams.get('q') || undefined,
+        id: searchParams.get('id') || undefined,
+    });
+
+    if (!parseResult.success) {
+        return NextResponse.json(
+            {
+                error: 'Invalid parameters',
+                details: formatZodError(parseResult.error),
+            },
+            { status: 400 }
+        );
+    }
+
+    const { action, q: query, id: courseId } = parseResult.data;
 
     try {
         let endpoint = '';
@@ -58,11 +75,6 @@ export async function GET(request: NextRequest) {
         } else if (action === 'check') {
             // Health check - just verify API key works
             return NextResponse.json({ configured: true });
-        } else {
-            return NextResponse.json(
-                { error: 'Invalid action. Use action=search&q=query or action=get&id=courseId' },
-                { status: 400 }
-            );
         }
 
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {

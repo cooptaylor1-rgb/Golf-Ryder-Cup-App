@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { applyRateLimit, addRateLimitHeaders, requireJson, validateBodySize } from '@/lib/utils/apiMiddleware';
 import { ocrLogger } from '@/lib/utils/logger';
+import { ocrRequestSchema, formatZodError, type OcrRequest, type OcrImageData } from '@/lib/validations/api';
 
 /**
  * SCORECARD OCR API
@@ -48,18 +49,9 @@ interface ScorecardData {
   teeSets?: TeeSetData[];
 }
 
-interface ImageData {
-  image: string; // Base64 encoded image data
-  mimeType: string; // image/jpeg, image/png, etc.
-  label?: string; // Optional label: 'front', 'back', 'ratings', etc.
-}
-
-interface RequestBody {
-  image?: string; // Single image (backward compatible)
-  mimeType?: string; // Single image mime type
-  images?: ImageData[]; // Multiple images for front/back of scorecard
-  provider?: 'claude' | 'openai' | 'auto'; // AI provider preference
-}
+// Use types from validation schema
+type ImageData = OcrImageData;
+type RequestBody = OcrRequest;
 
 const EXTRACTION_PROMPT = `You are an expert golf scorecard data extractor. Analyze this scorecard image and extract ALL data with extreme precision.
 
@@ -218,7 +210,21 @@ export async function POST(request: NextRequest) {
   const _isDev = process.env.NODE_ENV === 'development';
 
   try {
-    const body: RequestBody = await request.json();
+    const rawBody = await request.json();
+
+    // Validate request body with Zod
+    const parseResult = ocrRequestSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        {
+          error: 'Invalid request',
+          details: formatZodError(parseResult.error),
+        },
+        { status: 400 }
+      );
+    }
+
+    const body: RequestBody = parseResult.data;
 
     // Support both single image and multiple images
     const images: ImageData[] = [];
@@ -226,24 +232,9 @@ export async function POST(request: NextRequest) {
     if (body.images && body.images.length > 0) {
       // Multiple images provided
       images.push(...body.images);
-    } else if (body.image) {
+    } else if (body.image && body.mimeType) {
       // Single image (backward compatible)
-      images.push({ image: body.image, mimeType: body.mimeType || 'image/jpeg' });
-    }
-
-    if (images.length === 0) {
-      return NextResponse.json({ error: 'No image provided' }, { status: 400 });
-    }
-
-    // Check for PDFs
-    if (images.some(img => img.mimeType === 'application/pdf')) {
-      return NextResponse.json(
-        {
-          error: 'PDF files are not supported. Please take a photo or convert to image.',
-          suggestion: 'Try using your phone camera to capture the scorecard.',
-        },
-        { status: 400 }
-      );
+      images.push({ image: body.image, mimeType: body.mimeType });
     }
 
     // Determine which AI provider to use

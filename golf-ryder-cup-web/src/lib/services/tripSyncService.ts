@@ -100,21 +100,54 @@ const syncQueue: SyncQueueItem[] = [];
 // NETWORK & HELPERS
 // ============================================
 
-export function initTripSyncNetworkListeners(): void {
-    if (typeof window === 'undefined') return;
+// Store references for cleanup
+let onlineHandler: (() => void) | null = null;
+let offlineHandler: (() => void) | null = null;
 
-    window.addEventListener('online', () => {
+/**
+ * Initialize network listeners for automatic sync on reconnect.
+ * Returns a cleanup function to remove listeners.
+ */
+export function initTripSyncNetworkListeners(): () => void {
+    if (typeof window === 'undefined') return () => { };
+
+    // Clean up any existing listeners first
+    cleanupTripSyncNetworkListeners();
+
+    onlineHandler = () => {
         isOnline = true;
         logger.log('Network online - triggering sync');
         debouncedProcessQueue();
-    });
+    };
 
-    window.addEventListener('offline', () => {
+    offlineHandler = () => {
         isOnline = false;
         logger.log('Network offline - queuing changes');
-    });
+    };
+
+    window.addEventListener('online', onlineHandler);
+    window.addEventListener('offline', offlineHandler);
 
     isOnline = navigator.onLine;
+
+    // Return cleanup function
+    return cleanupTripSyncNetworkListeners;
+}
+
+/**
+ * Clean up network listeners to prevent memory leaks
+ */
+export function cleanupTripSyncNetworkListeners(): void {
+    if (typeof window === 'undefined') return;
+
+    if (onlineHandler) {
+        window.removeEventListener('online', onlineHandler);
+        onlineHandler = null;
+    }
+    if (offlineHandler) {
+        window.removeEventListener('offline', offlineHandler);
+        offlineHandler = null;
+    }
 }
 
 function canSync(): boolean {
@@ -845,8 +878,12 @@ export function getTripSyncStatus(tripId: string): SyncStatus {
 // INITIALIZATION
 // ============================================
 
-export function initTripSyncService(): void {
-    initTripSyncNetworkListeners();
+/**
+ * Initialize the trip sync service.
+ * Returns a cleanup function to properly dispose of resources.
+ */
+export function initTripSyncService(): () => void {
+    const cleanupNetworkListeners = initTripSyncNetworkListeners();
 
     // Process any pending items on startup
     if (canSync()) {
@@ -856,4 +893,14 @@ export function initTripSyncService(): void {
             });
         }, 3000);
     }
+
+    // Return cleanup function
+    return () => {
+        cleanupNetworkListeners();
+        // Clear any pending debounce timers
+        if (syncDebounceTimer) {
+            clearTimeout(syncDebounceTimer);
+            syncDebounceTimer = null;
+        }
+    };
 }
