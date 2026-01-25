@@ -90,3 +90,8 @@ export {
   useScoringShortcuts,
   type ShortcutConfig,
 } from './useKeyboardShortcuts';
+
+// Visibility-based polling (battery optimization)
+export {
+  useVisibilityPolling,
+} from './useVisibilityPolling';

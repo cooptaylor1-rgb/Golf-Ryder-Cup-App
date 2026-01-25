@@ -31,7 +31,8 @@
     "db:lint": "vitest run src/__tests__/schemaVerification.test.ts",
     "db:diff": "supabase db diff",
     "db:push": "supabase db push",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "ANALYZE=true next build",
+    "prepare": "husky"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -73,10 +74,21 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "fake-indexeddb": "^6.2.5",
+    "husky": "^9.1.7",
     "jsdom": "^27.4.0",
+    "lint-staged": "^16.2.7",
     "sharp": "^0.34.5",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.0.17"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "bash -c 'tsc --noEmit'"
+    ],
+    "*.{json,md}": [
+      "prettier --write --ignore-unknown"
+    ]
   }
 }

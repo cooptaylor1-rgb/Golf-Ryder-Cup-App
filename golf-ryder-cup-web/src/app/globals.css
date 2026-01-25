@@ -5650,3 +5650,180 @@ html.outdoor body {
   align-items: center;
   justify-content: center;
 }
+
+/* ============================================
+   PRINT STYLESHEET
+
+   Optimized for printing scorecards and standings.
+   Clean, ink-efficient output.
+   ============================================ */
+@media print {
+  /* Reset to clean print defaults */
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Hide non-printable elements */
+  nav,
+  .nav-premium,
+  .bottom-nav,
+  .fab,
+  .quick-score-fab,
+  .toast,
+  .modal-backdrop,
+  button:not(.print-btn),
+  [data-no-print],
+  .no-print {
+    display: none !important;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 1.5cm;
+    size: auto;
+  }
+
+  html {
+    font-size: 12pt;
+  }
+
+  body {
+    line-height: 1.4;
+    font-family: 'Georgia', 'Times New Roman', serif;
+  }
+
+  /* Headings */
+  h1, h2, h3 {
+    page-break-after: avoid;
+    font-weight: bold;
+  }
+
+  h1 { font-size: 18pt; margin-bottom: 12pt; }
+  h2 { font-size: 14pt; margin-bottom: 8pt; }
+  h3 { font-size: 12pt; margin-bottom: 6pt; }
+
+  /* Tables - scorecards and standings */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    page-break-inside: avoid;
+  }
+
+  th, td {
+    border: 1px solid #333;
+    padding: 4pt 8pt;
+    text-align: left;
+  }
+
+  th {
+    background: #f0f0f0 !important;
+    font-weight: bold;
+  }
+
+  /* Cards become bordered boxes */
+  .card,
+  [class*="Card"] {
+    border: 1px solid #333;
+    padding: 8pt;
+    margin-bottom: 12pt;
+    page-break-inside: avoid;
+  }
+
+  /* Team colors - use patterns for distinction */
+  .team-usa,
+  [class*="team-usa"] {
+    border-left: 4pt solid #333 !important;
+  }
+
+  .team-europe,
+  [class*="team-europe"] {
+    border-left: 4pt solid #666 !important;
+  }
+
+  /* Score numbers - prominent */
+  .score,
+  .points,
+  [class*="score"] {
+    font-size: 14pt;
+    font-weight: bold;
+  }
+
+  /* Links - show URL */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #666 !important;
+  }
+
+  a[href^="#"]::after,
+  a[href^="javascript:"]::after {
+    content: "";
+  }
+
+  /* Images */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Preserve layout containers */
+  .container,
+  .content,
+  main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Print-specific utility classes */
+  .print-only {
+    display: block !important;
+  }
+
+  .print-break-before {
+    page-break-before: always;
+  }
+
+  .print-break-after {
+    page-break-after: always;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* Header for printed pages */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 16pt;
+    padding-bottom: 8pt;
+    border-bottom: 2pt solid #000;
+  }
+
+  .print-header h1 {
+    margin: 0;
+  }
+
+  .print-header .print-date {
+    font-size: 10pt;
+    color: #666 !important;
+  }
+
+  /* Footer */
+  .print-footer {
+    display: block !important;
+    text-align: center;
+    margin-top: 16pt;
+    padding-top: 8pt;
+    border-top: 1pt solid #666;
+    font-size: 9pt;
+    color: #666 !important;
+  }
+}
