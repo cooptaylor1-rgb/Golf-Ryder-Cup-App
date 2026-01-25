@@ -4,9 +4,15 @@
     "description": "Live scoring app for Ryder Cup style golf tournaments. Track matches, standings, and player records in real-time.",
     "start_url": "/",
     "display": "standalone",
+    "display_override": ["standalone", "fullscreen"],
     "background_color": "#036635",
     "theme_color": "#036635",
     "orientation": "portrait-primary",
+    "scope": "/",
+    "id": "golf-ryder-cup-app",
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    },
     "icons": [
         {
             "src": "/icons/icon-72.png",

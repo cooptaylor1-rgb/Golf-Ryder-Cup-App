@@ -110,3 +110,19 @@ export {
   type SessionTimeoutOptions,
   type SessionTimeoutState,
 } from './useSessionTimeout';
+
+// ============================================
+// iOS/Mobile Gestures
+// ============================================
+export {
+  useSwipeGesture,
+  useSwipeNavigation,
+  useLongPress,
+  useEdgeSwipe,
+  usePinchZoom,
+  type GestureState,
+  type SwipeConfig,
+  type SwipeCallbacks,
+  type LongPressConfig,
+  type PinchState,
+} from './useIOSGestures';
