@@ -16,6 +16,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthGuard } from '@/components/AuthGuard';
 import { CourseSyncInitializer } from '@/components/CourseSyncInitializer';
 import { TripSyncInitializer } from '@/components/TripSyncInitializer';
+import { CapacitorProvider } from '@/components/CapacitorProvider';
 import { baseMetadata, viewport as baseViewport } from '@/lib/utils/metadata';
 
 export const metadata: Metadata = {
@@ -101,30 +102,32 @@ export default function RootLayout({
           Skip to main content
         </a>
         <PWAProvider>
-          <ThemeProvider>
-            <ErrorBoundary variant="fullscreen" showDetails={process.env.NODE_ENV === 'development'}>
-              <AuthGuard>
-                <TripRehydrationProvider>
-                  <NotificationProvider>
-                    <AppOnboardingProvider>
-                      <main id="main-content">
-                        {children}
-                      </main>
-                    </AppOnboardingProvider>
-                  </NotificationProvider>
-                </TripRehydrationProvider>
-              </AuthGuard>
-            </ErrorBoundary>
-            <QuickScoreFAB />
-            <OfflineIndicator />
-            <CourseSyncInitializer />
-            <TripSyncInitializer />
-            <ToastContainer />
-            <PWABanners />
-            <PWAUpdateToast />
-            <IOSInstallPrompt delay={45000} dismissDays={14} />
-            <KeyboardShortcutsProvider />
-          </ThemeProvider>
+          <CapacitorProvider>
+            <ThemeProvider>
+              <ErrorBoundary variant="fullscreen" showDetails={process.env.NODE_ENV === 'development'}>
+                <AuthGuard>
+                  <TripRehydrationProvider>
+                    <NotificationProvider>
+                      <AppOnboardingProvider>
+                        <main id="main-content">
+                          {children}
+                        </main>
+                      </AppOnboardingProvider>
+                    </NotificationProvider>
+                  </TripRehydrationProvider>
+                </AuthGuard>
+              </ErrorBoundary>
+              <QuickScoreFAB />
+              <OfflineIndicator />
+              <CourseSyncInitializer />
+              <TripSyncInitializer />
+              <ToastContainer />
+              <PWABanners />
+              <PWAUpdateToast />
+              <IOSInstallPrompt delay={45000} dismissDays={14} />
+              <KeyboardShortcutsProvider />
+            </ThemeProvider>
+          </CapacitorProvider>
         </PWAProvider>
       </body>
     </html>
