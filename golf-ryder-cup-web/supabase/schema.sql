@@ -425,6 +425,24 @@ CREATE INDEX idx_scoring_events_created_at ON scoring_events(created_at DESC);
 CREATE INDEX idx_scoring_events_unprocessed ON scoring_events(match_id) WHERE processed = FALSE;
 
 -- ============================================
+-- PUSH SUBSCRIPTIONS
+-- ============================================
+-- Stores web push notification subscriptions for server-side notifications
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    endpoint TEXT PRIMARY KEY,
+    p256dh_key TEXT NOT NULL,
+    auth_key TEXT NOT NULL,
+    expiration_time BIGINT,
+    user_id UUID REFERENCES players(id) ON DELETE SET NULL,
+    trip_id UUID REFERENCES trips(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_push_subscriptions_user_id ON push_subscriptions(user_id);
+CREATE INDEX idx_push_subscriptions_trip_id ON push_subscriptions(trip_id);
+
+-- ============================================
 -- UPDATED_AT TRIGGERS
 -- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -450,6 +468,7 @@ CREATE TRIGGER update_comments_updated_at BEFORE UPDATE ON comments FOR EACH ROW
 CREATE TRIGGER update_achievements_updated_at BEFORE UPDATE ON achievements FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_audit_log_updated_at BEFORE UPDATE ON audit_log FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_scoring_events_updated_at BEFORE UPDATE ON scoring_events FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_push_subscriptions_updated_at BEFORE UPDATE ON push_subscriptions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_course_library_updated_at BEFORE UPDATE ON course_library FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_course_library_tee_sets_updated_at BEFORE UPDATE ON course_library_tee_sets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -685,6 +704,13 @@ CREATE POLICY "scoring_events_select_all" ON scoring_events FOR SELECT USING (tr
 CREATE POLICY "scoring_events_insert_all" ON scoring_events FOR INSERT WITH CHECK (true);
 CREATE POLICY "scoring_events_update_all" ON scoring_events FOR UPDATE USING (true);
 CREATE POLICY "scoring_events_delete_all" ON scoring_events FOR DELETE USING (true);
+
+-- PUSH_SUBSCRIPTIONS policies (server-side only via service role)
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "push_subscriptions_select_all" ON push_subscriptions FOR SELECT USING (true);
+CREATE POLICY "push_subscriptions_insert_all" ON push_subscriptions FOR INSERT WITH CHECK (true);
+CREATE POLICY "push_subscriptions_update_all" ON push_subscriptions FOR UPDATE USING (true);
+CREATE POLICY "push_subscriptions_delete_all" ON push_subscriptions FOR DELETE USING (true);
 
 -- ============================================
 -- VIEWS

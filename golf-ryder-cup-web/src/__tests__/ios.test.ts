@@ -371,9 +371,10 @@ describe('usePinchZoom', () => {
   it('should initialize with default scale', async () => {
     const { usePinchZoom } = await import('../lib/hooks/useIOSGestures');
     const mockRef = createMockRef<HTMLDivElement>(document.createElement('div'));
+    const mockOnPinch = vi.fn();
 
     const { result } = renderHook(() =>
-      usePinchZoom(mockRef, {})
+      usePinchZoom(mockRef, mockOnPinch)
     );
 
     expect(result.current.scale).toBe(1);
@@ -383,9 +384,10 @@ describe('usePinchZoom', () => {
   it('should track center position', async () => {
     const { usePinchZoom } = await import('../lib/hooks/useIOSGestures');
     const mockRef = createMockRef<HTMLDivElement>(document.createElement('div'));
+    const mockOnPinch = vi.fn();
 
     const { result } = renderHook(() =>
-      usePinchZoom(mockRef, {})
+      usePinchZoom(mockRef, mockOnPinch)
     );
 
     expect(result.current.centerX).toBe(0);

@@ -32,9 +32,6 @@ const config: CapacitorConfig = {
     allowsLinkPreview: true,
     scrollEnabled: true,
 
-    // Presentation style
-    presentationStyle: 'fullScreen',
-
     // Background modes
     backgroundColor: '#1A1F2E',
 
@@ -90,7 +87,6 @@ const config: CapacitorConfig = {
 
     // Keyboard
     Keyboard: {
-      resize: 'body',
       resizeOnFullScreen: true,
     },
 

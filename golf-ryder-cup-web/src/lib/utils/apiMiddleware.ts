@@ -250,6 +250,101 @@ export function validateBodySize(
 }
 
 // ============================================
+// TRIP AUTHORIZATION
+// ============================================
+
+/**
+ * Verify user has access to a trip via share code or ownership
+ * For production Ryder Cup: validates trip membership
+ */
+export async function verifyTripAccess(
+    req: NextRequest,
+    tripId: string
+): Promise<{ authorized: boolean; error?: string }> {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    // If no Supabase, allow local-only mode
+    if (!supabaseUrl || !supabaseKey) {
+        return { authorized: true };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Check for share code in header
+    const shareCode = req.headers.get('X-Share-Code');
+    if (shareCode) {
+        const { data: trip, error } = await supabase
+            .from('trips')
+            .select('id, share_code')
+            .eq('id', tripId)
+            .single();
+
+        if (error || !trip) {
+            return { authorized: false, error: 'Trip not found' };
+        }
+
+        if (trip.share_code === shareCode) {
+            return { authorized: true };
+        }
+    }
+
+    // Check for authenticated user with trip membership
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+        const { authenticated, userId } = await verifyAuth(req);
+        if (authenticated && userId) {
+            // Check if user is a participant in this trip
+            const { data: membership } = await supabase
+                .from('team_members')
+                .select(`
+                    id,
+                    teams!inner(trip_id)
+                `)
+                .eq('player_id', userId)
+                .eq('teams.trip_id', tripId)
+                .single();
+
+            if (membership) {
+                return { authorized: true };
+            }
+        }
+    }
+
+    // Allow access if trip exists and is public (has share_code)
+    const { data: trip } = await supabase
+        .from('trips')
+        .select('id, share_code')
+        .eq('id', tripId)
+        .single();
+
+    if (trip?.share_code) {
+        return { authorized: true };
+    }
+
+    return { authorized: false, error: 'Access denied to this trip' };
+}
+
+/**
+ * Require trip access, returning error response if not authorized
+ */
+export async function requireTripAccess(
+    req: NextRequest,
+    tripId: string
+): Promise<NextResponse | null> {
+    const { authorized, error } = await verifyTripAccess(req, tripId);
+
+    if (!authorized) {
+        return NextResponse.json(
+            { error: 'Forbidden', message: error || 'Access denied' },
+            { status: 403 }
+        );
+    }
+
+    return null;
+}
+
+// ============================================
 // CORS HELPERS
 // ============================================
 
@@ -257,7 +352,9 @@ const ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'https://golf-ryder-cup-app.vercel.app',
     'https://ryder-cup-app.railway.app',
-];
+    // Production domains
+    process.env.NEXT_PUBLIC_APP_URL,
+].filter(Boolean) as string[];
 
 /**
  * Get CORS headers for a request
@@ -269,7 +366,7 @@ export function getCorsHeaders(req: NextRequest): Record<string, string> {
     return {
         'Access-Control-Allow-Origin': allowedOrigin,
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Trip-Id, X-Share-Code',
         'Access-Control-Max-Age': '86400',
     };
 }

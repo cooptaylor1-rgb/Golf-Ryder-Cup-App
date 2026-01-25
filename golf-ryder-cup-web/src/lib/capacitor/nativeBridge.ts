@@ -409,7 +409,14 @@ const pushNotifications = {
     }
 
     const result = await PushNotifications.requestPermissions();
-    return result.receive;
+    // Map Capacitor permission states to standard web states
+    const permissionMap: Record<string, 'granted' | 'denied' | 'prompt'> = {
+      'granted': 'granted',
+      'denied': 'denied',
+      'prompt': 'prompt',
+      'prompt-with-rationale': 'prompt',
+    };
+    return permissionMap[result.receive] || 'denied';
   },
 
   /**
@@ -443,31 +450,33 @@ const pushNotifications = {
   addListeners(handlers: PushNotificationHandler): () => void {
     if (!isPluginAvailable('PushNotifications')) return () => {};
 
-    const listeners: (() => void)[] = [];
+    const listenerPromises: Promise<{ remove: () => void }>[] = [];
 
     if (handlers.onRegistration) {
-      const listener = PushNotifications.addListener('registration', handlers.onRegistration);
-      listeners.push(() => listener.remove());
+      listenerPromises.push(PushNotifications.addListener('registration', handlers.onRegistration));
     }
 
     if (handlers.onRegistrationError) {
-      const listener = PushNotifications.addListener('registrationError', (err) => {
+      listenerPromises.push(PushNotifications.addListener('registrationError', (err) => {
         handlers.onRegistrationError?.(new Error(err.error));
-      });
-      listeners.push(() => listener.remove());
+      }));
     }
 
     if (handlers.onPushReceived) {
-      const listener = PushNotifications.addListener('pushNotificationReceived', handlers.onPushReceived);
-      listeners.push(() => listener.remove());
+      listenerPromises.push(PushNotifications.addListener('pushNotificationReceived', handlers.onPushReceived));
     }
 
     if (handlers.onPushActionPerformed) {
-      const listener = PushNotifications.addListener('pushNotificationActionPerformed', handlers.onPushActionPerformed);
-      listeners.push(() => listener.remove());
+      listenerPromises.push(PushNotifications.addListener('pushNotificationActionPerformed', handlers.onPushActionPerformed));
     }
 
-    return () => listeners.forEach((remove) => remove());
+    // Return cleanup function that removes all listeners
+    return () => {
+      listenerPromises.forEach(async (promise) => {
+        const listener = await promise;
+        listener.remove();
+      });
+    };
   },
 };
 

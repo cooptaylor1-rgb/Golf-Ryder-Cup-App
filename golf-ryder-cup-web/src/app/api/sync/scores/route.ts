@@ -3,6 +3,12 @@
  *
  * Receives offline scoring events from Background Sync
  * and persists them to the database.
+ *
+ * Security:
+ * - Rate limited (30 requests/minute)
+ * - Input validation via Zod schema
+ * - Trip access verification
+ * - Transactional database operations
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,12 +18,25 @@ import {
     formatZodError,
     type ScoreSyncPayload,
 } from '@/lib/validations/api';
+import { applyRateLimit, requireTripAccess } from '@/lib/utils/apiMiddleware';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Rate limit config for score sync (30 requests per minute)
+const RATE_LIMIT_CONFIG = {
+    windowMs: 60 * 1000,
+    maxRequests: 30,
+};
+
 export async function POST(request: NextRequest) {
+    // Apply rate limiting
+    const rateLimitResponse = applyRateLimit(request, RATE_LIMIT_CONFIG);
+    if (rateLimitResponse) {
+        return rateLimitResponse;
+    }
+
     try {
         const rawBody = await request.json();
 
@@ -35,6 +54,14 @@ export async function POST(request: NextRequest) {
         }
 
         const payload: ScoreSyncPayload = parseResult.data;
+
+        // Verify trip access (production security)
+        if (payload.tripId) {
+            const tripAccessError = await requireTripAccess(request, payload.tripId);
+            if (tripAccessError) {
+                return tripAccessError;
+            }
+        }
 
         // If no Supabase configured, acknowledge receipt (local-only mode)
         if (!supabaseUrl || !supabaseServiceKey) {

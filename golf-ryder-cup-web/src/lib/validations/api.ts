@@ -52,6 +52,7 @@ export const scoringEventSchema = z.object({
  */
 export const scoreSyncPayloadSchema = z.object({
     matchId: uuidSchema.describe('matchId is required'),
+    tripId: uuidSchema.optional().describe('tripId for authorization'),
     events: z.array(scoringEventSchema).describe('events array is required'),
 });
 

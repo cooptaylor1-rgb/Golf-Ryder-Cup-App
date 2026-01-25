@@ -203,94 +203,99 @@ export async function recordHoleResult(
     editReason?: string,
     isCaptainOverride?: boolean
 ): Promise<HoleResult> {
-    // Check for existing result
-    const existing = await db.holeResults
-        .where({ matchId, holeNumber })
-        .first();
+    // Use transaction for atomic scoring operation (prevents race conditions)
+    return await db.transaction('rw', [db.holeResults, db.scoringEvents], async () => {
+        // Check for existing result WITHIN transaction
+        const existing = await db.holeResults
+            .where({ matchId, holeNumber })
+            .first();
 
-    const now = new Date().toISOString();
+        const now = new Date().toISOString();
 
-    // P0-4: Build audit trail for edits
-    let editHistory: HoleResultEdit[] = existing?.editHistory || [];
-    if (existing && existing.winner !== winner) {
-        const editEntry: HoleResultEdit = {
-            editedAt: now,
-            editedBy: scoredBy || 'unknown',
-            previousWinner: existing.winner,
-            newWinner: winner,
-            reason: editReason,
-            isCaptainOverride,
-        };
-        editHistory = [...editHistory, editEntry];
-    }
-
-    const result: HoleResult = {
-        id: existing?.id || crypto.randomUUID(),
-        matchId,
-        holeNumber,
-        winner,
-        teamAScore,
-        teamBScore,
-        scoredBy: existing ? existing.scoredBy : scoredBy, // Keep original scorer
-        timestamp: existing?.timestamp || now, // Keep original timestamp
-        // P0-4: Audit fields
-        lastEditedBy: existing ? scoredBy : undefined,
-        lastEditedAt: existing ? now : undefined,
-        editReason: existing ? editReason : undefined,
-        editHistory: editHistory.length > 0 ? editHistory : undefined,
-    };
-
-    // Save to database
-    await db.holeResults.put(result);
-
-    // Record scoring event for undo
-    const payload = existing
-        ? {
-            type: 'hole_edited' as const,
-            holeNumber,
-            previousWinner: existing.winner,
-            newWinner: winner,
-            previousTeamAStrokes: existing.teamAScore,
-            previousTeamBStrokes: existing.teamBScore,
-            newTeamAStrokes: teamAScore,
-            newTeamBStrokes: teamBScore,
+        // P0-4: Build audit trail for edits
+        let editHistory: HoleResultEdit[] = existing?.editHistory || [];
+        if (existing && existing.winner !== winner) {
+            const editEntry: HoleResultEdit = {
+                editedAt: now,
+                editedBy: scoredBy || 'unknown',
+                previousWinner: existing.winner,
+                newWinner: winner,
+                reason: editReason,
+                isCaptainOverride,
+            };
+            editHistory = [...editHistory, editEntry];
         }
-        : {
-            type: 'hole_scored' as const,
+
+        const result: HoleResult = {
+            id: existing?.id || crypto.randomUUID(),
+            matchId,
             holeNumber,
             winner,
-            teamAStrokes: teamAScore,
-            teamBStrokes: teamBScore,
+            teamAScore,
+            teamBScore,
+            scoredBy: existing ? existing.scoredBy : scoredBy, // Keep original scorer
+            timestamp: existing?.timestamp || now, // Keep original timestamp
+            // P0-4: Audit fields
+            lastEditedBy: existing ? scoredBy : undefined,
+            lastEditedAt: existing ? now : undefined,
+            editReason: existing ? editReason : undefined,
+            editHistory: editHistory.length > 0 ? editHistory : undefined,
         };
 
-    const event: ScoringEvent = {
-        id: crypto.randomUUID(),
-        eventType: existing ? ScoringEventType.HoleEdited : ScoringEventType.HoleScored,
-        matchId,
-        timestamp: now,
-        actorName: scoredBy || 'unknown',
-        payload,
-        synced: false,
-    };
+        // Save to database (within transaction)
+        await db.holeResults.put(result);
 
-    await db.scoringEvents.add(event);
+        // Record scoring event for undo (within transaction)
+        const payload = existing
+            ? {
+                type: 'hole_edited' as const,
+                holeNumber,
+                previousWinner: existing.winner,
+                newWinner: winner,
+                previousTeamAStrokes: existing.teamAScore,
+                previousTeamBStrokes: existing.teamBScore,
+                newTeamAStrokes: teamAScore,
+                newTeamBStrokes: teamBScore,
+            }
+            : {
+                type: 'hole_scored' as const,
+                holeNumber,
+                winner,
+                teamAStrokes: teamAScore,
+                teamBStrokes: teamBScore,
+            };
 
-    return result;
+        const event: ScoringEvent = {
+            id: crypto.randomUUID(),
+            eventType: existing ? ScoringEventType.HoleEdited : ScoringEventType.HoleScored,
+            matchId,
+            timestamp: now,
+            actorName: scoredBy || 'unknown',
+            payload,
+            synced: false,
+        };
+
+        await db.scoringEvents.add(event);
+
+        return result;
+    }); // End transaction
 }
 
 /**
  * Undo the last scoring action for a match.
+ * Uses transaction to ensure atomic operation.
  *
  * @param matchId - The match ID
  * @returns true if undo was successful
  */
 export async function undoLastScore(matchId: string): Promise<boolean> {
-    // Get the most recent event for this match
-    const events = await db.scoringEvents
-        .where('matchId')
-        .equals(matchId)
-        .reverse()
-        .sortBy('timestamp');
+    return await db.transaction('rw', [db.holeResults, db.scoringEvents], async () => {
+        // Get the most recent event for this match
+        const events = await db.scoringEvents
+            .where('matchId')
+            .equals(matchId)
+            .reverse()
+            .sortBy('timestamp');
 
     if (events.length === 0) {
         return false;
@@ -353,6 +358,7 @@ export async function undoLastScore(matchId: string): Promise<boolean> {
     }
 
     return false;
+    }); // End transaction
 }
 
 /**

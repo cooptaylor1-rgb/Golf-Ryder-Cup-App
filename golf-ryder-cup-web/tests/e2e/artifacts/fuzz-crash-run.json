@@ -1,29 +1,21 @@
 {
-  "seed": "fuzz-1769356256205",
-  "timestamp": "2026-01-25T15:53:56.579Z",
-  "actionCount": 27,
+  "seed": "fuzz-1769362432584",
+  "timestamp": "2026-01-25T17:36:52.939Z",
+  "actionCount": 38,
   "failedActions": 10,
   "actions": [
     {
       "type": "scroll",
-      "timestamp": 1769356260564,
+      "timestamp": 1769362436212,
       "details": {
         "direction": "up",
-        "amount": 52
-      },
-      "success": true
-    },
-    {
-      "type": "click_link",
-      "timestamp": 1769356261108,
-      "details": {
-        "reason": "No visible links"
+        "amount": 370
       },
       "success": true
     },
     {
       "type": "click_button",
-      "timestamp": 1769356261426,
+      "timestamp": 1769362436735,
       "details": {
         "buttonIndex": 2,
         "buttonText": ""
@@ -32,7 +24,7 @@
     },
     {
       "type": "click_button",
-      "timestamp": 1769356262072,
+      "timestamp": 1769362437381,
       "details": {
         "buttonIndex": 2,
         "buttonText": ""
@@ -41,13 +33,13 @@
     },
     {
       "type": "back",
-      "timestamp": 1769356262712,
+      "timestamp": 1769362438041,
       "details": {},
       "success": true
     },
     {
       "type": "click_link",
-      "timestamp": 1769356263989,
+      "timestamp": 1769362439143,
       "details": {
         "reason": "No visible links"
       },
@@ -55,110 +47,242 @@
     },
     {
       "type": "back",
-      "timestamp": 1769356264300,
+      "timestamp": 1769362439454,
       "details": {},
       "success": true
     },
     {
-      "type": "scroll",
-      "timestamp": 1769356295018,
-      "details": {
-        "direction": "down",
-        "amount": 355
-      },
+      "type": "back",
+      "timestamp": 1769362460111,
+      "details": {},
       "success": true
     },
     {
-      "type": "click_link",
-      "timestamp": 1769356310544,
+      "type": "navigate",
+      "timestamp": 1769362480760,
       "details": {
-        "reason": "No visible links"
-      },
-      "success": true
-    },
-    {
-      "type": "click_button",
-      "timestamp": 1769356325904,
-      "details": {
-        "reason": "No enabled visible buttons"
-      },
-      "success": true
-    },
-    {
-      "type": "click_button",
-      "timestamp": 1769356341225,
-      "details": {
-        "reason": "No enabled visible buttons"
-      },
-      "success": true
-    },
-    {
-      "type": "scroll",
-      "timestamp": 1769356356550,
-      "details": {
-        "direction": "down",
-        "amount": 420
+        "target": "/matchups"
       },
       "success": true
     },
     {
       "type": "fill_input",
-      "timestamp": 1769356372111,
+      "timestamp": 1769362482020,
+      "details": {
+        "inputIndex": 6,
+        "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "inputType": "text"
+      },
+      "success": true
+    },
+    {
+      "type": "scroll",
+      "timestamp": 1769362482441,
+      "details": {
+        "direction": "up",
+        "amount": 335
+      },
+      "success": true
+    },
+    {
+      "type": "scroll",
+      "timestamp": 1769362482958,
+      "details": {
+        "direction": "up",
+        "amount": 448
+      },
+      "success": true
+    },
+    {
+      "type": "back",
+      "timestamp": 1769362483502,
+      "details": {},
+      "success": true
+    },
+    {
+      "type": "back",
+      "timestamp": 1769362504166,
+      "details": {},
+      "success": true
+    },
+    {
+      "type": "click_button",
+      "timestamp": 1769362524799,
+      "details": {
+        "reason": "No enabled visible buttons"
+      },
+      "success": true
+    },
+    {
+      "type": "click_button",
+      "timestamp": 1769362535113,
+      "details": {
+        "reason": "No enabled visible buttons"
+      },
+      "success": true
+    },
+    {
+      "type": "navigate",
+      "timestamp": 1769362545426,
+      "details": {
+        "target": "/standings"
+      },
+      "success": true
+    },
+    {
+      "type": "navigate",
+      "timestamp": 1769362546340,
+      "details": {
+        "target": "/players"
+      },
+      "success": true
+    },
+    {
+      "type": "scroll",
+      "timestamp": 1769362547206,
+      "details": {
+        "direction": "up",
+        "amount": 13
+      },
+      "success": true
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769362547717,
+      "details": {
+        "reason": "No visible links"
+      },
+      "success": true
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769362548033,
+      "details": {
+        "reason": "No visible links"
+      },
+      "success": true
+    },
+    {
+      "type": "back",
+      "timestamp": 1769362548344,
+      "details": {},
+      "success": true
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769362549265,
+      "details": {
+        "reason": "No visible links"
+      },
+      "success": true
+    },
+    {
+      "type": "back",
+      "timestamp": 1769362549578,
+      "details": {},
+      "success": true
+    },
+    {
+      "type": "click_button",
+      "timestamp": 1769362570226,
+      "details": {
+        "reason": "No enabled visible buttons"
+      },
+      "success": true
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769362580542,
+      "details": {
+        "reason": "No visible links"
+      },
+      "success": true
+    },
+    {
+      "type": "click_button",
+      "timestamp": 1769362590857,
+      "details": {
+        "reason": "No enabled visible buttons"
+      },
+      "success": true
+    },
+    {
+      "type": "click_link",
+      "timestamp": 1769362601220,
+      "details": {
+        "reason": "No visible links"
+      },
+      "success": true
+    },
+    {
+      "type": "fill_input",
+      "timestamp": 1769362611555,
       "details": {
         "reason": "No visible inputs"
       },
       "success": true
     },
     {
-      "type": "tab",
-      "timestamp": 1769356387440,
-      "details": {
-        "tabCount": 4
-      },
-      "success": true
+      "type": "click_link",
+      "timestamp": 1769362612872,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
     },
     {
-      "type": "scroll",
-      "timestamp": 1769356403168,
-      "details": {
-        "direction": "up",
-        "amount": 164
-      },
-      "success": true
+      "type": "fill_input",
+      "timestamp": 1769362612883,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
     },
     {
       "type": "click_link",
-      "timestamp": 1769356418685,
-      "details": {
-        "reason": "No visible links"
-      },
-      "success": true
+      "timestamp": 1769362612888,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
     },
     {
       "type": "click_button",
-      "timestamp": 1769356434002,
-      "details": {
-        "reason": "No enabled visible buttons"
-      },
-      "success": true
-    },
-    {
-      "type": "back",
-      "timestamp": 1769356436516,
+      "timestamp": 1769362612895,
       "details": {},
       "success": false,
-      "error": "page.goBack: Target page, context or browser has been closed"
+      "error": "locator.all: Target page, context or browser has been closed"
     },
     {
       "type": "click_link",
-      "timestamp": 1769356436523,
+      "timestamp": 1769362612899,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "fill_input",
+      "timestamp": 1769362612906,
       "details": {},
       "success": false,
       "error": "locator.all: Target page, context or browser has been closed"
     },
     {
       "type": "tab",
-      "timestamp": 1769356436527,
+      "timestamp": 1769362612913,
+      "details": {
+        "tabCount": 5
+      },
+      "success": false,
+      "error": "keyboard.press: Target page, context or browser has been closed"
+    },
+    {
+      "type": "fill_input",
+      "timestamp": 1769362612921,
+      "details": {},
+      "success": false,
+      "error": "locator.all: Target page, context or browser has been closed"
+    },
+    {
+      "type": "tab",
+      "timestamp": 1769362612933,
       "details": {
         "tabCount": 3
       },
@@ -166,55 +290,8 @@
       "error": "keyboard.press: Target page, context or browser has been closed"
     },
     {
-      "type": "navigate",
-      "timestamp": 1769356436532,
-      "details": {
-        "target": "/players"
-      },
-      "success": false,
-      "error": "page.goto: Target page, context or browser has been closed"
-    },
-    {
-      "type": "back",
-      "timestamp": 1769356436535,
-      "details": {},
-      "success": false,
-      "error": "page.goBack: Target page, context or browser has been closed"
-    },
-    {
-      "type": "scroll",
-      "timestamp": 1769356436539,
-      "details": {
-        "direction": "up",
-        "amount": 456
-      },
-      "success": false,
-      "error": "mouse.wheel: Target page, context or browser has been closed"
-    },
-    {
-      "type": "back",
-      "timestamp": 1769356436546,
-      "details": {},
-      "success": false,
-      "error": "page.goBack: Target page, context or browser has been closed"
-    },
-    {
-      "type": "click_button",
-      "timestamp": 1769356436556,
-      "details": {},
-      "success": false,
-      "error": "locator.all: Target page, context or browser has been closed"
-    },
-    {
-      "type": "click_button",
-      "timestamp": 1769356436562,
-      "details": {},
-      "success": false,
-      "error": "locator.all: Target page, context or browser has been closed"
-    },
-    {
       "type": "click_link",
-      "timestamp": 1769356436577,
+      "timestamp": 1769362612938,
       "details": {},
       "success": false,
       "error": "locator.all: Target page, context or browser has been closed"
