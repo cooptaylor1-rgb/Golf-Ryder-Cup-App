@@ -11,6 +11,12 @@ export { useMatchState, useHoleResults } from './useMatchState';
 export { useOnboarding } from './useOnboarding';
 export { useHomeData } from './useHomeData';
 
+// iOS/Mobile hooks
+export {
+  useIOSKeyboard,
+  useIOSInputZoomPrevention,
+} from './useIOSKeyboard';
+
 // Optimistic updates & sync
 export {
   useOptimistic,

@@ -254,6 +254,113 @@ textarea:focus-visible {
 }
 
 /* ============================================
+   iOS-SPECIFIC OPTIMIZATIONS
+
+   iPhone Safari requires special handling for:
+   - Keyboard interactions
+   - Viewport behavior
+   - Touch gestures
+   - Input focus states
+   ============================================ */
+
+/* iOS Visual Viewport - dynamic height accounting for keyboard */
+:root {
+  --ios-keyboard-height: 0px;
+  --ios-visual-viewport-height: 100vh;
+  --ios-viewport-offset: 0px;
+}
+
+/* Use dvh for iOS 15+ with fallback */
+@supports (height: 100dvh) {
+  :root {
+    --ios-visual-viewport-height: 100dvh;
+  }
+}
+
+/* Fix for iOS bounce/rubberband effect on body */
+@supports (-webkit-touch-callout: none) {
+  html {
+    height: -webkit-fill-available;
+  }
+
+  body {
+    min-height: -webkit-fill-available;
+  }
+
+  /* Fix for iOS momentum scrolling */
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Fix sticky positioning on iOS */
+  .ios-sticky {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+
+  /* Fix 100vh on iOS - use svh for small viewport height */
+  .full-height-ios {
+    height: 100vh;
+    height: 100svh;
+  }
+
+  /* Modal/sheet that accounts for keyboard */
+  .ios-keyboard-aware {
+    max-height: calc(var(--ios-visual-viewport-height) - var(--ios-keyboard-height));
+    transition: max-height 0.3s ease-out;
+  }
+
+  /* Fix for tap highlight on dark backgrounds */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Improve text rendering on iOS */
+  body {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Fix for iOS select dropdown appearance */
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+  }
+
+  /* Prevent iOS from zooming on double-tap */
+  * {
+    touch-action: manipulation;
+  }
+
+  /* Safe area padding utility classes */
+  .safe-top { padding-top: env(safe-area-inset-top, 0px); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .safe-left { padding-left: env(safe-area-inset-left, 0px); }
+  .safe-right { padding-right: env(safe-area-inset-right, 0px); }
+  .safe-x {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .safe-y {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .safe-all {
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  }
+
+  /* Margin variants */
+  .safe-margin-top { margin-top: env(safe-area-inset-top, 0px); }
+  .safe-margin-bottom { margin-bottom: env(safe-area-inset-bottom, 0px); }
+}
+
+/* ============================================
    TYPOGRAPHY SYSTEM
 
    5 distinct roles:

@@ -3,6 +3,7 @@ import './globals.css';
 import { PWAProvider } from '@/components/PWAProvider';
 import { PWABanners } from '@/components/PWABanners';
 import { PWAUpdateToast } from '@/components/PWAUpdateToast';
+import { IOSInstallPrompt } from '@/components/IOSInstallPrompt';
 import { ToastContainer } from '@/components/ui/Toast';
 import { KeyboardShortcutsProvider } from '@/components/ui/KeyboardShortcutsProvider';
 import { AppOnboardingProvider } from '@/components/AppOnboardingProvider';
@@ -81,6 +82,12 @@ export default function RootLayout({
         <link rel="apple-touch-startup-image" href="/splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" />
         {/* iPhone 14 Pro Max, 15 Pro Max - 1290x2796 @3x */}
         <link rel="apple-touch-startup-image" href="/splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" />
+        {/* iPhone 15, 15 Pro - 1179x2556 @3x (same as 14 Pro) */}
+        <link rel="apple-touch-startup-image" href="/splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
+        {/* iPhone 16 Pro - 1206x2622 @3x */}
+        <link rel="apple-touch-startup-image" href="/splash/splash-1206x2622.png" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3)" />
+        {/* iPhone 16 Pro Max - 1320x2868 @3x */}
+        <link rel="apple-touch-startup-image" href="/splash/splash-1320x2868.png" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3)" />
 
         {/* iOS Status Bar Style */}
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -115,6 +122,7 @@ export default function RootLayout({
             <ToastContainer />
             <PWABanners />
             <PWAUpdateToast />
+            <IOSInstallPrompt delay={45000} dismissDays={14} />
             <KeyboardShortcutsProvider />
           </ThemeProvider>
         </PWAProvider>
