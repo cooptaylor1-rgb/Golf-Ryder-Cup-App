@@ -182,15 +182,16 @@ async function searchGHIN(
 
 // Search RapidAPI Golf Course Finder Database
 // This API requires location-based search (lat/lng), so we first geocode the query
+// IMPORTANT: We filter results by name match, not just proximity
 async function searchRapidAPI(
     query: string,
     apiKey: string
 ): Promise<CourseSearchResult[]> {
     try {
-        // First, geocode the search query to get coordinates
-        const geocodeResponse = await fetch(
+        // First, try to geocode the search query with "golf" appended to find the actual course
+        const golfGeocodeResponse = await fetch(
             `https://nominatim.openstreetmap.org/search?` +
-            `q=${encodeURIComponent(query)}&` +
+            `q=${encodeURIComponent(query + ' golf course')}&` +
             `format=json&` +
             `limit=5`,
             {
@@ -200,14 +201,17 @@ async function searchRapidAPI(
             }
         );
 
-        if (!geocodeResponse.ok) return [];
+        let geocodeData: Array<{ lat: string; lon: string; display_name: string }> = [];
 
-        const geocodeData = await geocodeResponse.json();
+        if (golfGeocodeResponse.ok) {
+            geocodeData = await golfGeocodeResponse.json();
+        }
+
+        // If no golf-specific results, try generic geocode
         if (!geocodeData || geocodeData.length === 0) {
-            // Try with "golf" appended if no results
-            const golfGeocodeResponse = await fetch(
+            const genericGeocodeResponse = await fetch(
                 `https://nominatim.openstreetmap.org/search?` +
-                `q=${encodeURIComponent(query + ' golf')}&` +
+                `q=${encodeURIComponent(query)}&` +
                 `format=json&` +
                 `limit=5`,
                 {
@@ -216,10 +220,14 @@ async function searchRapidAPI(
                     },
                 }
             );
-            if (!golfGeocodeResponse.ok) return [];
-            const golfGeocodeData = await golfGeocodeResponse.json();
-            if (!golfGeocodeData || golfGeocodeData.length === 0) return [];
-            geocodeData.push(...golfGeocodeData);
+
+            if (genericGeocodeResponse.ok) {
+                geocodeData = await genericGeocodeResponse.json();
+            }
+        }
+
+        if (!geocodeData || geocodeData.length === 0) {
+            return [];
         }
 
         // Use the first geocode result
@@ -251,21 +259,46 @@ async function searchRapidAPI(
 
         const results: CourseSearchResult[] = [];
         const queryLower = query.toLowerCase();
+        const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
+
+        // Helper to score name match - higher is better
+        const scoreMatch = (name: string): number => {
+            if (!name) return 0;
+            const nameLower = name.toLowerCase();
+
+            // Exact match
+            if (nameLower === queryLower) return 100;
+
+            // Name contains full query
+            if (nameLower.includes(queryLower)) return 80;
+
+            // Query contains full name
+            if (queryLower.includes(nameLower)) return 70;
+
+            // Count matching words
+            let wordMatches = 0;
+            for (const word of queryWords) {
+                if (nameLower.includes(word)) wordMatches++;
+            }
+            if (wordMatches > 0) {
+                return 20 + (wordMatches / queryWords.length) * 40;
+            }
+
+            return 0;
+        };
 
         // Process each club and its courses
         for (const club of (Array.isArray(data) ? data : [])) {
-            // Check if club name matches query
-            const clubNameMatches = club.club_name?.toLowerCase().includes(queryLower) ||
-                queryLower.includes(club.club_name?.toLowerCase());
+            const clubScore = scoreMatch(club.club_name || '');
 
             // Add individual courses from the club
             if (club.golf_courses && Array.isArray(club.golf_courses)) {
                 for (const course of club.golf_courses) {
-                    const courseNameMatches = course.course_name?.toLowerCase().includes(queryLower) ||
-                        queryLower.includes(course.course_name?.toLowerCase());
+                    const courseScore = scoreMatch(course.course_name || '');
+                    const bestScore = Math.max(clubScore, courseScore);
 
-                    // Include if club or course name matches, or if within search area
-                    if (clubNameMatches || courseNameMatches || results.length < 20) {
+                    // ONLY include if there's some name match (score > 0)
+                    if (bestScore > 0) {
                         results.push({
                             id: `rapid-${club.place_id}-${course.course_name?.replace(/\s+/g, '-')}`,
                             name: course.course_name || club.club_name,
@@ -275,12 +308,13 @@ async function searchRapidAPI(
                             latitude: club.latitude,
                             longitude: club.longitude,
                             source: 'rapidapi' as const,
-                        });
+                            _score: bestScore, // Internal field for sorting
+                        } as CourseSearchResult);
                     }
                 }
             } else {
                 // Club without individual course data
-                if (clubNameMatches || results.length < 20) {
+                if (clubScore > 0) {
                     results.push({
                         id: `rapid-${club.place_id}`,
                         name: club.club_name,
@@ -290,17 +324,16 @@ async function searchRapidAPI(
                         latitude: club.latitude,
                         longitude: club.longitude,
                         source: 'rapidapi' as const,
-                    });
+                        _score: clubScore,
+                    } as CourseSearchResult);
                 }
             }
         }
 
-        // Sort results: exact/partial matches first, then by distance implied by order
-        return results.sort((a, b) => {
-            const aMatches = a.name?.toLowerCase().includes(queryLower) ? 0 : 1;
-            const bMatches = b.name?.toLowerCase().includes(queryLower) ? 0 : 1;
-            return aMatches - bMatches;
-        }).slice(0, 100);
+        // Sort by match score (best matches first)
+        return results
+            .sort((a, b) => ((b as unknown as {_score: number})._score || 0) - ((a as unknown as {_score: number})._score || 0))
+            .slice(0, 50);
 
     } catch (error) {
         logger.error('RapidAPI search error:', error);
@@ -314,50 +347,83 @@ async function searchOpenStreetMap(
     state: string | null
 ): Promise<CourseSearchResult[]> {
     try {
-        const searchQuery = state ? `${query} golf ${state}` : `${query} golf course`;
+        const results: CourseSearchResult[] = [];
+        const queryLower = query.toLowerCase();
+        const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
 
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?` +
-            `q=${encodeURIComponent(searchQuery)}&` +
-            `format=json&` +
-            `limit=50&` +
-            `addressdetails=1`,
-            {
-                headers: {
-                    'User-Agent': 'GolfRyderCupApp/1.0',
-                },
+        // Try multiple search variations for better coverage
+        const searchVariations = [
+            state ? `${query} golf ${state}` : `${query} golf`,
+            state ? `${query} golf course ${state}` : `${query} golf course`,
+            state ? `${query} country club ${state}` : `${query} country club`,
+            query, // Plain query in case it's already a golf course name
+        ];
+
+        for (const searchQuery of searchVariations) {
+            if (results.length >= 20) break; // Enough results
+
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?` +
+                `q=${encodeURIComponent(searchQuery)}&` +
+                `format=json&` +
+                `limit=30&` +
+                `addressdetails=1`,
+                {
+                    headers: {
+                        'User-Agent': 'GolfRyderCupApp/1.0',
+                    },
+                }
+            );
+
+            if (!response.ok) continue;
+
+            const data = await response.json();
+
+            for (const place of data) {
+                // Include golf courses OR places that match the query name
+                const isGolfCourse = place.type === 'golf_course' ||
+                    place.class === 'leisure' ||
+                    place.display_name?.toLowerCase().includes('golf');
+
+                const placeName = place.display_name?.split(',')[0] || '';
+                const placeNameLower = placeName.toLowerCase();
+
+                // Score name match
+                let nameMatchScore = 0;
+                if (placeNameLower.includes(queryLower)) nameMatchScore = 80;
+                else if (queryLower.includes(placeNameLower)) nameMatchScore = 70;
+                else {
+                    for (const word of queryWords) {
+                        if (placeNameLower.includes(word)) nameMatchScore += 15;
+                    }
+                }
+
+                // Only include if it's a golf course OR has good name match
+                if (isGolfCourse || nameMatchScore >= 30) {
+                    const id = `osm-${place.place_id}`;
+                    if (!results.some(r => r.id === id)) {
+                        results.push({
+                            id,
+                            name: placeName,
+                            city: place.address?.city || place.address?.town || place.address?.village,
+                            state: place.address?.state,
+                            country: place.address?.country,
+                            latitude: parseFloat(place.lat),
+                            longitude: parseFloat(place.lon),
+                            source: 'osm' as const,
+                        });
+                    }
+                }
             }
-        );
 
-        if (!response.ok) return [];
+            // Small delay to respect OSM rate limits
+            if (results.length < 20) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
 
-        const data = await response.json();
-        return data
-            .filter((place: { type?: string; class?: string }) =>
-                place.type === 'golf_course' ||
-                place.class === 'leisure'
-            )
-            .map((place: {
-                place_id: number;
-                display_name: string;
-                lat: string;
-                lon: string;
-                address?: {
-                    city?: string;
-                    town?: string;
-                    state?: string;
-                    country?: string;
-                };
-            }) => ({
-                id: `osm-${place.place_id}`,
-                name: place.display_name.split(',')[0],
-                city: place.address?.city || place.address?.town,
-                state: place.address?.state,
-                country: place.address?.country,
-                latitude: parseFloat(place.lat),
-                longitude: parseFloat(place.lon),
-                source: 'osm' as const,
-            }));
+        // Sort by relevance (golf courses first, then name match quality)
+        return results.slice(0, 50);
     } catch (error) {
         logger.error('OSM search error:', error);
         return [];

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Search, MapPin, Loader2, ChevronRight, Database, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -41,6 +41,8 @@ export function CourseSearch({ onSelectCourse, onClose }: CourseSearchProps) {
     const [error, setError] = useState<string | null>(null);
     const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
     const [isCheckingConfig, setIsCheckingConfig] = useState(true);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const lastSearchRef = useRef<string>('');
 
     // Check if API is configured on mount
     useEffect(() => {
@@ -54,24 +56,71 @@ export function CourseSearch({ onSelectCourse, onClose }: CourseSearchProps) {
             .finally(() => setIsCheckingConfig(false));
     }, []);
 
-    const handleSearch = useCallback(async () => {
+    // Debounced auto-search when query changes
+    useEffect(() => {
+        // Clear previous timeout
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+
+        // Don't search if query is too short or same as last search
         if (!query.trim() || query.trim().length < 2) {
             setResults([]);
             return;
         }
 
+        // Debounce: wait 400ms after typing stops
+        searchTimeoutRef.current = setTimeout(() => {
+            if (query.trim() !== lastSearchRef.current) {
+                performSearch(query.trim());
+            }
+        }, 400);
+
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, [query]);
+
+    const performSearch = async (searchQuery: string) => {
+        if (searchQuery.length < 2) {
+            setResults([]);
+            return;
+        }
+
+        lastSearchRef.current = searchQuery;
         setIsSearching(true);
         setError(null);
 
         try {
-            const courses = await searchCourses(query);
-            setResults(courses);
+            const courses = await searchCourses(searchQuery);
+            // Only update if this is still the current search
+            if (lastSearchRef.current === searchQuery) {
+                setResults(courses);
+            }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Search failed');
-            setResults([]);
+            if (lastSearchRef.current === searchQuery) {
+                setError(err instanceof Error ? err.message : 'Search failed');
+                setResults([]);
+            }
         } finally {
-            setIsSearching(false);
+            if (lastSearchRef.current === searchQuery) {
+                setIsSearching(false);
+            }
         }
+    };
+
+    const handleSearch = useCallback(async () => {
+        if (!query.trim() || query.trim().length < 2) {
+            setResults([]);
+            return;
+        }
+        // Force immediate search (bypass debounce)
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        performSearch(query.trim());
     }, [query]);
 
     const handleSelectCourse = async (course: GolfCourseAPICourse) => {
