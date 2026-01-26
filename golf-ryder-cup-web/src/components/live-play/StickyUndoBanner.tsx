@@ -225,7 +225,7 @@ export function StickyUndoBanner({
 
                     {/* Result indicator */}
                     <div
-                        className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+                        className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
                         style={{
                             background: `${getResultColor(action.metadata?.result)}20`,
                         }}

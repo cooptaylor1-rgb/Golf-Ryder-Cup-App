@@ -350,7 +350,7 @@ export function NotificationToast({
         >
             {/* Icon */}
             <div
-                className="flex-shrink-0 p-2 rounded-xl"
+                className="shrink-0 p-2 rounded-xl"
                 style={{ background: 'rgba(255, 255, 255, 0.1)', color: colors.icon }}
             >
                 {getIcon()}
@@ -387,7 +387,7 @@ export function NotificationToast({
                     trigger('light');
                     onDismiss();
                 }}
-                className="flex-shrink-0 p-1 rounded-full hover:bg-white/10 transition-colors"
+                className="shrink-0 p-1 rounded-full hover:bg-white/10 transition-colors"
                 aria-label="Dismiss"
             >
                 <X className="w-4 h-4 text-white/60" />

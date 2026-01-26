@@ -159,7 +159,7 @@ export function Leaderboard({
                   onClick={() => setIsDropdownOpen(false)}
                 />
                 <div
-                  className="absolute right-0 mt-2 py-1 rounded-lg shadow-lg z-20 min-w-[140px]"
+                  className="absolute right-0 mt-2 py-1 rounded-lg shadow-lg z-20 min-w-35"
                   style={{
                     background: 'var(--surface)',
                     border: '1px solid var(--rule)',

@@ -85,7 +85,7 @@ export default function ProfilePage() {
                 <div className="max-w-md mx-auto space-y-6">
                     {/* Profile Header Skeleton */}
                     <Card variant="elevated" className="overflow-hidden">
-                        <div className="bg-gradient-to-br from-masters/20 to-masters/5 p-6 text-center">
+                        <div className="bg-linear-to-br from-masters/20 to-masters/5 p-6 text-center">
                             <Skeleton className="w-24 h-24 rounded-full mx-auto mb-4" />
                             <Skeleton className="h-6 w-40 mx-auto mb-2" />
                             <Skeleton className="h-4 w-24 mx-auto mb-3" />
@@ -109,7 +109,7 @@ export default function ProfilePage() {
     const displayName = currentUser.nickname || currentUser.firstName;
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-masters/5 via-surface-50 to-surface-100">
+        <div className="min-h-screen bg-linear-to-b from-masters/5 via-surface-50 to-surface-100">
             {/* Header */}
             <header className="pt-safe-area-inset-top sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-surface-200">
                 <div className="px-4 py-3 flex items-center justify-between">
@@ -145,7 +145,7 @@ export default function ProfilePage() {
                 <div className="max-w-md mx-auto space-y-6">
                     {/* Profile Header Card */}
                     <Card variant="elevated" className="overflow-hidden">
-                        <div className="bg-gradient-to-br from-masters/20 to-masters/5 p-6 text-center">
+                        <div className="bg-linear-to-br from-masters/20 to-masters/5 p-6 text-center">
                             <div className="w-24 h-24 rounded-full bg-white mx-auto mb-4 flex items-center justify-center shadow-md overflow-hidden">
                                 {currentUser.avatarUrl ? (
                                     <NextImage
@@ -418,7 +418,7 @@ export default function ProfilePage() {
                             variant="secondary"
                             size="lg"
                             onClick={handleCancel}
-                            className="flex-shrink-0"
+                            className="shrink-0"
                         >
                             Cancel
                         </Button>

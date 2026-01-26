@@ -83,7 +83,7 @@ export function LiveMatchBanner({
 
       <div className="relative flex items-center gap-4">
         {/* Live indicator */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <div className="relative">
             <div
               className="w-14 h-14 rounded-xl flex items-center justify-center"
@@ -125,7 +125,7 @@ export function LiveMatchBanner({
         </div>
 
         {/* Arrow */}
-        <ChevronRight className="w-6 h-6 text-white/60 group-hover:text-white transition-colors flex-shrink-0" />
+        <ChevronRight className="w-6 h-6 text-white/60 group-hover:text-white transition-colors shrink-0" />
       </div>
 
       {/* Bottom action hint */}

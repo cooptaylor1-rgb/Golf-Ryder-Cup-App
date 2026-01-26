@@ -63,7 +63,7 @@ export function UndoToast({
                 }}
             >
                 <Undo2
-                    className="w-5 h-5 flex-shrink-0"
+                    className="w-5 h-5 shrink-0"
                     style={{ color: 'var(--masters-gold)' }}
                 />
                 <span className="flex-1 text-sm font-medium text-left">{message}</span>

@@ -161,7 +161,7 @@ export function ProfileCompletionReward({
                             }}
                             className="relative"
                         >
-                            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-2xl shadow-amber-500/30">
+                            <div className="w-32 h-32 rounded-full bg-linear-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-2xl shadow-amber-500/30">
                                 <Trophy className="w-16 h-16 text-white" />
                             </div>
                             {/* Sparkles */}

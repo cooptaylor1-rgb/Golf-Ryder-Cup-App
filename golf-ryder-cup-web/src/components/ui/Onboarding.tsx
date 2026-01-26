@@ -209,7 +209,7 @@ export function Onboarding({ onComplete, onSkip, className }: OnboardingProps) {
                     {!isFirstStep && (
                         <button
                             onClick={handlePrev}
-                            className="flex-shrink-0 p-4 rounded-xl transition-all press-scale-sm"
+                            className="shrink-0 p-4 rounded-xl transition-all press-scale-sm"
                             style={{
                                 background: 'var(--canvas-raised)',
                                 color: 'var(--ink-secondary)',

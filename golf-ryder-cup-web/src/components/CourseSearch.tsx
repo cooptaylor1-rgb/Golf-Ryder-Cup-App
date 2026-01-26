@@ -306,7 +306,7 @@ export function CourseSearch({ onSelectCourse, onClose }: CourseSearchProps) {
                                         {course.course_name || course.club_name}
                                     </div>
                                     <div className="text-sm text-gray-500 flex items-center gap-1">
-                                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                                        <MapPin className="w-3 h-3 shrink-0" />
                                         <span className="truncate">{formatCourseLocation(course.location)}</span>
                                     </div>
                                     {course.tees && (getAllTees(course).length > 0) && (
@@ -315,7 +315,7 @@ export function CourseSearch({ onSelectCourse, onClose }: CourseSearchProps) {
                                         </div>
                                     )}
                                 </div>
-                                <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
                             </div>
                         </button>
                     ))}

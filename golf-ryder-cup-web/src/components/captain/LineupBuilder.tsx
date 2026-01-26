@@ -695,7 +695,7 @@ function DropZone({
         if (!isLocked) onDrop();
       }}
       className={cn(
-        'p-3 rounded-xl min-h-[80px] transition-all',
+        'p-3 rounded-xl min-h-20 transition-all',
         isDragging && 'ring-2 ring-dashed',
       )}
       style={{
@@ -841,7 +841,7 @@ function ValidationPanel({ errors, warnings }: ValidationPanelProps) {
           }}
         >
           <div className="flex items-start gap-2">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-sm">Cannot publish</p>
               <ul className="mt-1 text-xs text-white/80 space-y-0.5">
@@ -863,7 +863,7 @@ function ValidationPanel({ errors, warnings }: ValidationPanelProps) {
           }}
         >
           <div className="flex items-start gap-2">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-sm">Warnings</p>
               <ul className="mt-1 text-xs text-white/80 space-y-0.5">

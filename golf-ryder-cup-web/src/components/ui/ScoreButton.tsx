@@ -45,7 +45,7 @@ export function ScoreButton({
     const sizeClasses = {
         sm: 'h-14 min-w-[100px] text-lg',
         md: 'h-16 min-w-[120px] text-xl',
-        lg: 'h-20 min-w-[140px] text-2xl',
+        lg: 'h-20 min-w-35 text-2xl',
     };
 
     const getColorClasses = () => {

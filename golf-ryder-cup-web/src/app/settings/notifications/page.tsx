@@ -100,13 +100,13 @@ export default function NotificationSettingsPage() {
     const isNotificationsSupported = typeof window !== 'undefined' && 'Notification' in window;
 
     return (
-        <div className="min-h-screen flex flex-col bg-[var(--paper)]">
+        <div className="min-h-screen flex flex-col bg-(--paper)">
             {/* Header */}
-            <header className="sticky top-0 z-40 bg-[var(--paper)] border-b border-[var(--rule)]">
+            <header className="sticky top-0 z-40 bg-(--paper) border-b border-(--rule)">
                 <div className="flex items-center justify-between px-4 py-3">
                     <Link
                         href="/settings"
-                        className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-[var(--ink-secondary)] transition-colors"
+                        className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-(--ink-secondary) transition-colors"
                     >
                         <ChevronLeft className="w-6 h-6" style={{ color: 'var(--ink)' }} />
                     </Link>
@@ -121,7 +121,7 @@ export default function NotificationSettingsPage() {
             <main className="flex-1 px-4 py-6 space-y-6 pb-24">
                 {/* Saved Message */}
                 {savedMessage && (
-                    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[var(--masters)] text-white text-sm font-medium flex items-center gap-2 shadow-lg animate-fadeIn">
+                    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-(--masters) text-white text-sm font-medium flex items-center gap-2 shadow-lg animate-fadeIn">
                         <Check className="w-4 h-4" />
                         {savedMessage}
                     </div>
@@ -131,10 +131,10 @@ export default function NotificationSettingsPage() {
                 {!isNotificationsSupported ? (
                     <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
                         <div className="flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                             <div>
                                 <h3 className="font-semibold text-amber-500">Not Supported</h3>
-                                <p className="text-sm text-[var(--ink-muted)] mt-1">
+                                <p className="text-sm text-(--ink-muted) mt-1">
                                     Notifications are not supported in this browser. Try using Chrome, Safari, or Firefox.
                                 </p>
                             </div>
@@ -143,10 +143,10 @@ export default function NotificationSettingsPage() {
                 ) : permissionStatus === 'denied' ? (
                     <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
                         <div className="flex items-start gap-3">
-                            <BellOff className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                            <BellOff className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                             <div>
                                 <h3 className="font-semibold text-red-500">Notifications Blocked</h3>
-                                <p className="text-sm text-[var(--ink-muted)] mt-1">
+                                <p className="text-sm text-(--ink-muted) mt-1">
                                     Notifications are blocked for this site. Please enable them in your browser settings.
                                 </p>
                             </div>
@@ -155,10 +155,10 @@ export default function NotificationSettingsPage() {
                 ) : permissionStatus === 'granted' && preferences.enabled ? (
                     <div className="p-4 rounded-2xl bg-green-500/10 border border-green-500/20">
                         <div className="flex items-start gap-3">
-                            <Bell className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                            <Bell className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                             <div className="flex-1">
                                 <h3 className="font-semibold text-green-500">Notifications Enabled</h3>
-                                <p className="text-sm text-[var(--ink-muted)] mt-1">
+                                <p className="text-sm text-(--ink-muted) mt-1">
                                     {pendingCount > 0
                                         ? `${pendingCount} reminder${pendingCount !== 1 ? 's' : ''} scheduled`
                                         : 'You\'ll receive alerts based on your preferences below.'}
@@ -166,21 +166,21 @@ export default function NotificationSettingsPage() {
                             </div>
                             <button
                                 onClick={() => handleToggle('enabled')}
-                                className="text-sm text-[var(--ink-muted)] hover:text-red-500"
+                                className="text-sm text-(--ink-muted) hover:text-red-500"
                             >
                                 Disable
                             </button>
                         </div>
                     </div>
                 ) : (
-                    <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--rule)]">
+                    <div className="p-4 rounded-2xl bg-(--surface) border border-(--rule)">
                         <div className="flex items-start gap-3">
-                            <Bell className="w-5 h-5 text-[var(--ink-muted)] flex-shrink-0 mt-0.5" />
+                            <Bell className="w-5 h-5 text-(--ink-muted) shrink-0 mt-0.5" />
                             <div className="flex-1">
                                 <h3 className="font-semibold" style={{ color: 'var(--ink)' }}>
                                     Enable Notifications
                                 </h3>
-                                <p className="text-sm text-[var(--ink-muted)] mt-1">
+                                <p className="text-sm text-(--ink-muted) mt-1">
                                     Get tee time reminders, score updates, and more.
                                 </p>
                             </div>
@@ -188,7 +188,7 @@ export default function NotificationSettingsPage() {
                         <button
                             onClick={handleEnableNotifications}
                             disabled={isRequesting}
-                            className="mt-4 w-full py-3 rounded-xl bg-[var(--masters)] text-white font-semibold hover:bg-[var(--masters-dark)] transition-colors disabled:opacity-50"
+                            className="mt-4 w-full py-3 rounded-xl bg-(--masters) text-white font-semibold hover:bg-(--masters-dark) transition-colors disabled:opacity-50"
                         >
                             {isRequesting ? 'Requesting...' : 'Enable Notifications'}
                         </button>
@@ -199,12 +199,12 @@ export default function NotificationSettingsPage() {
                 {preferences.enabled && permissionStatus === 'granted' && (
                     <>
                         <section>
-                            <h2 className="text-sm font-semibold text-[var(--ink-muted)] uppercase tracking-wide mb-3">
+                            <h2 className="text-sm font-semibold text-(--ink-muted) uppercase tracking-wide mb-3">
                                 Notification Types
                             </h2>
                             <div className="space-y-2">
                                 {/* Tee Time Reminders */}
-                                <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--rule)]">
+                                <div className="p-4 rounded-2xl bg-(--surface) border border-(--rule)">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div
@@ -217,7 +217,7 @@ export default function NotificationSettingsPage() {
                                                 <h3 className="font-medium" style={{ color: 'var(--ink)' }}>
                                                     Tee Time Reminders
                                                 </h3>
-                                                <p className="text-sm text-[var(--ink-muted)]">
+                                                <p className="text-sm text-(--ink-muted)">
                                                     Get notified before your tee time
                                                 </p>
                                             </div>
@@ -230,7 +230,7 @@ export default function NotificationSettingsPage() {
 
                                     {preferences.teeTimeReminders && (
                                         <div className="mt-4 pl-13 space-y-2">
-                                            <p className="text-sm text-[var(--ink-muted)] mb-2">Remind me:</p>
+                                            <p className="text-sm text-(--ink-muted) mb-2">Remind me:</p>
                                             <div className="flex flex-wrap gap-2">
                                                 {[60, 45, 30, 15, 10].map((minutes) => (
                                                     <button
@@ -242,8 +242,8 @@ export default function NotificationSettingsPage() {
                                                             )
                                                         }
                                                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${preferences.teeTimeLeadMinutes.includes(minutes)
-                                                            ? 'bg-[var(--masters)] text-white'
-                                                            : 'bg-[var(--ink-secondary)] text-[var(--ink-muted)] hover:bg-[var(--rule)]'
+                                                            ? 'bg-(--masters) text-white'
+                                                            : 'bg-(--ink-secondary) text-(--ink-muted) hover:bg-(--rule)'
                                                             }`}
                                                     >
                                                         {minutes} min
@@ -290,7 +290,7 @@ export default function NotificationSettingsPage() {
             </main>
 
             {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 inset-x-0 bg-[var(--paper)] border-t border-[var(--rule)] px-2 pb-safe z-50">
+            <nav className="fixed bottom-0 inset-x-0 bg-(--paper) border-t border-(--rule) px-2 pb-safe z-50">
                 <div className="flex justify-around py-2">
                     <NavItem href="/" icon={Home} label="Home" />
                     <NavItem href="/schedule" icon={CalendarDays} label="Schedule" />
@@ -313,7 +313,7 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
             role="switch"
             aria-checked={checked}
             onClick={onChange}
-            className={`relative w-12 h-7 rounded-full transition-colors ${checked ? 'bg-[var(--masters)]' : 'bg-[var(--ink-secondary)]'
+            className={`relative w-12 h-7 rounded-full transition-colors ${checked ? 'bg-(--masters)' : 'bg-(--ink-secondary)'
                 }`}
         >
             <span
@@ -351,7 +351,7 @@ function SettingToggle({
     };
 
     return (
-        <div className="p-4 rounded-2xl bg-[var(--surface)] border border-[var(--rule)]">
+        <div className="p-4 rounded-2xl bg-(--surface) border border-(--rule)">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div
@@ -364,7 +364,7 @@ function SettingToggle({
                         <h3 className="font-medium" style={{ color: 'var(--ink)' }}>
                             {title}
                         </h3>
-                        <p className="text-sm text-[var(--ink-muted)]">{description}</p>
+                        <p className="text-sm text-(--ink-muted)">{description}</p>
                     </div>
                 </div>
                 <ToggleSwitch checked={checked} onChange={onChange} />

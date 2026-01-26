@@ -220,7 +220,7 @@ function AchievementBadge({ achievement, config }: AchievementBadgeProps) {
             <div
                 className={cn(
                     'relative w-32 h-32 rounded-full flex items-center justify-center',
-                    `bg-gradient-to-br ${config.gradient}`
+                    `bg-linear-to-br ${config.gradient}`
                 )}
                 style={{ boxShadow: `0 0 60px ${config.color}50` }}
             >

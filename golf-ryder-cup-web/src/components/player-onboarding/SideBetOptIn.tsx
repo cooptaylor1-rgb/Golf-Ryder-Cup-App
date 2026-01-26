@@ -206,7 +206,7 @@ export function SideBetOptIn({
             </div>
 
             {/* Summary Card */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-4 text-white">
+            <div className="bg-linear-to-r from-green-500 to-emerald-600 rounded-2xl p-4 text-white">
                 <div className="flex items-center justify-between">
                     <div>
                         <div className="text-sm opacity-90">Your buy-in</div>
@@ -356,7 +356,7 @@ export function SideBetOptIn({
 
             {/* Disclaimer */}
             <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="text-sm text-amber-800 dark:text-amber-200">
                     <p className="font-medium mb-1">Friendly Reminder</p>
                     <p className="text-amber-700 dark:text-amber-300">

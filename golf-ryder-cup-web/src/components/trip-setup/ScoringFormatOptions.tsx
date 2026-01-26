@@ -189,7 +189,7 @@ export function ScoringFormatOptions({
                                 <p className="text-xs text-surface-500 mt-0.5">{option.description}</p>
                             </div>
                             {settings.defaultFormat === option.format && (
-                                <Check className="w-4 h-4 text-augusta-green flex-shrink-0" />
+                                <Check className="w-4 h-4 text-augusta-green shrink-0" />
                             )}
                         </div>
                     </button>
@@ -390,7 +390,7 @@ export function ScoringFormatOptions({
             {/* Format explanation */}
             {selectedFormat && (
                 <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-800 flex gap-3">
-                    <Info className="w-5 h-5 text-augusta-green flex-shrink-0 mt-0.5" />
+                    <Info className="w-5 h-5 text-augusta-green shrink-0 mt-0.5" />
                     <div className="text-sm">
                         <p className="font-medium text-augusta-green">{selectedFormat.label}</p>
                         <p className="text-surface-600 dark:text-surface-400 mt-1">

@@ -12,7 +12,7 @@
 
 'use client';
 
-import React, { useCallback, useEffect, useState, type ReactElement } from 'react';
+import React, { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
 import { cn } from '@/lib/utils';
 
 // ============================================
@@ -75,26 +75,46 @@ export function IOSActionSheet({
   haptics = true,
 }: ActionSheetProps) {
   const [isAnimating, setIsAnimating] = useState(false);
-  // Initialize visibility to match isOpen to avoid setState in useEffect
+  // Track visibility separately for animation timing
+  // Using a ref to track previous isOpen state to avoid synchronous setState
+  const wasOpenRef = useRef(isOpen);
   const [isVisible, setIsVisible] = useState(isOpen);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Handle open/close animations
+  // Handle open/close animations via ref comparison
   useEffect(() => {
-    if (isOpen) {
-      if (!isVisible) {
-        setIsVisible(true);
-      }
+    // Clean up any pending close timer
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+
+    if (isOpen && !wasOpenRef.current) {
+      // Opening - use requestAnimationFrame to avoid synchronous setState
       requestAnimationFrame(() => {
-        setIsAnimating(true);
+        setIsVisible(true);
+        requestAnimationFrame(() => {
+          setIsAnimating(true);
+        });
       });
-    } else {
-      setIsAnimating(false);
-      const timer = setTimeout(() => {
+    } else if (!isOpen && wasOpenRef.current) {
+      // Closing - use requestAnimationFrame to avoid synchronous setState
+      requestAnimationFrame(() => {
+        setIsAnimating(false);
+      });
+      closeTimerRef.current = setTimeout(() => {
         setIsVisible(false);
       }, 300);
-      return () => clearTimeout(timer);
     }
-  }, [isOpen, isVisible]);
+
+    wasOpenRef.current = isOpen;
+
+    return () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, [isOpen]);
 
   // Lock body scroll
   useEffect(() => {
@@ -157,7 +177,7 @@ export function IOSActionSheet({
       {/* Backdrop */}
       <div
         className={cn(
-          'fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm',
+          'fixed inset-0 z-9998 bg-black/40 backdrop-blur-sm',
           'transition-opacity duration-300',
           isAnimating ? 'opacity-100' : 'opacity-0'
         )}
@@ -168,7 +188,7 @@ export function IOSActionSheet({
       {/* Action Sheet Container */}
       <div
         className={cn(
-          'fixed inset-x-0 bottom-0 z-[9999] p-3',
+          'fixed inset-x-0 bottom-0 z-9999 p-3',
           'transition-transform duration-300 ease-out',
           isAnimating ? 'translate-y-0' : 'translate-y-full'
         )}
@@ -215,7 +235,7 @@ export function IOSActionSheet({
           ))}
 
           {/* Destructive Actions */}
-          {destructiveActions.map((action, index) => (
+          {destructiveActions.map((action) => (
             <button
               key={action.id}
               onClick={() => handleAction(action)}

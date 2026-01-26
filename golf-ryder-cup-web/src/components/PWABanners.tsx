@@ -32,7 +32,7 @@ export function PWABanners() {
                 <div className="fixed bottom-20 left-4 right-4 z-50 sm:left-auto sm:right-4 sm:w-80">
                     <div className="bg-augusta-green text-white rounded-lg shadow-lg p-4">
                         <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"

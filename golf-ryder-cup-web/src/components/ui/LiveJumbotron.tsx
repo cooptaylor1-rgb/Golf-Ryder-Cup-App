@@ -307,7 +307,7 @@ function LiveMatchCard({
                 </div>
 
                 <div className={cn(
-                    'text-4xl font-bold min-w-[80px] text-center',
+                    'text-4xl font-bold min-w-20 text-center',
                     scoreChanged && 'scale-110',
                     currentScore > 0 ? 'text-team-usa' : currentScore < 0 ? 'text-team-europe' : 'text-surface-500'
                 )}>

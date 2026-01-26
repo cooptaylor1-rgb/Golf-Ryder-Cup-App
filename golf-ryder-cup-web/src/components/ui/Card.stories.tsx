@@ -166,7 +166,7 @@ export const StatsCard: Story = {
 // Card grid
 export const CardGrid: Story = {
   render: () => (
-    <div className="grid grid-cols-2 gap-4 w-[500px]">
+    <div className="grid grid-cols-2 gap-4 w-125">
       {['Match 1', 'Match 2', 'Match 3', 'Match 4'].map((match) => (
         <Card key={match} interactive variant="outlined">
           <CardContent>

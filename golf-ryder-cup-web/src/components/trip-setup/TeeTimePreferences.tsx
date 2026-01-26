@@ -172,7 +172,7 @@ export function TeeTimePreferences({
                         key={time}
                         onClick={() => updateSetting('firstTeeTime', time)}
                         className={cn(
-                            'flex-shrink-0 px-3 py-2 rounded-full transition-colors text-sm flex items-center gap-2',
+                            'shrink-0 px-3 py-2 rounded-full transition-colors text-sm flex items-center gap-2',
                             settings.firstTeeTime === time
                                 ? 'bg-augusta-green text-white'
                                 : 'bg-surface-100 dark:bg-surface-800 hover:bg-surface-200'
@@ -395,7 +395,7 @@ export function TeeTimePreferences({
 
             {/* Info tip */}
             <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-800 flex gap-3">
-                <Info className="w-5 h-5 text-augusta-green flex-shrink-0" />
+                <Info className="w-5 h-5 text-augusta-green shrink-0" />
                 <p className="text-sm text-surface-600 dark:text-surface-400">
                     Tee times can be adjusted individually before each round.
                     These are the default preferences for scheduling.

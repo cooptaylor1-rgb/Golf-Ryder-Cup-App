@@ -168,7 +168,7 @@ export default function LivePage() {
             </button>
             <div className="flex items-center gap-3">
               <div
-                className="w-8 h-8 rounded-md bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg"
+                className="w-8 h-8 rounded-md bg-linear-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg"
               >
                 <Tv size={16} className="text-white" />
               </div>

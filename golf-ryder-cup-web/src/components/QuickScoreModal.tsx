@@ -209,7 +209,7 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                         {/* Error Message */}
                         {error && (
                             <div className="mx-5 mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
-                                <AlertCircle size={20} className="text-red-500 flex-shrink-0" />
+                                <AlertCircle size={20} className="text-red-500 shrink-0" />
                                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                                 <button
                                     onClick={() => setError(null)}
@@ -232,7 +232,7 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                                 <ChevronLeft size={28} strokeWidth={2} />
                             </button>
 
-                            <div className="text-center min-w-[80px]">
+                            <div className="text-center min-w-20">
                                 <div className="text-5xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
                                     {currentHole}
                                 </div>
@@ -266,7 +266,7 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                                 onClick={() => handleScore('teamA')}
                                 disabled={isSubmitting}
                                 className={`w-full py-6 px-5 rounded-2xl flex items-center justify-between transition-all active:scale-[0.97] disabled:opacity-50 ${currentResult?.winner === 'teamA'
-                                    ? 'ring-2 ring-offset-2 ring-[var(--team-usa)]'
+                                    ? 'ring-2 ring-offset-2 ring-(--team-usa)'
                                     : ''
                                     }`}
                                 style={{
@@ -329,7 +329,7 @@ export function QuickScoreModal({ isOpen, onClose, matchId }: QuickScoreModalPro
                                 onClick={() => handleScore('teamB')}
                                 disabled={isSubmitting}
                                 className={`w-full py-6 px-5 rounded-2xl flex items-center justify-between transition-all active:scale-[0.97] disabled:opacity-50 ${currentResult?.winner === 'teamB'
-                                    ? 'ring-2 ring-offset-2 ring-[var(--team-europe)]'
+                                    ? 'ring-2 ring-offset-2 ring-(--team-europe)'
                                     : ''
                                     }`}
                                 style={{

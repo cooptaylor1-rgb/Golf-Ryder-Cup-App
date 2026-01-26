@@ -457,16 +457,16 @@ function FactorBar({ label, value }: FactorBarProps) {
 
 // Get gradient based on weather
 function getWeatherGradient(code: number, isDay: boolean): string {
-    if (!isDay) return 'bg-gradient-to-br from-[#1a1a2e] to-[#16213e]';
+    if (!isDay) return 'bg-linear-to-br from-[#1a1a2e] to-[#16213e]';
 
-    if (code === 0 || code === 1) return 'bg-gradient-to-br from-[#56CCF2] to-[#2F80ED]';
-    if (code === 2 || code === 3) return 'bg-gradient-to-br from-[#757F9A] to-[#D7DDE8]';
-    if (code >= 45 && code <= 48) return 'bg-gradient-to-br from-[#8e9eab] to-[#eef2f3]';
-    if (code >= 51 && code <= 67) return 'bg-gradient-to-br from-[#4b6cb7] to-[#182848]';
-    if (code >= 71 && code <= 86) return 'bg-gradient-to-br from-[#E6DADA] to-[#274046]';
-    if (code >= 95) return 'bg-gradient-to-br from-[#373B44] to-[#4286f4]';
+    if (code === 0 || code === 1) return 'bg-linear-to-br from-[#56CCF2] to-[#2F80ED]';
+    if (code === 2 || code === 3) return 'bg-linear-to-br from-[#757F9A] to-[#D7DDE8]';
+    if (code >= 45 && code <= 48) return 'bg-linear-to-br from-[#8e9eab] to-[#eef2f3]';
+    if (code >= 51 && code <= 67) return 'bg-linear-to-br from-[#4b6cb7] to-[#182848]';
+    if (code >= 71 && code <= 86) return 'bg-linear-to-br from-[#E6DADA] to-[#274046]';
+    if (code >= 95) return 'bg-linear-to-br from-[#373B44] to-[#4286f4]';
 
-    return 'bg-gradient-to-br from-[#56CCF2] to-[#2F80ED]';
+    return 'bg-linear-to-br from-[#56CCF2] to-[#2F80ED]';
 }
 
 export default WeatherWidget;

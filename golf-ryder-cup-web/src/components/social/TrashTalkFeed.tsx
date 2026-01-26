@@ -163,7 +163,7 @@ export function TrashTalkFeed({
                                 {/* Avatar */}
                                 <div
                                     className={cn(
-                                        'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0',
+                                        'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0',
                                         'bg-surface-200 dark:bg-surface-700 text-surface-600 dark:text-surface-300'
                                     )}
                                 >

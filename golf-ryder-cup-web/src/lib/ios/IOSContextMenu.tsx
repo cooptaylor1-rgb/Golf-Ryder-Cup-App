@@ -132,7 +132,7 @@ function MenuItem({ item, onSelect, isHovered, onHover }: MenuItemProps) {
         {item.icon && (
           <span
             className={cn(
-              'w-5 h-5 flex-shrink-0',
+              'w-5 h-5 shrink-0',
               item.destructive ? 'text-red-600' : 'text-ink-secondary'
             )}
           >
@@ -190,7 +190,7 @@ function ContextMenuItems({ items, onClose }: ContextMenuItemsProps) {
     <div
       className={cn(
         'bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl',
-        'border border-white/20 overflow-hidden min-w-[200px]',
+        'border border-white/20 overflow-hidden min-w-50',
         'animate-in fade-in zoom-in-95 duration-150'
       )}
     >
@@ -396,14 +396,14 @@ export function IOSContextMenu({
         <>
           {/* Backdrop with blur */}
           <div
-            className="fixed inset-0 z-[9998] bg-black/20 backdrop-blur-sm animate-in fade-in duration-150"
+            className="fixed inset-0 z-9998 bg-black/20 backdrop-blur-sm animate-in fade-in duration-150"
             onClick={closeMenu}
           />
 
           {/* Scaled trigger preview (iOS effect) */}
           {triggerRect && (
             <div
-              className="fixed z-[9999] pointer-events-none animate-in zoom-in-105 duration-200"
+              className="fixed z-9999 pointer-events-none animate-in zoom-in-105 duration-200"
               style={{
                 left: triggerRect.left,
                 top: triggerRect.top,
@@ -421,7 +421,7 @@ export function IOSContextMenu({
           {/* Menu */}
           <div
             ref={menuRef}
-            className="fixed z-[10000]"
+            className="fixed z-10000"
             style={{
               left: position.x,
               top: position.y,

@@ -271,7 +271,7 @@ export function PlayerOnboardingWizard({
     const stepConfig = STEP_CONFIG[currentStep];
 
     return (
-        <div className={cn('min-h-screen flex flex-col bg-gradient-to-b from-surface-50 to-surface-100 dark:from-surface-900 dark:to-surface-950', className)}>
+        <div className={cn('min-h-screen flex flex-col bg-linear-to-b from-surface-50 to-surface-100 dark:from-surface-900 dark:to-surface-950', className)}>
             {/* Header (hidden on welcome and complete) */}
             {currentStep !== 'welcome' && currentStep !== 'complete' && (
                 <header className="sticky top-0 z-10 bg-white/80 dark:bg-surface-900/80 backdrop-blur-md border-b border-surface-200 dark:border-surface-800">
@@ -359,7 +359,7 @@ export function PlayerOnboardingWizard({
                                     className="w-full p-5 rounded-2xl bg-white dark:bg-surface-800 border-2 border-surface-200 dark:border-surface-700 hover:border-amber-400 transition-all text-left"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                                        <div className="w-14 h-14 rounded-xl bg-linear-to-br from-amber-400 to-orange-500 flex items-center justify-center">
                                             <Zap className="w-7 h-7 text-white" />
                                         </div>
                                         <div className="flex-1">
@@ -380,7 +380,7 @@ export function PlayerOnboardingWizard({
                                     className="w-full p-5 rounded-2xl bg-white dark:bg-surface-800 border-2 border-surface-200 dark:border-surface-700 hover:border-masters transition-all text-left"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-masters to-emerald-600 flex items-center justify-center">
+                                        <div className="w-14 h-14 rounded-xl bg-linear-to-br from-masters to-emerald-600 flex items-center justify-center">
                                             <Sparkles className="w-7 h-7 text-white" />
                                         </div>
                                         <div className="flex-1">
@@ -543,7 +543,7 @@ export function PlayerOnboardingWizard({
                                         <div className="absolute inset-0 flex items-center">
                                             <div className="w-full border-t border-surface-200 dark:border-surface-700" />
                                         </div>
-                                        <span className="relative bg-gradient-to-b from-surface-50 to-surface-100 dark:from-surface-900 dark:to-surface-950 px-4 text-sm text-surface-500">
+                                        <span className="relative bg-linear-to-b from-surface-50 to-surface-100 dark:from-surface-900 dark:to-surface-950 px-4 text-sm text-surface-500">
                                             or enter manually
                                         </span>
                                     </div>

@@ -203,7 +203,7 @@ export default function CreateProfilePage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-masters/5 via-surface-50 to-surface-100 flex flex-col">
+        <div className="min-h-screen bg-linear-to-b from-masters/5 via-surface-50 to-surface-100 flex flex-col">
             {/* Header */}
             <header className="pt-safe-area-inset-top sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-surface-200">
                 <div className="px-4 py-3 flex items-center gap-3">
@@ -536,7 +536,7 @@ export default function CreateProfilePage() {
                                 variant="secondary"
                                 size="lg"
                                 onClick={handleBack}
-                                className="flex-shrink-0"
+                                className="shrink-0"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                             </Button>

@@ -493,7 +493,7 @@ export function FairnessCard({
             className="mt-4 p-3 rounded-xl flex items-start gap-2"
             style={{ background: 'var(--warning)', color: 'white' }}
           >
-            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-sm">Attention Needed</p>
               <ul className="text-xs text-white/80 mt-1 space-y-0.5">
@@ -511,7 +511,7 @@ export function FairnessCard({
             className="mt-3 p-3 rounded-xl flex items-start gap-2"
             style={{ background: 'var(--surface-raised)' }}
           >
-            <Info className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: 'var(--masters)' }} />
+            <Info className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--masters)' }} />
             <div>
               <p className="font-medium text-sm" style={{ color: 'var(--ink)' }}>
                 Suggestions

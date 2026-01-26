@@ -125,7 +125,7 @@ export function SessionTimeoutWarning({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[9998]"
+            className="fixed inset-0 bg-black/50 z-9998"
             aria-hidden="true"
           />
 
@@ -140,7 +140,7 @@ export function SessionTimeoutWarning({
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', duration: 0.3 }}
             className={cn(
-              'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999]',
+              'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-9999',
               'w-full max-w-sm mx-4 p-6 rounded-2xl shadow-2xl',
               'border-2',
               styles.bg,

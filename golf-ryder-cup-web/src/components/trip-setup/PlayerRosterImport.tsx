@@ -412,7 +412,7 @@ export function PlayerRosterImport({
                                 {/* Error */}
                                 {importError && (
                                     <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex gap-2">
-                                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                        <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
                                         <p className="text-sm text-red-700 dark:text-red-300">{importError}</p>
                                     </div>
                                 )}

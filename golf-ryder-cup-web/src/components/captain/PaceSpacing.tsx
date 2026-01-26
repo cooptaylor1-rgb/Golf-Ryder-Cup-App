@@ -478,7 +478,7 @@ export function PaceSpacing({
             {/* Info Footer */}
             <div className="p-4 border-t" style={{ borderColor: 'rgba(128, 120, 104, 0.2)', background: 'var(--surface)' }}>
                 <div className="flex items-start gap-2 text-sm" style={{ color: 'var(--ink-muted)' }}>
-                    <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <Info className="w-4 h-4 mt-0.5 shrink-0" />
                     <p>
                         Intervals are calculated based on format, average handicap, and course difficulty.
                         Fourball formats require longer intervals due to 4 balls in play.

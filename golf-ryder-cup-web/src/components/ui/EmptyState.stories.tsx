@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import {
   EmptyState,
-  EmptyStatePremium,
   NoMatchesEmpty,
   NoPlayersEmpty,
   NoStandingsEmpty,
@@ -12,7 +11,7 @@ import {
   ErrorEmpty,
 } from './EmptyState';
 import { Button } from './Button';
-import { Calendar, Trophy, Users, Search } from 'lucide-react';
+import { Calendar, Trophy } from 'lucide-react';
 
 const meta: Meta<typeof EmptyState> = {
   title: 'UI/EmptyState',

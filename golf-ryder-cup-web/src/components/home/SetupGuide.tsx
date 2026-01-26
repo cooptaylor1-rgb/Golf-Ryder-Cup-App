@@ -28,7 +28,7 @@ export function SetupGuide({ players, teams, sessions }: SetupGuideProps) {
             >
                 <div className="flex items-start gap-3 mb-4">
                     <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                         style={{ background: 'var(--masters)' }}
                     >
                         <ClipboardCheck size={20} style={{ color: 'white' }} />

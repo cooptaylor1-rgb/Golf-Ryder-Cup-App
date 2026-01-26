@@ -464,7 +464,7 @@ export function DaySummaryCard({ summary, tripName }: DaySummaryCardProps) {
     return (
         <div className="bg-card rounded-2xl overflow-hidden border border-border">
             {/* Preview */}
-            <div className="relative aspect-[9/16] max-h-[500px] bg-gradient-to-b from-[#006644] to-[#004D33]">
+            <div className="relative aspect-[9/16] max-h-[500px] bg-linear-to-b from-[#006644] to-[#004D33]">
                 <canvas ref={canvasRef} className="w-full h-full object-contain" />
             </div>
 

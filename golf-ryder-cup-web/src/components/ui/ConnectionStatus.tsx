@@ -223,7 +223,7 @@ export function SyncErrorBanner() {
     return (
         <div className="fixed bottom-20 left-4 right-4 z-40 p-4 rounded-lg bg-error/10 border border-error/30">
             <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-error flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
                 <div className="flex-1">
                     <div className="font-medium text-error">Sync Error</div>
                     <div className="text-sm text-surface-600 dark:text-surface-400">

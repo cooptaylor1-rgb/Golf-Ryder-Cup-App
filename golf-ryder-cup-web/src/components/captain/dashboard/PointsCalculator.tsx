@@ -552,7 +552,7 @@ export function PointsCalculator({
                             className="flex items-start gap-2 p-3 rounded-lg text-xs"
                             style={{ background: 'rgba(0, 103, 71, 0.1)', color: 'var(--masters)' }}
                         >
-                            <Info size={14} className="flex-shrink-0 mt-0.5" />
+                            <Info size={14} className="shrink-0 mt-0.5" />
                             <span>
                                 Tap the outcome buttons to project different scenarios.
                                 Locked matches (closed out) cannot be changed.

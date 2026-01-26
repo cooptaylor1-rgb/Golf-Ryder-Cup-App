@@ -324,7 +324,7 @@ export function MomentCard({
             {/* Image */}
             {moment.imageUrl && (
                 <div
-                    className="relative aspect-[4/3] cursor-pointer overflow-hidden"
+                    className="relative aspect-4/3 cursor-pointer overflow-hidden"
                     onClick={handleImageClick}
                 >
                     {!isImageLoaded && (

@@ -104,7 +104,7 @@ export function MatchResultCard({
                 ref={cardRef}
                 className={cn(
                     'relative p-6 rounded-2xl overflow-hidden',
-                    'bg-gradient-to-br',
+                    'bg-linear-to-br',
                     winnerTeam === 'usa'
                         ? 'from-[#1E3A5F] to-[#0D1F35]'
                         : winnerTeam === 'europe'
@@ -304,7 +304,7 @@ export function StandingsShareCard({
                 ref={cardRef}
                 className={cn(
                     'relative p-6 rounded-2xl overflow-hidden',
-                    'bg-gradient-to-br',
+                    'bg-linear-to-br',
                     getLeaderColor()
                 )}
             >

@@ -442,7 +442,7 @@ function InvitationRow({ invitation, onResend, onRevoke }: InvitationRowProps) {
                   onClick={() => setShowActions(false)}
                 />
                 <div
-                  className="absolute right-0 mt-1 py-1 rounded-xl shadow-lg z-20 min-w-[140px]"
+                  className="absolute right-0 mt-1 py-1 rounded-xl shadow-lg z-20 min-w-35"
                   style={{
                     background: 'var(--surface)',
                     border: '1px solid var(--rule)',

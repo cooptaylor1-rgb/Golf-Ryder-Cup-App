@@ -27,7 +27,7 @@ export default function GlobalError({
     return (
         <html>
             <body>
-                <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-surface-50 to-surface-100 px-4">
+                <div className="min-h-screen flex items-center justify-center bg-linear-to-b from-surface-50 to-surface-100 px-4">
                     <div className="max-w-md w-full text-center">
                         {/* Error Icon */}
                         <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">

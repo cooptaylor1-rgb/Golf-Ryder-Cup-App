@@ -362,7 +362,7 @@ export default function LineupBuilderPage() {
                                                             : colors.text.secondary,
                                             }}
                                         >
-                                            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                                            <AlertTriangle className="w-4 h-4 shrink-0" />
                                             <span>{issue.message}</span>
                                         </div>
                                     ))}

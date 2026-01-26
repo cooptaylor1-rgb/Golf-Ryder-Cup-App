@@ -441,7 +441,7 @@ ${currentMatch.teamBPlayers.map(p => `   ${p.firstName} ${p.lastName} (${p.handi
 
             {/* Card Preview */}
             <div className="flex-1 overflow-hidden">
-                <div className="p-4 flex items-center justify-center min-h-[400px]">
+                <div className="p-4 flex items-center justify-center min-h-100">
                     <div ref={cardRef}>
                         <MatchCard match={currentMatch} tripName={tripName} />
                     </div>
@@ -487,7 +487,7 @@ ${currentMatch.teamBPlayers.map(p => `   ${p.firstName} ${p.lastName} (${p.handi
                             }}
                             className={cn(
                                 'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                                currentIndex === idx && 'ring-2 ring-[var(--masters)]',
+                                currentIndex === idx && 'ring-2 ring-(--masters)',
                                 selectedCards.has(match.id) && 'bg-white/10'
                             )}
                             style={{

@@ -101,7 +101,7 @@ export function TripWelcomeCard({
             className={cn('space-y-6', className)}
         >
             {/* Hero Card */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-masters via-masters/90 to-emerald-600 text-white shadow-xl">
+            <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-masters via-masters/90 to-emerald-600 text-white shadow-xl">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -211,7 +211,7 @@ export function TripWelcomeCard({
                                 className="w-14 h-14 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+                            <div className="w-14 h-14 rounded-full bg-linear-to-br from-amber-400 to-amber-600 flex items-center justify-center">
                                 <span className="text-xl font-bold text-white">
                                     {trip.captainName.split(' ').filter(n => n).map(n => n[0]).join('') || '?'}
                                 </span>

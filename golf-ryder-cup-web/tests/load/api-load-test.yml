@@ -1,9 +1,7 @@
-/**
- * API Load Testing Configuration
- *
- * Focused load tests for API endpoints.
- * Run with: npx artillery run tests/load/api-load-test.yml
- */
+# API Load Testing Configuration
+#
+# Focused load tests for API endpoints.
+# Run with: npx artillery run tests/load/api-load-test.yml
 
 config:
   target: "http://localhost:3000"

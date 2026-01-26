@@ -121,7 +121,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
                 {/* Left icon */}
                 {!isLoading && leftIcon && (
-                    <span className="flex-shrink-0" aria-hidden="true">
+                    <span className="shrink-0" aria-hidden="true">
                         {leftIcon}
                     </span>
                 )}
@@ -135,7 +135,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
                 {/* Right icon */}
                 {!isLoading && rightIcon && (
-                    <span className="flex-shrink-0" aria-hidden="true">
+                    <span className="shrink-0" aria-hidden="true">
                         {rightIcon}
                     </span>
                 )}

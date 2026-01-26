@@ -180,7 +180,8 @@ export function useSessionTimeout(options: SessionTimeoutOptions): SessionTimeou
     const remaining = Math.max(0, timeout - elapsed);
     const warningAt = Math.max(0, remaining - warningTime);
 
-    setTimeRemaining(remaining);
+    // Note: We update timeRemaining via the interval below, not synchronously here
+    // This avoids the React strict mode warning about setState in useEffect
 
     // Set warning timer
     if (warningAt > 0) {
@@ -192,10 +193,14 @@ export function useSessionTimeout(options: SessionTimeoutOptions): SessionTimeou
         }
       }, warningAt);
     } else if (remaining > 0 && !hasCalledWarningRef.current) {
-      // Already in warning period
-      hasCalledWarningRef.current = true;
-      setIsWarningShown(true);
-      onWarning?.();
+      // Already in warning period - use setTimeout to avoid synchronous setState
+      setTimeout(() => {
+        if (!hasCalledWarningRef.current) {
+          hasCalledWarningRef.current = true;
+          setIsWarningShown(true);
+          onWarning?.();
+        }
+      }, 0);
     }
 
     // Set timeout timer

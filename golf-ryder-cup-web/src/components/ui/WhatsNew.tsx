@@ -191,7 +191,7 @@ export function WhatsNew({ onDismiss, forceShow = false }: WhatsNewProps) {
               }}
             >
               <div
-                className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+                className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
                 style={{
                   background: feature.isNew
                     ? 'linear-gradient(135deg, var(--masters-soft) 0%, var(--canvas-warm) 100%)'
@@ -296,7 +296,7 @@ export function FeatureCard({
 
       <div className="flex items-start gap-3">
         <div
-          className="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
+          className="shrink-0 w-10 h-10 rounded-lg flex items-center justify-center"
           style={{
             background: 'var(--masters)',
             color: 'var(--cream)',

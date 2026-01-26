@@ -203,7 +203,7 @@ function MatchRow({
     return (
         <div className="flex items-stretch border-b" style={{ borderColor: 'var(--rule)' }}>
             {/* Match Info */}
-            <div className="w-32 flex-shrink-0 p-2 flex flex-col justify-center border-r" style={{ borderColor: 'var(--rule)' }}>
+            <div className="w-32 shrink-0 p-2 flex flex-col justify-center border-r" style={{ borderColor: 'var(--rule)' }}>
                 <div className="flex items-center gap-1.5 mb-1">
                     <div
                         className="w-5 h-5 rounded flex items-center justify-center text-xs font-bold"
@@ -263,7 +263,7 @@ function MatchRow({
             </div>
 
             {/* Row Total */}
-            <div className="w-16 flex-shrink-0 flex flex-col justify-center items-center p-2 border-l" style={{ borderColor: 'var(--rule)' }}>
+            <div className="w-16 shrink-0 flex flex-col justify-center items-center p-2 border-l" style={{ borderColor: 'var(--rule)' }}>
                 {(() => {
                     let teamATotal = 0;
                     let teamBTotal = 0;
@@ -699,7 +699,7 @@ export function BatchScoreGrid({
             >
                 {/* Header Row */}
                 <div className="flex border-b sticky top-0 z-10" style={{ borderColor: 'var(--rule)', background: 'var(--bg)' }}>
-                    <div className="w-32 flex-shrink-0 p-2 border-r" style={{ borderColor: 'var(--rule)' }}>
+                    <div className="w-32 shrink-0 p-2 border-r" style={{ borderColor: 'var(--rule)' }}>
                         <span className="text-xs font-semibold" style={{ color: 'var(--ink-secondary)' }}>
                             Match
                         </span>
@@ -707,7 +707,7 @@ export function BatchScoreGrid({
                     {holes.map((hole) => (
                         <div
                             key={hole}
-                            className="flex-shrink-0 p-2 text-center border-r"
+                            className="shrink-0 p-2 text-center border-r"
                             style={{ borderColor: 'var(--rule)', minWidth: '48px' }}
                         >
                             <span className="text-xs font-bold" style={{ color: 'var(--ink-secondary)' }}>
@@ -715,7 +715,7 @@ export function BatchScoreGrid({
                             </span>
                         </div>
                     ))}
-                    <div className="w-16 flex-shrink-0 p-2 text-center border-l" style={{ borderColor: 'var(--rule)' }}>
+                    <div className="w-16 shrink-0 p-2 text-center border-l" style={{ borderColor: 'var(--rule)' }}>
                         <span className="text-xs font-semibold" style={{ color: 'var(--ink-secondary)' }}>
                             Status
                         </span>

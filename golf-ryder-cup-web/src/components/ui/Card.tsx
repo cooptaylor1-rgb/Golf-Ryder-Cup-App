@@ -141,7 +141,7 @@ const CardHeader = forwardRef<HTMLDivElement, CardHeaderProps>(
                     <div className="flex-1 min-w-0">{children}</div>
                 )}
                 {action && (
-                    <div className="flex-shrink-0">{action}</div>
+                    <div className="shrink-0">{action}</div>
                 )}
             </div>
         );

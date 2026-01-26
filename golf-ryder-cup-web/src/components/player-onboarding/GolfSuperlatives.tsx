@@ -144,7 +144,7 @@ export function GolfSuperlatives({
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', bounce: 0.5 }}
-                    className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 mx-auto mb-4 flex items-center justify-center shadow-lg shadow-amber-500/30"
+                    className="w-16 h-16 rounded-2xl bg-linear-to-br from-amber-400 to-yellow-500 mx-auto mb-4 flex items-center justify-center shadow-lg shadow-amber-500/30"
                 >
                     <Trophy className="w-8 h-8 text-white" />
                 </motion.div>
@@ -160,7 +160,7 @@ export function GolfSuperlatives({
             <div className="relative">
                 <div className="h-2 bg-surface-100 dark:bg-surface-700 rounded-full overflow-hidden">
                     <motion.div
-                        className="h-full bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full"
+                        className="h-full bg-linear-to-r from-amber-400 to-yellow-500 rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: `${progress}%` }}
                         transition={{ type: 'spring', damping: 20 }}

@@ -57,7 +57,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-masters/5 via-surface-50 to-surface-100 flex flex-col">
+        <div className="min-h-screen bg-linear-to-b from-masters/5 via-surface-50 to-surface-100 flex flex-col">
             {/* Header */}
             <header className="pt-safe-area-inset-top">
                 <div className="p-6 text-center">

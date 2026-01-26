@@ -755,7 +755,7 @@ describe('Performance', () => {
 
     let renderCount = 0;
 
-    const { result, rerender } = renderHook(() => {
+    const { rerender } = renderHook(() => {
       renderCount++;
       return useSpring({ initialValue: 0 });
     });
@@ -772,7 +772,7 @@ describe('Performance', () => {
   it('should cleanup animation frames on unmount', async () => {
     const { useSpring } = await import('../lib/ios/useIOSSpring');
 
-    const cancelAnimationFrame = vi.spyOn(window, 'cancelAnimationFrame');
+    vi.spyOn(window, 'cancelAnimationFrame');
 
     const { result, unmount } = renderHook(() => useSpring({ initialValue: 0 }));
 

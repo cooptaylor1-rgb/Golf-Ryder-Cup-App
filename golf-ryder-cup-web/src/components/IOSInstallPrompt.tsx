@@ -44,21 +44,21 @@ export function IOSInstallPrompt({
   dismissDays = 7,
 }: IOSInstallPromptProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [isIOS, setIsIOS] = useState(() => {
+  const [isIOS] = useState(() => {
     // Initialize on first render
     if (typeof window === 'undefined') return false;
     return shouldShowIOSPrompt();
   });
 
   useEffect(() => {
-    // Check on mount for SSR hydration - only update if actually different
-    // and we're in the browser
+    // Check on mount for SSR hydration
     if (typeof window === 'undefined') return;
 
     const shouldShow = shouldShowIOSPrompt();
 
+    // If conditions changed since initial render, we need to bail out
+    // The next render will pick up the correct initial value
     if (!shouldShow) {
-      if (isIOS) setIsIOS(false);
       return;
     }
 
@@ -92,7 +92,7 @@ export function IOSInstallPrompt({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end justify-center p-4 ios-backdrop-enter"
+      className="fixed inset-0 z-9999 flex items-end justify-center p-4 ios-backdrop-enter"
       onClick={handleDismiss}
       role="dialog"
       aria-modal="true"
@@ -104,7 +104,7 @@ export function IOSInstallPrompt({
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}
       >
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-[#006644] to-[#004D33] p-6 text-white">
+        <div className="relative bg-linear-to-br from-[#006644] to-[#004D33] p-6 text-white">
           <button
             onClick={handleDismiss}
             className="absolute top-4 right-4 p-2 rounded-full bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-150"
@@ -142,7 +142,7 @@ export function IOSInstallPrompt({
 
           <ol className="space-y-4">
             <li className="flex items-start gap-4" style={{ animationDelay: '0.1s' }}>
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#E8F5F0] flex items-center justify-center">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-[#E8F5F0] flex items-center justify-center">
                 <span className="text-[#006644] font-bold text-sm">1</span>
               </div>
               <div className="flex-1 pt-1">
@@ -159,7 +159,7 @@ export function IOSInstallPrompt({
             </li>
 
             <li className="flex items-start gap-4" style={{ animationDelay: '0.2s' }}>
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#E8F5F0] flex items-center justify-center">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-[#E8F5F0] flex items-center justify-center">
                 <span className="text-[#006644] font-bold text-sm">2</span>
               </div>
               <div className="flex-1 pt-1">
@@ -174,7 +174,7 @@ export function IOSInstallPrompt({
             </li>
 
             <li className="flex items-start gap-4" style={{ animationDelay: '0.3s' }}>
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#E8F5F0] flex items-center justify-center">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-[#E8F5F0] flex items-center justify-center">
                 <span className="text-[#006644] font-bold text-sm">3</span>
               </div>
               <div className="flex-1 pt-1">

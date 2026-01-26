@@ -549,7 +549,7 @@ export function VictoryToast({
           background: 'linear-gradient(135deg, var(--masters) 0%, #004D35 100%)',
         }}
       >
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           {icon || <Trophy className="w-6 h-6 text-white" />}
         </div>
         <div className="flex-1">

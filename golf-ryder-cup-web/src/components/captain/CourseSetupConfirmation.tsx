@@ -179,7 +179,7 @@ function SetupItemCard({ item, onToggle }: SetupItemCardProps) {
                 border: '1px solid rgba(128, 120, 104, 0.2)',
             }}
         >
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
                 {item.status === 'confirmed' ? (
                     <CheckCircle2 className="w-5 h-5 text-green-500" />
                 ) : item.status === 'issue' ? (
@@ -457,7 +457,7 @@ export function CourseSetupConfirmation({
                                                 key={hole.number}
                                                 className={cn(
                                                     'p-2 rounded-lg text-center',
-                                                    hole.isStartingHole && 'ring-2 ring-[var(--masters)]'
+                                                    hole.isStartingHole && 'ring-2 ring-(--masters)'
                                                 )}
                                                 style={{
                                                     background: hole.isStartingHole ? 'var(--masters-muted)' : 'var(--surface)',

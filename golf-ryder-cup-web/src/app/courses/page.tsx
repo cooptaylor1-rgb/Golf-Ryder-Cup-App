@@ -49,7 +49,7 @@ function CourseCard({
                 onClick={() => onSelect?.(course)}
             >
                 <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-masters-green/10 flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 rounded-lg bg-masters-green/10 flex items-center justify-center shrink-0">
                         <Flag className="w-6 h-6 text-masters-green-light" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -302,7 +302,7 @@ export default function CourseLibraryPage() {
                 {/* Info Banner */}
                 <div className="bg-masters-green/5 border border-masters-green/20 rounded-xl p-4">
                     <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-masters-green/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-masters-green/10 flex items-center justify-center shrink-0">
                             <Copy className="w-4 h-4 text-masters-green-light" />
                         </div>
                         <div>
@@ -319,7 +319,7 @@ export default function CourseLibraryPage() {
                 {/* Featured: Scan Scorecard with AI */}
                 <button
                     onClick={() => setShowScorecardUpload(true)}
-                    className="w-full p-4 rounded-xl border-2 border-dashed transition-all hover:border-[var(--masters)] hover:bg-[var(--masters-soft)]"
+                    className="w-full p-4 rounded-xl border-2 border-dashed transition-all hover:border-(--masters) hover:bg-(--masters-soft)"
                     style={{
                         borderColor: 'var(--masters)',
                         background: 'linear-gradient(135deg, var(--masters-soft) 0%, transparent 100%)',
@@ -327,7 +327,7 @@ export default function CourseLibraryPage() {
                 >
                     <div className="flex items-center justify-center gap-3">
                         <div
-                            className="flex items-center justify-center flex-shrink-0"
+                            className="flex items-center justify-center shrink-0"
                             style={{
                                 width: '48px',
                                 height: '48px',

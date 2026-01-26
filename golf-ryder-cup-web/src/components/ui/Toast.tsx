@@ -158,7 +158,7 @@ function ToastItem({ type, message, onDismiss, duration = 4000 }: ToastItemProps
       onMouseLeave={() => setIsPaused(false)}
     >
       <Icon
-        className="w-6 h-6 flex-shrink-0"
+        className="w-6 h-6 shrink-0"
         style={{ color: style.iconColor }}
         strokeWidth={2}
       />

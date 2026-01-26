@@ -349,7 +349,7 @@ export const IOSBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         {/* Backdrop */}
         <div
           className={cn(
-            'fixed inset-0 z-[9998] bg-black/40 backdrop-blur-sm',
+            'fixed inset-0 z-9998 bg-black/40 backdrop-blur-sm',
             'transition-opacity duration-200',
             isAnimating && !isOpen ? 'opacity-0' : 'opacity-100'
           )}
@@ -364,7 +364,7 @@ export const IOSBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           aria-modal="true"
           aria-labelledby={title ? 'sheet-title' : undefined}
           className={cn(
-            'fixed left-0 right-0 bottom-0 z-[9999]',
+            'fixed left-0 right-0 bottom-0 z-9999',
             'bg-white rounded-t-[20px] shadow-2xl',
             'flex flex-col overflow-hidden',
             !isDragging && 'transition-all duration-300 ease-out',
@@ -379,7 +379,7 @@ export const IOSBottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         >
           {/* Header with drag handle */}
           <div
-            className="flex-shrink-0 pt-3 pb-2 cursor-grab active:cursor-grabbing"
+            className="shrink-0 pt-3 pb-2 cursor-grab active:cursor-grabbing"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}

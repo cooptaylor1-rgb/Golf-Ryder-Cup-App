@@ -503,7 +503,7 @@ export function WeatherAlerts({
                             {/* Dismiss */}
                             <button
                                 onClick={() => dismissAlert(alert.id)}
-                                className="flex-shrink-0 p-1 rounded-full hover:bg-white/10 transition-colors"
+                                className="shrink-0 p-1 rounded-full hover:bg-white/10 transition-colors"
                                 aria-label="Dismiss alert"
                             >
                                 <X className="w-4 h-4 text-white/40" />

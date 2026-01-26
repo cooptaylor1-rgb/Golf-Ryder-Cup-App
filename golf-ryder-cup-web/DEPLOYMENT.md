@@ -3,6 +3,7 @@
 ## Pre-Deployment Checklist
 
 ### ✅ Completed
+
 - [x] Supabase credentials configured
 - [x] VAPID keys generated for push notifications
 - [x] RLS policies enabled in database schema
@@ -46,6 +47,7 @@ git push origin main
 ```
 
 Railway will automatically:
+
 - Install dependencies
 - Run production build
 - Start the app on port 3000
@@ -54,6 +56,7 @@ Railway will automatically:
 ### 2. Supabase Database Setup
 
 #### Option A: Supabase CLI (Recommended)
+
 ```bash
 npm install -g supabase
 supabase login
@@ -62,6 +65,7 @@ supabase db push
 ```
 
 #### Option B: SQL Editor
+
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
 2. Open your project
 3. Navigate to SQL Editor
@@ -78,7 +82,7 @@ supabase db push
 
 ## Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                     Client (PWA/Native)                     │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
@@ -109,7 +113,7 @@ supabase db push
 ## Feature Status
 
 | Feature | Status | Notes |
-|---------|--------|-------|
+| --------- | -------- | ------- |
 | Trip Management | ✅ Production | Full CRUD with share codes |
 | Team Builder | ✅ Production | USA vs Europe + custom |
 | Live Scoring | ✅ Production | Match play scoring engine |
@@ -124,15 +128,18 @@ supabase db push
 ## Troubleshooting
 
 ### "Share code not found"
+
 - Check that the trip exists in Supabase
 - Verify share code is case-insensitive
 
 ### Push notifications not working
+
 - Verify VAPID keys are set
 - Check browser supports Web Push
 - Ensure HTTPS is enabled
 
 ### Sync failures
+
 - Check Supabase credentials
 - Verify RLS policies are applied
 - Check API rate limits
@@ -140,6 +147,7 @@ supabase db push
 ## Support
 
 For issues, check:
+
 1. Browser console for client errors
 2. Railway logs for server errors
 3. Supabase logs for database errors

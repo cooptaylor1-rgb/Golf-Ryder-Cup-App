@@ -211,7 +211,7 @@ export function FormatSelector({
             {selectedFormat && (
                 <div className="p-4 rounded-xl bg-masters-green/5 border border-masters-green/20">
                     <div className="flex items-start gap-3">
-                        <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center text-white flex-shrink-0', selectedFormat.color)}>
+                        <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0', selectedFormat.color)}>
                             {getFormatIcon(selectedFormat.icon)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -340,7 +340,7 @@ function FormatCard({ format, isSelected, onSelect, onShowDetails, getIcon }: Fo
             onClick={onSelect}
         >
             <div className="flex items-start gap-3">
-                <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center text-white flex-shrink-0', format.color)}>
+                <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0', format.color)}>
                     {getIcon(format.icon)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -449,7 +449,7 @@ function FormatDetailsModal({ format, onClose, onSelect, isSelected, getIcon }: 
                         <ul className="space-y-2">
                             {format.rules.map((rule, index) => (
                                 <li key={index} className="flex items-start gap-2 text-sm text-surface-600 dark:text-surface-400">
-                                    <span className="w-5 h-5 rounded-full bg-masters-green/10 text-masters-green flex items-center justify-center flex-shrink-0 text-xs font-medium">
+                                    <span className="w-5 h-5 rounded-full bg-masters-green/10 text-masters-green flex items-center justify-center shrink-0 text-xs font-medium">
                                         {index + 1}
                                     </span>
                                     {rule}

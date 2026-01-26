@@ -413,7 +413,7 @@ ${activeLocalRules.map(lr => `• ${lr.title}`).join('\n')}
                                     onClick={() => toggleRule(rule.id)}
                                     className="w-full flex items-start gap-3 p-4 text-left"
                                 >
-                                    <BookOpen className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: 'var(--masters)' }} />
+                                    <BookOpen className="w-5 h-5 mt-0.5 shrink-0" style={{ color: 'var(--masters)' }} />
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium" style={{ color: 'var(--ink)' }}>
                                             {rule.title}
@@ -423,7 +423,7 @@ ${activeLocalRules.map(lr => `• ${lr.title}`).join('\n')}
                                         </p>
                                     </div>
                                     <ChevronDown
-                                        className={cn('w-5 h-5 flex-shrink-0 transition-transform', expandedRules.has(rule.id) && 'rotate-180')}
+                                        className={cn('w-5 h-5 shrink-0 transition-transform', expandedRules.has(rule.id) && 'rotate-180')}
                                         style={{ color: 'var(--ink-muted)' }}
                                     />
                                 </button>
@@ -439,7 +439,7 @@ ${activeLocalRules.map(lr => `• ${lr.title}`).join('\n')}
                                                 <ul className="space-y-1">
                                                     {rule.details.map((detail, idx) => (
                                                         <li key={idx} className="flex items-start gap-2 text-sm" style={{ color: 'var(--ink)' }}>
-                                                            <ChevronRight className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: 'var(--masters)' }} />
+                                                            <ChevronRight className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--masters)' }} />
                                                             {detail}
                                                         </li>
                                                     ))}
@@ -469,12 +469,12 @@ ${activeLocalRules.map(lr => `• ${lr.title}`).join('\n')}
                                     onClick={() => toggleFaq(faq.id)}
                                     className="w-full flex items-center gap-3 p-4 text-left"
                                 >
-                                    <HelpCircle className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--ink-muted)' }} />
+                                    <HelpCircle className="w-5 h-5 shrink-0" style={{ color: 'var(--ink-muted)' }} />
                                     <p className="flex-1 font-medium text-sm" style={{ color: 'var(--ink)' }}>
                                         {faq.question}
                                     </p>
                                     <ChevronDown
-                                        className={cn('w-5 h-5 flex-shrink-0 transition-transform', expandedFaqs.has(faq.id) && 'rotate-180')}
+                                        className={cn('w-5 h-5 shrink-0 transition-transform', expandedFaqs.has(faq.id) && 'rotate-180')}
                                         style={{ color: 'var(--ink-muted)' }}
                                     />
                                 </button>

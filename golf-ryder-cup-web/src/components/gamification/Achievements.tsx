@@ -396,7 +396,7 @@ function AchievementCard({ definition, achievement, earned }: AchievementCardPro
                     className={cn(
                         'w-12 h-12 rounded-xl flex items-center justify-center',
                         earned
-                            ? `bg-gradient-to-br ${rarityColors[definition.rarity]}`
+                            ? `bg-linear-to-br ${rarityColors[definition.rarity]}`
                             : 'bg-surface-200 dark:bg-surface-700'
                     )}
                 >
@@ -469,7 +469,7 @@ export function AchievementBadge({ definition, earned, size = 'md' }: Achievemen
                 'rounded-full flex items-center justify-center',
                 sizeClasses[size],
                 earned
-                    ? `bg-gradient-to-br ${rarityColors[definition.rarity]}`
+                    ? `bg-linear-to-br ${rarityColors[definition.rarity]}`
                     : 'bg-surface-200 dark:bg-surface-700'
             )}
             title={earned ? definition.name : 'Locked'}

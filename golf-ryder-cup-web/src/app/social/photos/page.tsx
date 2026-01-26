@@ -218,7 +218,7 @@ export default function PhotosPage() {
                   className="object-cover"
                   sizes="(max-width: 768px) 33vw, 25vw"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-2">
+                <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-2">
                   <div className="flex items-center gap-2 text-white text-xs">
                     <Heart size={12} />
                     <span>{photo.likes}</span>

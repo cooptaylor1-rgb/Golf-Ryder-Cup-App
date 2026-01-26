@@ -46,23 +46,23 @@ export function HoleIndicator({
             case 'teamA':
                 return cn(
                     'text-white shadow-md',
-                    'bg-gradient-to-br from-[var(--team-usa)] to-[var(--team-usa-deep)]',
+                    'bg-linear-to-br from-[var(--team-usa)] to-[var(--team-usa-deep)]',
                     'shadow-[var(--team-usa-glow)]'
                 );
             case 'teamB':
                 return cn(
                     'text-white shadow-md',
-                    'bg-gradient-to-br from-[var(--team-europe)] to-[var(--team-europe-deep)]',
+                    'bg-linear-to-br from-[var(--team-europe)] to-[var(--team-europe-deep)]',
                     'shadow-[var(--team-europe-glow)]'
                 );
             case 'halved':
                 return cn(
                     'text-white',
-                    'bg-gradient-to-br from-[var(--color-accent)] to-[#A38B2D]',
+                    'bg-linear-to-br from-[var(--color-accent)] to-[#A38B2D]',
                     'shadow-[var(--shadow-glow-gold)]'
                 );
             default:
-                return 'bg-[var(--canvas-sunken)] text-[var(--ink-tertiary)] dark:bg-[var(--surface-muted)]';
+                return 'bg-(--canvas-sunken) text-(--ink-tertiary) dark:bg-(--surface-muted)';
         }
     };
 
@@ -80,13 +80,13 @@ export function HoleIndicator({
                 getWinnerClasses(),
                 // Current hole premium styling
                 isCurrentHole && [
-                    'ring-2 ring-[var(--masters)] ring-offset-2 ring-offset-[var(--canvas)]',
+                    'ring-2 ring-(--masters) ring-offset-2 ring-offset-[var(--canvas)]',
                     'scale-110',
                     'animate-[currentHolePulse_2s_ease-in-out_infinite]',
                 ],
                 // Enhanced interaction feedback
                 onClick && 'cursor-pointer hover:scale-105 active:scale-95',
-                onClick && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2',
+                onClick && 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2',
                 !onClick && 'cursor-default',
                 // Premium hover effect
                 winner !== 'none' && onClick && 'hover:shadow-lg'

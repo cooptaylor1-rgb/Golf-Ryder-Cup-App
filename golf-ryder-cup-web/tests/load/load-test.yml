@@ -1,9 +1,7 @@
-/**
- * Load Testing Configuration
- *
- * Artillery.io load test definitions for API endpoints.
- * Run with: npx artillery run tests/load/load-test.yml
- */
+# Load Testing Configuration
+#
+# Artillery.io load test definitions for API endpoints.
+# Run with: npx artillery run tests/load/load-test.yml
 
 config:
   target: "http://localhost:3000"

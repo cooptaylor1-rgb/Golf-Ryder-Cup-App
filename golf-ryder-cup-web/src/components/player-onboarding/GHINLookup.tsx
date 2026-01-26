@@ -276,7 +276,7 @@ export function GHINLookup({
                         {/* Player Info */}
                         <div className="p-4">
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-masters to-emerald-600 flex items-center justify-center">
+                                <div className="w-14 h-14 rounded-full bg-linear-to-br from-masters to-emerald-600 flex items-center justify-center">
                                     <User className="w-7 h-7 text-white" />
                                 </div>
                                 <div>

@@ -161,7 +161,7 @@ function TeamScoreInput({
                 </button>
 
                 {/* Score Display */}
-                <div className="flex flex-col items-center min-w-[80px]">
+                <div className="flex flex-col items-center min-w-20">
                     {/* Gross Score */}
                     <span
                         className="text-4xl font-bold"

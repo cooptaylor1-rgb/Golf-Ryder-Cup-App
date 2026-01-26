@@ -123,7 +123,7 @@ export function FormError({
             >
                 {showIcon && (
                     <Icon
-                        className={cn('w-4 h-4 flex-shrink-0 mt-0.5', config.iconClass)}
+                        className={cn('w-4 h-4 shrink-0 mt-0.5', config.iconClass)}
                         aria-hidden="true"
                     />
                 )}
@@ -149,7 +149,7 @@ export function FormError({
                 <div className={cn('flex items-start gap-2', config.textClass)}>
                     {showIcon && (
                         <Icon
-                            className={cn('w-4 h-4 flex-shrink-0 mt-0.5', config.iconClass)}
+                            className={cn('w-4 h-4 shrink-0 mt-0.5', config.iconClass)}
                             aria-hidden="true"
                         />
                     )}
@@ -252,7 +252,7 @@ export function FormErrorSummary({
         >
             <div className="flex items-start gap-3">
                 <AlertCircle
-                    className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 text-red-500 shrink-0 mt-0.5"
                     aria-hidden="true"
                 />
                 <div className="flex-1">

@@ -72,7 +72,7 @@ export function CourseDetails({
     return (
         <div className={cn('space-y-6', className)}>
             {/* Course Header */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-masters-primary to-masters-primary-dark text-white">
+            <div className="p-6 rounded-2xl bg-linear-to-br from-masters-primary to-masters-primary-dark text-white">
                 <h1 className="text-2xl font-bold mb-1">{course.course_name}</h1>
                 <div className="text-white/80">{course.club_name}</div>
 
@@ -256,7 +256,7 @@ function TeeCard({ tee, isSelected, onSelect }: TeeCardProps) {
             {/* Tee color indicator */}
             <div
                 className={cn(
-                    'w-8 h-8 rounded-full flex-shrink-0',
+                    'w-8 h-8 rounded-full shrink-0',
                     isWhite && 'border-2 border-surface-300'
                 )}
                 style={{ backgroundColor: color }}

@@ -221,7 +221,7 @@ export function PlayerProfileCard({
 
         {onClick && (
           <ChevronRight
-            className="w-5 h-5 flex-shrink-0"
+            className="w-5 h-5 shrink-0"
             style={{ color: 'var(--ink-tertiary)' }}
           />
         )}

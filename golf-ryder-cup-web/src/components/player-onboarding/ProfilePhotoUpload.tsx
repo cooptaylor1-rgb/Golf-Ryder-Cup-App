@@ -39,13 +39,13 @@ interface ProfilePhotoUploadProps {
 // ============================================
 
 const avatarColors = [
-    { bg: 'bg-gradient-to-br from-blue-400 to-blue-600', text: 'text-white' },
-    { bg: 'bg-gradient-to-br from-green-400 to-green-600', text: 'text-white' },
-    { bg: 'bg-gradient-to-br from-purple-400 to-purple-600', text: 'text-white' },
-    { bg: 'bg-gradient-to-br from-amber-400 to-orange-500', text: 'text-white' },
-    { bg: 'bg-gradient-to-br from-pink-400 to-rose-500', text: 'text-white' },
-    { bg: 'bg-gradient-to-br from-cyan-400 to-teal-500', text: 'text-white' },
-    { bg: 'bg-gradient-to-br from-masters to-emerald-600', text: 'text-white' },
+    { bg: 'bg-linear-to-br from-blue-400 to-blue-600', text: 'text-white' },
+    { bg: 'bg-linear-to-br from-green-400 to-green-600', text: 'text-white' },
+    { bg: 'bg-linear-to-br from-purple-400 to-purple-600', text: 'text-white' },
+    { bg: 'bg-linear-to-br from-amber-400 to-orange-500', text: 'text-white' },
+    { bg: 'bg-linear-to-br from-pink-400 to-rose-500', text: 'text-white' },
+    { bg: 'bg-linear-to-br from-cyan-400 to-teal-500', text: 'text-white' },
+    { bg: 'bg-linear-to-br from-masters to-emerald-600', text: 'text-white' },
 ];
 
 const getAvatarColor = (name?: string) => {

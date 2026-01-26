@@ -518,7 +518,7 @@ function ScheduleEntryCard({ entry, onPress }: ScheduleEntryCardProps) {
     >
       <div className="flex items-start gap-3">
         {/* Time Column */}
-        <div className="w-16 flex-shrink-0">
+        <div className="w-16 shrink-0">
           {entry.time && (
             <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
               {entry.time}

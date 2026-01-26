@@ -223,7 +223,7 @@ function ActivityCard({ activity, isFirst }: ActivityCardProps) {
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div
-          className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+          className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
           style={{
             background: `${color}15`,
             color,
@@ -512,7 +512,7 @@ export function CompactActivity({ activity, className }: CompactActivityProps) {
       style={{ borderBottom: '1px solid var(--rule)' }}
     >
       <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
         style={{
           background: `${color}15`,
           color,

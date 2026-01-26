@@ -188,7 +188,7 @@ function NotificationToast({ notification, onDismiss, style }: NotificationToast
       }}
     >
       <div
-        className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+        className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
         style={{
           background: `${color}15`,
           color,
@@ -214,7 +214,7 @@ function NotificationToast({ notification, onDismiss, style }: NotificationToast
 
       <button
         onClick={onDismiss}
-        className="flex-shrink-0 p-1 rounded-lg transition-colors"
+        className="shrink-0 p-1 rounded-lg transition-colors"
         style={{ color: 'var(--ink-tertiary)' }}
       >
         <X className="w-4 h-4" />
@@ -414,7 +414,7 @@ function NotificationItem({ notification, onRead }: NotificationItemProps) {
     >
       <div className="flex items-start gap-3">
         <div
-          className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+          className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
           style={{
             background: `${color}15`,
             color,
@@ -433,7 +433,7 @@ function NotificationItem({ notification, onRead }: NotificationItemProps) {
             </p>
             {!notification.read && (
               <span
-                className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                className="w-2 h-2 rounded-full shrink-0 mt-1.5"
                 style={{ background: 'var(--masters)' }}
               />
             )}

@@ -249,7 +249,7 @@ export function CourseSelection({
                             <div className="p-4">
                                 <div className="flex items-start gap-3">
                                     {/* Day indicator */}
-                                    <div className="w-10 h-10 rounded-lg bg-augusta-green/10 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-lg bg-augusta-green/10 flex items-center justify-center shrink-0">
                                         <span className="font-bold text-augusta-green">D{index + 1}</span>
                                     </div>
 

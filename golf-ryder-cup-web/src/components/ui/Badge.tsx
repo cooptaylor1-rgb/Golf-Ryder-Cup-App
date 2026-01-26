@@ -124,7 +124,7 @@ export function Badge({
 
             {/* Icon */}
             {icon && (
-                <span className="flex-shrink-0 [&>svg]:h-3 [&>svg]:w-3" aria-hidden="true">
+                <span className="shrink-0 [&>svg]:h-3 [&>svg]:w-3" aria-hidden="true">
                     {icon}
                 </span>
             )}

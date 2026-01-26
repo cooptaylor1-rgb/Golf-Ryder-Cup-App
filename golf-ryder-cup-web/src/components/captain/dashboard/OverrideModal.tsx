@@ -595,7 +595,7 @@ export function OverrideModal({
                         initial={{ opacity: 0, y: 100 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 100 }}
-                        className="fixed inset-x-4 bottom-4 top-20 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-[480px] md:top-1/2 md:-translate-y-1/2 md:h-auto md:max-h-[80vh] z-50 rounded-2xl overflow-hidden flex flex-col"
+                        className="fixed inset-x-4 bottom-4 top-20 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-120 md:top-1/2 md:-translate-y-1/2 md:h-auto md:max-h-[80vh] z-50 rounded-2xl overflow-hidden flex flex-col"
                         style={{ background: 'var(--bg)' }}
                     >
                         {/* Header */}
@@ -745,7 +745,7 @@ export function OverrideModal({
                                         className="p-3 rounded-lg flex items-start gap-2"
                                         style={{ background: 'rgba(245, 158, 11, 0.1)' }}
                                     >
-                                        <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" style={{ color: '#F59E0B' }} />
+                                        <AlertTriangle size={16} className="shrink-0 mt-0.5" style={{ color: '#F59E0B' }} />
                                         <p className="text-xs" style={{ color: '#F59E0B' }}>
                                             This override will be recorded in the audit log with your name ({currentUserName})
                                             and reason. This action may affect match outcomes.

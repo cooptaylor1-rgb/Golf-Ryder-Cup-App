@@ -148,7 +148,7 @@ export function HandicapRules({
                                 <p className="text-xs text-surface-500 mt-0.5">{preset.description}</p>
                             </div>
                             {activePreset === preset.id && (
-                                <Check className="w-4 h-4 text-augusta-green flex-shrink-0" />
+                                <Check className="w-4 h-4 text-augusta-green shrink-0" />
                             )}
                         </div>
                     </button>

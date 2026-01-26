@@ -356,9 +356,9 @@ function SetupProgressCard({ progress, tasks, showAll, onToggleShowAll }: SetupP
             className="flex items-center gap-3 py-2"
           >
             {task.completed ? (
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--success)' }} />
+              <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: 'var(--success)' }} />
             ) : (
-              <Circle className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--ink-tertiary)' }} />
+              <Circle className="w-5 h-5 shrink-0" style={{ color: 'var(--ink-tertiary)' }} />
             )}
             <span
               className={cn('flex-1 text-sm', task.completed && 'line-through')}
@@ -452,7 +452,7 @@ function AttentionCard({ title, description, sessions, tripId: _tripId }: Attent
       }}
     >
       <div className="flex items-start gap-3">
-        <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5" />
+        <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
         <div className="flex-1">
           <h3 className="font-bold">{title}</h3>
           <p className="text-sm text-white/80 mt-0.5">{description}</p>

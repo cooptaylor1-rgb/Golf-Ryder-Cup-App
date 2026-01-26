@@ -197,7 +197,7 @@ export function SmartPairingSuggestions({
       </div>
 
       {/* Fairness Score */}
-      <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
+      <div className="p-4 bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-300">Overall Pairing Fairness</p>

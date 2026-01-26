@@ -152,7 +152,7 @@ export function TeamColorPicker({
                     <button
                         key={i}
                         onClick={() => applyPreset(preset)}
-                        className="flex-shrink-0 px-3 py-2 rounded-full bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 transition-colors text-sm flex items-center gap-2"
+                        className="shrink-0 px-3 py-2 rounded-full bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 transition-colors text-sm flex items-center gap-2"
                     >
                         <div className="flex -space-x-1">
                             <div

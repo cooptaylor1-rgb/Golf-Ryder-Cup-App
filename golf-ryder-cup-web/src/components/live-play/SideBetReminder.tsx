@@ -317,7 +317,7 @@ export function SideBetReminder({
                             >
                                 {/* Icon */}
                                 <div
-                                    className="flex-shrink-0 p-2 rounded-xl"
+                                    className="shrink-0 p-2 rounded-xl"
                                     style={{ background: `${colors.accent}20`, color: colors.accent }}
                                 >
                                     {getBetIcon(bet.type)}

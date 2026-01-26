@@ -143,7 +143,7 @@ export function SidebarNav({ isExpanded = false, onToggle }: SidebarNavProps) {
                             )}
 
                             <Icon className={cn(
-                                'w-5 h-5 flex-shrink-0 transition-transform',
+                                'w-5 h-5 shrink-0 transition-transform',
                                 active && 'scale-110',
                             )} />
 

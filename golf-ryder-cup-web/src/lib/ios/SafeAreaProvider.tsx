@@ -123,16 +123,16 @@ const getInitialHomeIndicator = () => typeof window !== 'undefined' && detectHom
 
 export function SafeAreaProvider({ children }: SafeAreaProviderProps) {
   const [insets, setInsets] = useState<SafeAreaInsets>(getInitialInsets);
-  const [isIOS, setIsIOS] = useState(getInitialIOS);
+  const [isIOS] = useState(getInitialIOS);
   const [hasDynamicIsland, setHasDynamicIsland] = useState(getInitialDynamicIsland);
-  const [hasHomeIndicator, setHasHomeIndicator] = useState(getInitialHomeIndicator);
+  const [hasHomeIndicator] = useState(getInitialHomeIndicator);
   const [adjustedBottom, setAdjustedBottom] = useState(() => getInitialInsets().bottom);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
+    // For non-iOS devices, insets are already initialized via getInitialInsets()
+    // so we don't need to update them here
     if (!isIOS) {
-      // Non-iOS: still get safe area insets (for notched Android, etc.)
-      setInsets(getSafeAreaInsets());
       return;
     }
 
@@ -175,7 +175,7 @@ export function SafeAreaProvider({ children }: SafeAreaProviderProps) {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [insets.bottom, isKeyboardVisible]);
+  }, [insets.bottom, isKeyboardVisible, isIOS]);
 
   // Update CSS custom properties
   useEffect(() => {

@@ -165,7 +165,7 @@ export function TripRecap({
             <div
                 className={cn(
                     'relative p-8 rounded-2xl overflow-hidden',
-                    'bg-gradient-to-br',
+                    'bg-linear-to-br',
                     winner === 'usa'
                         ? 'from-[#1E3A5F] to-[#0D1F35]'
                         : winner === 'europe'

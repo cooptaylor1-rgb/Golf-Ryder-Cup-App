@@ -200,7 +200,7 @@ export function SideBetPresets({
                         <button
                             key={preset.type}
                             onClick={() => addPresetBet(preset)}
-                            className="flex-shrink-0 px-3 py-2 rounded-full bg-surface-100 dark:bg-surface-800 hover:bg-augusta-green/10 hover:text-augusta-green transition-colors text-sm flex items-center gap-2"
+                            className="shrink-0 px-3 py-2 rounded-full bg-surface-100 dark:bg-surface-800 hover:bg-augusta-green/10 hover:text-augusta-green transition-colors text-sm flex items-center gap-2"
                         >
                             <Plus className="w-3 h-3" />
                             {preset.name}
@@ -315,7 +315,7 @@ export function SideBetPresets({
             {/* Tip */}
             {sideBets.length > 0 && (
                 <div className="p-3 rounded-xl bg-surface-50 dark:bg-surface-800 flex gap-3">
-                    <Lightbulb className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                    <Lightbulb className="w-5 h-5 text-yellow-500 shrink-0" />
                     <p className="text-sm text-surface-600 dark:text-surface-400">
                         Side bets are optional and can be adjusted before each round.
                         Players can opt in or out individually.

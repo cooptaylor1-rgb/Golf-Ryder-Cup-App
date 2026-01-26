@@ -450,7 +450,7 @@ function AnnouncementCard({ announcement, onClick }: AnnouncementCardProps) {
     >
       <div className="flex items-start gap-3">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
           style={{
             background: isUrgent ? 'var(--error)' : 'var(--surface-raised)',
             color: isUrgent ? 'white' : 'var(--masters)',
@@ -507,7 +507,7 @@ function AnnouncementCard({ announcement, onClick }: AnnouncementCardProps) {
         </div>
 
         <ChevronRight
-          className="w-5 h-5 flex-shrink-0"
+          className="w-5 h-5 shrink-0"
           style={{ color: 'var(--ink-tertiary)' }}
         />
       </div>
