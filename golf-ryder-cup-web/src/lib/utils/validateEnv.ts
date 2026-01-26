@@ -205,10 +205,8 @@ export function isFeatureConfigured(feature: 'supabase' | 'sentry' | 'ocr' | 'go
         case 'ocr':
             return !!(process.env.ANTHROPIC_API_KEY || process.env.OPENAI_API_KEY);
         case 'golfApi':
-            return !!(
-                process.env.GOLF_COURSE_API_KEY ||
-                process.env.NEXT_PUBLIC_GOLF_COURSE_API_KEY
-            );
+            // Only check server-side key - never expose API keys via NEXT_PUBLIC_
+            return !!process.env.GOLF_COURSE_API_KEY;
         default:
             return false;
     }

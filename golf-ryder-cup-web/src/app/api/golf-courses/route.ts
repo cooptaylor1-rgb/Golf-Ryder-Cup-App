@@ -24,8 +24,8 @@ const RATE_LIMIT_CONFIG = {
 };
 
 function getApiKey(): string | null {
-    // Server-side env vars (no NEXT_PUBLIC_ prefix needed)
-    return process.env.GOLF_COURSE_API_KEY || process.env.NEXT_PUBLIC_GOLF_COURSE_API_KEY || null;
+    // Server-side only - never use NEXT_PUBLIC_ for API keys
+    return process.env.GOLF_COURSE_API_KEY || null;
 }
 
 export async function GET(request: NextRequest) {
