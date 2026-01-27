@@ -3,7 +3,11 @@
 import { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { CircleDot, Info } from 'lucide-react';
-import { allocateStrokes, isOneBallFormat } from '@/lib/services/handicapCalculator';
+import {
+  allocateStrokes,
+  isOneBallFormat,
+  getMatchPlayStrokesOnHole,
+} from '@/lib/services/handicapCalculator';
 
 /**
  * HANDICAP STROKE INDICATOR
@@ -19,6 +23,10 @@ import { allocateStrokes, isOneBallFormat } from '@/lib/services/handicapCalcula
  * Format Awareness:
  * - For one-ball formats (scramble, foursomes, etc.): Shows TEAM strokes
  * - For individual formats (fourball): Shows individual player strokes
+ *
+ * Match Play Rules:
+ * - Strokes are based on the DIFFERENTIAL between team handicaps
+ * - Only the higher handicap team receives strokes
  */
 
 export interface HandicapStrokeIndicatorProps {
@@ -48,22 +56,43 @@ export function HandicapStrokeIndicator({
   // Determine if this is a one-ball format (team strokes vs individual)
   const isTeamStrokesFormat = format ? isOneBallFormat(format) : false;
 
-  // Calculate stroke allocation for each team
-  const teamAStrokeAllocation = useMemo(() => {
-    if (holeHandicaps.length !== 18) return Array(18).fill(0);
-    return allocateStrokes(teamAStrokes, holeHandicaps);
-  }, [teamAStrokes, holeHandicaps]);
+  // Calculate match play stroke differential for current hole
+  // In match play, only the higher handicap team gets strokes (the difference)
+  const { teamAStrokes: teamAStrokesOnHole, teamBStrokes: teamBStrokesOnHole } = useMemo(() => {
+    if (holeHandicaps.length !== 18) return { teamAStrokes: 0, teamBStrokes: 0 };
+    return getMatchPlayStrokesOnHole(currentHole, teamAStrokes, teamBStrokes, holeHandicaps);
+  }, [currentHole, teamAStrokes, teamBStrokes, holeHandicaps]);
 
-  const teamBStrokeAllocation = useMemo(() => {
-    if (holeHandicaps.length !== 18) return Array(18).fill(0);
-    return allocateStrokes(teamBStrokes, holeHandicaps);
-  }, [teamBStrokes, holeHandicaps]);
+  // Calculate total match play differential for summary display
+  const matchPlayDifferential = Math.abs(teamAStrokes - teamBStrokes);
+  const higherHandicapTeam =
+    teamAStrokes > teamBStrokes ? 'teamA' : teamBStrokes > teamAStrokes ? 'teamB' : null;
 
-  // Get strokes for current hole
-  const teamAStrokesOnHole = teamAStrokeAllocation[currentHole - 1] || 0;
-  const teamBStrokesOnHole = teamBStrokeAllocation[currentHole - 1] || 0;
+  // Calculate stroke allocation for all 18 holes (for the "All Holes View")
+  const { teamAStrokeAllocation, teamBStrokeAllocation } = useMemo(() => {
+    if (holeHandicaps.length !== 18) {
+      return {
+        teamAStrokeAllocation: Array(18).fill(0),
+        teamBStrokeAllocation: Array(18).fill(0),
+      };
+    }
+    // Calculate strokes on each hole using match play differential
+    const teamAAllocation: number[] = [];
+    const teamBAllocation: number[] = [];
+    for (let hole = 1; hole <= 18; hole++) {
+      const { teamAStrokes: a, teamBStrokes: b } = getMatchPlayStrokesOnHole(
+        hole,
+        teamAStrokes,
+        teamBStrokes,
+        holeHandicaps
+      );
+      teamAAllocation.push(a);
+      teamBAllocation.push(b);
+    }
+    return { teamAStrokeAllocation: teamAAllocation, teamBStrokeAllocation: teamBAllocation };
+  }, [teamAStrokes, teamBStrokes, holeHandicaps]);
 
-  // No strokes to show
+  // No strokes to show (equal handicaps)
   if (teamAStrokes === 0 && teamBStrokes === 0) {
     return null;
   }
@@ -77,9 +106,10 @@ export function HandicapStrokeIndicator({
       <div
         className="flex items-center justify-between p-3 rounded-xl"
         style={{
-          background: (teamAStrokesOnHole > 0 || teamBStrokesOnHole > 0)
-            ? 'linear-gradient(90deg, rgba(179, 39, 57, 0.05) 0%, rgba(0, 39, 118, 0.05) 100%)'
-            : 'var(--canvas-sunken)',
+          background:
+            teamAStrokesOnHole > 0 || teamBStrokesOnHole > 0
+              ? 'linear-gradient(90deg, rgba(179, 39, 57, 0.05) 0%, rgba(0, 39, 118, 0.05) 100%)'
+              : 'var(--canvas-sunken)',
           border: '1px solid var(--rule)',
         }}
       >
@@ -119,27 +149,22 @@ export function HandicapStrokeIndicator({
         </div>
       </div>
 
-      {/* Stroke Summary */}
-      {(teamAStrokes > 0 || teamBStrokes > 0) && (
+      {/* Stroke Summary - Shows match play differential */}
+      {matchPlayDifferential > 0 && higherHandicapTeam && (
         <div
-          className="flex items-center justify-between mt-2 px-2 text-xs"
+          className="flex items-center justify-center mt-2 px-2 text-xs"
           style={{ color: 'var(--ink-tertiary)' }}
         >
           <span>
-            {teamAStrokes > 0 ? `${teamAName}: ${teamAStrokes} ${isTeamStrokesFormat ? 'team ' : ''}stroke${teamAStrokes !== 1 ? 's' : ''}` : ''}
-          </span>
-          <span>
-            {teamBStrokes > 0 ? `${teamBName}: ${teamBStrokes} ${isTeamStrokesFormat ? 'team ' : ''}stroke${teamBStrokes !== 1 ? 's' : ''}` : ''}
+            {higherHandicapTeam === 'teamA' ? teamAName : teamBName} gets {matchPlayDifferential}{' '}
+            {isTeamStrokesFormat ? 'team ' : ''}stroke{matchPlayDifferential !== 1 ? 's' : ''}
           </span>
         </div>
       )}
 
       {/* Format hint for one-ball formats */}
       {isTeamStrokesFormat && (teamAStrokes > 0 || teamBStrokes > 0) && (
-        <div
-          className="flex items-center gap-1 mt-1 px-2"
-          style={{ color: 'var(--ink-muted)' }}
-        >
+        <div className="flex items-center gap-1 mt-1 px-2" style={{ color: 'var(--ink-muted)' }}>
           <Info size={10} />
           <span className="text-[10px]">One ball in play — strokes apply to team</span>
         </div>
@@ -148,11 +173,14 @@ export function HandicapStrokeIndicator({
       {/* All Holes View */}
       {showAllHoles && (
         <div className="mt-4 space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--ink-tertiary)' }}>
+          <p
+            className="text-xs font-medium uppercase tracking-wider"
+            style={{ color: 'var(--ink-tertiary)' }}
+          >
             Stroke Holes
           </p>
           <div className="flex flex-wrap gap-1">
-            {Array.from({ length: 18 }, (_, i) => i + 1).map(hole => {
+            {Array.from({ length: 18 }, (_, i) => i + 1).map((hole) => {
               const aStrokes = teamAStrokeAllocation[hole - 1];
               const bStrokes = teamBStrokeAllocation[hole - 1];
               const hasStrokes = aStrokes > 0 || bStrokes > 0;
@@ -215,12 +243,7 @@ function StrokeDots({ strokes, color }: StrokeDotsProps) {
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: Math.min(strokes, 3) }, (_, i) => (
-        <CircleDot
-          key={i}
-          size={12}
-          style={{ color }}
-          fill={color}
-        />
+        <CircleDot key={i} size={12} style={{ color }} fill={color} />
       ))}
       {strokes > 3 && (
         <span className="text-xs font-medium ml-0.5" style={{ color }}>

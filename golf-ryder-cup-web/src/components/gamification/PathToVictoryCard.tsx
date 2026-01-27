@@ -13,11 +13,11 @@ import React, { useState } from 'react';
 import { Trophy, TrendingUp, Target, AlertCircle, ChevronDown, ChevronUp, Zap } from 'lucide-react';
 import type { TeamStandings } from '@/lib/types/computed';
 import {
-    calculatePathToVictory,
-    getQuickSummary,
-    detectDramaticMoment,
-    type PathToVictory,
-    type VictoryScenario,
+  calculatePathToVictory,
+  getQuickSummary,
+  detectDramaticMoment,
+  type PathToVictory,
+  type VictoryScenario,
 } from '@/lib/services/pathToVictoryService';
 
 // ============================================
@@ -25,27 +25,22 @@ import {
 // ============================================
 
 interface PathToVictoryCardProps {
-    standings: TeamStandings;
-    pointsToWin: number;
-    teamAName?: string;
-    teamBName?: string;
-    compact?: boolean;
+  standings: TeamStandings;
+  pointsToWin: number;
+  teamAName?: string;
+  teamBName?: string;
+  compact?: boolean;
 }
 
-// Colors
+// Brand colors (non-theme dependent)
 const COLORS = {
-    usa: '#1565C0',
-    europe: '#C62828',
-    gold: '#FFD54F',
-    green: '#004225',
-    success: '#4CAF50',
-    warning: '#FF9800',
-    error: '#EF5350',
-    textPrimary: '#FFFFFF',
-    textSecondary: '#A0A0A0',
-    surface: '#141414',
-    surfaceElevated: '#1E1E1E',
-    border: '#3A3A3A',
+  usa: '#1565C0',
+  europe: '#C62828',
+  gold: '#FFD54F',
+  green: '#004225',
+  success: '#4CAF50',
+  warning: '#FF9800',
+  error: '#EF5350',
 };
 
 // ============================================
@@ -53,354 +48,275 @@ const COLORS = {
 // ============================================
 
 export function PathToVictoryCard({
-    standings,
-    pointsToWin,
-    teamAName = 'Team USA',
-    teamBName = 'Team Europe',
-    compact = false,
+  standings,
+  pointsToWin,
+  teamAName = 'Team USA',
+  teamBName = 'Team Europe',
+  compact = false,
 }: PathToVictoryCardProps) {
-    const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
-    const pathData = calculatePathToVictory(standings, pointsToWin, teamAName, teamBName);
-    const { teamASummary, teamBSummary } = getQuickSummary(pathData);
-    const dramaticMoment = detectDramaticMoment(pathData);
+  const pathData = calculatePathToVictory(standings, pointsToWin, teamAName, teamBName);
+  const { teamASummary, teamBSummary } = getQuickSummary(pathData);
+  const dramaticMoment = detectDramaticMoment(pathData);
 
-    if (pathData.isDecided && !expanded) {
-        const winner = pathData.teamA.hasClinched ? pathData.teamA : pathData.teamB;
-        return (
-            <div
-                style={{
-                    background: `linear-gradient(135deg, ${COLORS.gold}20, ${COLORS.gold}10)`,
-                    borderRadius: '16px',
-                    padding: '24px',
-                    border: `2px solid ${COLORS.gold}`,
-                    textAlign: 'center',
-                }}
-            >
-                <Trophy
-                    size={40}
-                    style={{ color: COLORS.gold, margin: '0 auto', marginBottom: '12px' }}
-                />
-                <h3 style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    color: COLORS.textPrimary,
-                    marginBottom: '8px',
-                }}>
-                    {winner.name} Wins!
-                </h3>
-                <p style={{
-                    fontSize: '1rem',
-                    color: COLORS.textSecondary,
-                }}>
-                    Final: {pathData.teamA.currentPoints} - {pathData.teamB.currentPoints}
-                </p>
-            </div>
-        );
-    }
-
+  if (pathData.isDecided && !expanded) {
+    const winner = pathData.teamA.hasClinched ? pathData.teamA : pathData.teamB;
     return (
-        <div
-            style={{
-                background: COLORS.surface,
-                borderRadius: '16px',
-                overflow: 'hidden',
-                border: `1px solid ${COLORS.border}`,
-            }}
-        >
-            {/* Dramatic Moment Banner */}
-            {dramaticMoment && (
-                <div
-                    style={{
-                        background: `linear-gradient(90deg, ${COLORS.gold}30, ${COLORS.gold}10)`,
-                        padding: '12px 16px',
-                        borderBottom: `1px solid ${COLORS.gold}40`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                    }}
-                >
-                    <Zap size={20} style={{ color: COLORS.gold }} />
-                    <div>
-                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: COLORS.gold }}>
-                            {dramaticMoment.headline}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>
-                            {dramaticMoment.subtext}
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Header */}
-            <div style={{ padding: '16px' }}>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '16px',
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <Target size={20} style={{ color: COLORS.green }} />
-                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: COLORS.textPrimary }}>
-                            Path to Victory
-                        </h3>
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>
-                        {pathData.remainingMatches} matches remaining
-                    </div>
-                </div>
-
-                {/* Progress Bar */}
-                <CupProgressBar pathData={pathData} />
-
-                {/* Quick Summaries */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
-                    <QuickSummaryRow
-                        summary={teamASummary}
-                        color={COLORS.usa}
-                        hasClinched={pathData.teamA.hasClinched}
-                        isEliminated={pathData.teamA.isEliminated}
-                    />
-                    <QuickSummaryRow
-                        summary={teamBSummary}
-                        color={COLORS.europe}
-                        hasClinched={pathData.teamB.hasClinched}
-                        isEliminated={pathData.teamB.isEliminated}
-                    />
-                </div>
-            </div>
-
-            {/* Expand/Collapse */}
-            {!compact && (
-                <>
-                    <button
-                        onClick={() => setExpanded(!expanded)}
-                        style={{
-                            width: '100%',
-                            padding: '12px',
-                            background: COLORS.surfaceElevated,
-                            border: 'none',
-                            borderTop: `1px solid ${COLORS.border}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            color: COLORS.textSecondary,
-                            cursor: 'pointer',
-                            fontSize: '0.75rem',
-                        }}
-                    >
-                        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        {expanded ? 'Hide scenarios' : 'View detailed scenarios'}
-                    </button>
-
-                    {expanded && (
-                        <div style={{
-                            padding: '16px',
-                            borderTop: `1px solid ${COLORS.border}`,
-                            background: COLORS.surfaceElevated,
-                        }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                <TeamScenarios team={pathData.teamA} color={COLORS.usa} />
-                                <TeamScenarios team={pathData.teamB} color={COLORS.europe} />
-                            </div>
-                            <div style={{
-                                marginTop: '16px',
-                                padding: '12px',
-                                background: COLORS.surface,
-                                borderRadius: '8px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                            }}>
-                                <AlertCircle size={16} style={{ color: COLORS.textSecondary }} />
-                                <span style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>
-                                    {pathData.tieBreaker}
-                                </span>
-                            </div>
-                        </div>
-                    )}
-                </>
-            )}
-        </div>
+      <div
+        className="rounded-2xl p-6 text-center border-2"
+        style={{
+          background: `linear-gradient(135deg, ${COLORS.gold}20, ${COLORS.gold}10)`,
+          borderColor: COLORS.gold,
+        }}
+      >
+        <Trophy size={40} style={{ color: COLORS.gold, margin: '0 auto', marginBottom: '12px' }} />
+        <h3 className="text-2xl font-bold text-surface-900 dark:text-white mb-2">
+          {winner.name} Wins!
+        </h3>
+        <p className="text-base text-surface-500">
+          Final: {pathData.teamA.currentPoints} - {pathData.teamB.currentPoints}
+        </p>
+      </div>
     );
+  }
+
+  return (
+    <div className="bg-surface-card rounded-2xl overflow-hidden border border-surface-200 dark:border-surface-700">
+      {/* Dramatic Moment Banner */}
+      {dramaticMoment && (
+        <div
+          className="px-4 py-3 flex items-center gap-3"
+          style={{
+            background: `linear-gradient(90deg, ${COLORS.gold}30, ${COLORS.gold}10)`,
+            borderBottom: `1px solid ${COLORS.gold}40`,
+          }}
+        >
+          <Zap size={20} style={{ color: COLORS.gold }} />
+          <div>
+            <div className="text-xs font-semibold" style={{ color: COLORS.gold }}>
+              {dramaticMoment.headline}
+            </div>
+            <div className="text-xs text-surface-500">{dramaticMoment.subtext}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Target size={20} style={{ color: COLORS.green }} />
+            <h3 className="text-sm font-semibold text-surface-900 dark:text-white">
+              Path to Victory
+            </h3>
+          </div>
+          <div className="text-xs text-surface-500">
+            {pathData.remainingMatches} matches remaining
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <CupProgressBar pathData={pathData} />
+
+        {/* Quick Summaries */}
+        <div className="flex flex-col gap-3 mt-4">
+          <QuickSummaryRow
+            summary={teamASummary}
+            color={COLORS.usa}
+            hasClinched={pathData.teamA.hasClinched}
+            isEliminated={pathData.teamA.isEliminated}
+          />
+          <QuickSummaryRow
+            summary={teamBSummary}
+            color={COLORS.europe}
+            hasClinched={pathData.teamB.hasClinched}
+            isEliminated={pathData.teamB.isEliminated}
+          />
+        </div>
+      </div>
+
+      {/* Expand/Collapse */}
+      {!compact && (
+        <>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="w-full py-3 bg-surface-50 dark:bg-surface-800 border-t border-surface-200 dark:border-surface-700 flex items-center justify-center gap-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 cursor-pointer text-xs transition-colors"
+          >
+            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {expanded ? 'Hide scenarios' : 'View detailed scenarios'}
+          </button>
+
+          {expanded && (
+            <div className="p-4 border-t border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800">
+              <div className="grid grid-cols-2 gap-4">
+                <TeamScenarios team={pathData.teamA} color={COLORS.usa} />
+                <TeamScenarios team={pathData.teamB} color={COLORS.europe} />
+              </div>
+              <div className="mt-4 p-3 bg-surface-card rounded-lg flex items-center gap-3">
+                <AlertCircle size={16} className="text-surface-400" />
+                <span className="text-xs text-surface-500">{pathData.tieBreaker}</span>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
 }
 
 function CupProgressBar({ pathData }: { pathData: PathToVictory }) {
-    const { teamA, teamB, pointsToWin } = pathData;
-    const teamAPercent = Math.min(100, (teamA.currentPoints / pointsToWin) * 50);
-    const teamBPercent = Math.min(100, (teamB.currentPoints / pointsToWin) * 50);
+  const { teamA, teamB, pointsToWin } = pathData;
+  const teamAPercent = Math.min(100, (teamA.currentPoints / pointsToWin) * 50);
+  const teamBPercent = Math.min(100, (teamB.currentPoints / pointsToWin) * 50);
 
-    return (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: COLORS.usa }}>{teamA.currentPoints}</div>
-                <div style={{ fontSize: '0.75rem', color: COLORS.textSecondary }}>{pointsToWin} to win</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: COLORS.europe }}>{teamB.currentPoints}</div>
-            </div>
-            <div style={{
-                display: 'flex',
-                height: 12,
-                background: COLORS.border,
-                borderRadius: '9999px',
-                overflow: 'hidden',
-                position: 'relative',
-            }}>
-                <div style={{
-                    width: `${teamAPercent}%`,
-                    background: `linear-gradient(90deg, ${COLORS.usa}, ${COLORS.usa}CC)`,
-                    transition: 'width 0.3s ease',
-                }} />
-                <div style={{
-                    position: 'absolute',
-                    left: '50%',
-                    top: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    background: COLORS.gold,
-                    borderRadius: '50%',
-                    width: 20,
-                    height: 20,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 2,
-                    boxShadow: `0 0 8px ${COLORS.gold}40`,
-                }}>
-                    <Trophy size={12} style={{ color: '#000' }} />
-                </div>
-                <div style={{ flex: 1 }} />
-                <div style={{
-                    width: `${teamBPercent}%`,
-                    background: `linear-gradient(90deg, ${COLORS.europe}CC, ${COLORS.europe})`,
-                    transition: 'width 0.3s ease',
-                }} />
-            </div>
+  return (
+    <div>
+      <div className="flex justify-between mb-2">
+        <div className="text-xl font-bold" style={{ color: COLORS.usa }}>
+          {teamA.currentPoints}
         </div>
-    );
+        <div className="text-xs text-surface-500">{pointsToWin} to win</div>
+        <div className="text-xl font-bold" style={{ color: COLORS.europe }}>
+          {teamB.currentPoints}
+        </div>
+      </div>
+      <div className="flex h-3 bg-surface-200 dark:bg-surface-700 rounded-full overflow-hidden relative">
+        <div
+          className="transition-[width] duration-300 ease-out"
+          style={{
+            width: `${teamAPercent}%`,
+            background: `linear-gradient(90deg, ${COLORS.usa}, ${COLORS.usa}CC)`,
+          }}
+        />
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 rounded-full flex items-center justify-center z-10"
+          style={{
+            background: COLORS.gold,
+            boxShadow: `0 0 8px ${COLORS.gold}40`,
+          }}
+        >
+          <Trophy size={12} style={{ color: '#000' }} />
+        </div>
+        <div className="flex-1" />
+        <div
+          className="transition-[width] duration-300 ease-out"
+          style={{
+            width: `${teamBPercent}%`,
+            background: `linear-gradient(90deg, ${COLORS.europe}CC, ${COLORS.europe})`,
+          }}
+        />
+      </div>
+    </div>
+  );
 }
 
 function QuickSummaryRow({
-    summary,
-    color,
-    hasClinched,
-    isEliminated,
+  summary,
+  color,
+  hasClinched,
+  isEliminated,
 }: {
-    summary: string;
-    color: string;
-    hasClinched: boolean;
-    isEliminated: boolean;
+  summary: string;
+  color: string;
+  hasClinched: boolean;
+  isEliminated: boolean;
 }) {
-    return (
-        <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '12px',
-            background: `${color}10`,
-            borderRadius: '8px',
-            borderLeft: `3px solid ${color}`,
-            opacity: isEliminated ? 0.5 : 1,
-        }}>
-            {hasClinched ? (
-                <Trophy size={16} style={{ color: COLORS.gold }} />
-            ) : (
-                <TrendingUp size={16} style={{ color }} />
-            )}
-            <span style={{ fontSize: '0.875rem', color: COLORS.textPrimary, flex: 1 }}>{summary}</span>
-        </div>
-    );
+  return (
+    <div
+      className="flex items-center gap-3 p-3 rounded-lg"
+      style={{
+        background: `${color}10`,
+        borderLeft: `3px solid ${color}`,
+        opacity: isEliminated ? 0.5 : 1,
+      }}
+    >
+      {hasClinched ? (
+        <Trophy size={16} style={{ color: COLORS.gold }} />
+      ) : (
+        <TrendingUp size={16} style={{ color }} />
+      )}
+      <span className="text-sm text-surface-900 dark:text-white flex-1">{summary}</span>
+    </div>
+  );
 }
 
 function TeamScenarios({ team, color }: { team: PathToVictory['teamA']; color: string }) {
-    return (
-        <div>
-            <div style={{ fontSize: '0.875rem', fontWeight: 600, color, marginBottom: '12px' }}>{team.name}</div>
-            {team.hasClinched ? (
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px',
-                    background: `${COLORS.gold}20`,
-                    borderRadius: '8px',
-                }}>
-                    <Trophy size={16} style={{ color: COLORS.gold }} />
-                    <span style={{ fontSize: '0.875rem', color: COLORS.gold }}>Cup clinched!</span>
-                </div>
-            ) : team.isEliminated ? (
-                <div style={{
-                    padding: '12px',
-                    background: COLORS.surface,
-                    borderRadius: '8px',
-                    fontSize: '0.875rem',
-                    color: COLORS.textSecondary,
-                }}>
-                    Eliminated from contention
-                </div>
-            ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {team.scenarios.map((scenario, index) => (
-                        <ScenarioRow key={index} scenario={scenario} />
-                    ))}
-                </div>
-            )}
+  return (
+    <div>
+      <div className="text-sm font-semibold mb-3" style={{ color }}>
+        {team.name}
+      </div>
+      {team.hasClinched ? (
+        <div
+          className="flex items-center gap-2 p-3 rounded-lg"
+          style={{ background: `${COLORS.gold}20` }}
+        >
+          <Trophy size={16} style={{ color: COLORS.gold }} />
+          <span className="text-sm" style={{ color: COLORS.gold }}>
+            Cup clinched!
+          </span>
         </div>
-    );
+      ) : team.isEliminated ? (
+        <div className="p-3 bg-surface-100 dark:bg-surface-800 rounded-lg text-sm text-surface-500">
+          Eliminated from contention
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {team.scenarios.map((scenario, index) => (
+            <ScenarioRow key={index} scenario={scenario} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ScenarioRow({ scenario }: { scenario: VictoryScenario }) {
-    const probabilityColors = {
-        high: COLORS.success,
-        medium: COLORS.warning,
-        low: '#FF9800',
-        unlikely: COLORS.error,
-    };
-    return (
-        <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '8px',
-            background: COLORS.surface,
-            borderRadius: '4px',
-        }}>
-            <div style={{
-                width: 8,
-                height: 8,
-                borderRadius: '50%',
-                background: probabilityColors[scenario.probability],
-            }} />
-            <span style={{ fontSize: '0.75rem', color: COLORS.textPrimary, flex: 1 }}>{scenario.description}</span>
-        </div>
-    );
+  const probabilityColors = {
+    high: COLORS.success,
+    medium: COLORS.warning,
+    low: '#FF9800',
+    unlikely: COLORS.error,
+  };
+  return (
+    <div className="flex items-center gap-3 p-2 bg-surface-100 dark:bg-surface-800 rounded">
+      <div
+        className="w-2 h-2 rounded-full"
+        style={{ background: probabilityColors[scenario.probability] }}
+      />
+      <span className="text-xs text-surface-900 dark:text-white flex-1">
+        {scenario.description}
+      </span>
+    </div>
+  );
 }
 
 export function PathToVictoryInline({
-    standings,
-    pointsToWin,
-    teamAName = 'Team USA',
-    teamBName = 'Team Europe',
+  standings,
+  pointsToWin,
+  teamAName = 'Team USA',
+  teamBName = 'Team Europe',
 }: Omit<PathToVictoryCardProps, 'compact'>) {
-    const pathData = calculatePathToVictory(standings, pointsToWin, teamAName, teamBName);
-    const { teamASummary, teamBSummary } = getQuickSummary(pathData);
+  const pathData = calculatePathToVictory(standings, pointsToWin, teamAName, teamBName);
+  const { teamASummary, teamBSummary } = getQuickSummary(pathData);
 
-    if (pathData.isDecided) {
-        const winner = pathData.teamA.hasClinched ? pathData.teamA : pathData.teamB;
-        return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', color: COLORS.gold }}>
-                <Trophy size={14} />
-                {winner.name} wins the cup
-            </div>
-        );
-    }
-
+  if (pathData.isDecided) {
+    const winner = pathData.teamA.hasClinched ? pathData.teamA : pathData.teamB;
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.75rem', color: COLORS.textSecondary }}>
-            <div>{teamASummary}</div>
-            <div>{teamBSummary}</div>
-        </div>
+      <div className="flex items-center gap-2 text-sm" style={{ color: COLORS.gold }}>
+        <Trophy size={14} />
+        {winner.name} wins the cup
+      </div>
     );
+  }
+
+  return (
+    <div className="flex flex-col gap-1 text-xs text-surface-500">
+      <div>{teamASummary}</div>
+      <div>{teamBSummary}</div>
+    </div>
+  );
 }
 
 export default PathToVictoryCard;
