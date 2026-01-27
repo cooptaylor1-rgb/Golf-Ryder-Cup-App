@@ -1,0 +1,31 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# build outputs
+dist/
+build/
+.next/
+out/
+
+# testing
+coverage/
+test-results/
+playwright-report/
+*.test-results
+
+# misc
+.DS_Store
+*.local
+.env*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

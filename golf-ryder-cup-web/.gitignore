@@ -17,7 +17,7 @@
 /.playwright/
 *.test-results
 visual-regression-baseline/
-tests/e2e/artifacts/test-results/
+tests/e2e/artifacts/
 
 # next.js
 /.next/
