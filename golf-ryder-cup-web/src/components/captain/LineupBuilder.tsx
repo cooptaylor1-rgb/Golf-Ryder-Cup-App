@@ -33,6 +33,7 @@ import {
   User,
   Scale,
   Trash2,
+  HelpCircle,
 } from 'lucide-react';
 
 // ============================================
@@ -778,6 +779,8 @@ interface FairnessIndicatorProps {
 }
 
 function FairnessIndicator({ score }: FairnessIndicatorProps) {
+  const [showInfo, setShowInfo] = useState(false);
+
   const getColor = (value: number) => {
     if (value >= 80) return 'var(--success)';
     if (value >= 60) return 'var(--warning)';
@@ -798,11 +801,45 @@ function FairnessIndicator({ score }: FairnessIndicatorProps) {
           <span className="font-medium" style={{ color: 'var(--ink)' }}>
             Fairness Score
           </span>
+          {/* Info button */}
+          <button
+            onClick={() => setShowInfo(!showInfo)}
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="What is fairness score?"
+          >
+            <HelpCircle size={16} style={{ color: 'var(--ink-tertiary)' }} />
+          </button>
         </div>
         <span className="text-xl font-bold" style={{ color: getColor(score.overall) }}>
           {score.overall}%
         </span>
       </div>
+
+      {/* Info tooltip/explanation */}
+      {showInfo && (
+        <div
+          className="mb-3 p-3 rounded-lg text-sm"
+          style={{ background: 'var(--canvas-sunken)', color: 'var(--ink-secondary)' }}
+        >
+          <p className="mb-2">
+            <strong>Fairness Score</strong> measures how balanced the matchups are:
+          </p>
+          <ul className="space-y-1 text-xs">
+            <li>
+              • <strong>Handicap Balance:</strong> Compares total handicaps between teams in each
+              match. Closer totals = fairer matches.
+            </li>
+            <li>
+              • <strong>Experience Balance:</strong> Considers matches played. Spreading experience
+              evenly creates fairer pairings.
+            </li>
+            <li>
+              • <strong>80%+</strong> = Great balance, <strong>60-79%</strong> = Acceptable,{' '}
+              <strong>&lt;60%</strong> = Consider adjustments
+            </li>
+          </ul>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         <div>

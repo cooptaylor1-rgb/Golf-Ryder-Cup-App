@@ -310,6 +310,9 @@ const SESSION_TYPES = ALL_FORMATS.filter((t) =>
   defaultMatches: t.defaultMatches,
 }));
 
+// Popular formats shown by default (reduces analysis paralysis)
+const POPULAR_FORMATS = ['fourball', 'foursomes', 'singles', 'skins'];
+
 const FORMAT_CATEGORIES: { value: FormatCategory; label: string; description: string }[] = [
   { value: 'match_play', label: 'Match Play', description: 'Traditional Ryder Cup formats' },
   { value: 'side_game', label: 'Side Games', description: 'Additional betting formats' },
@@ -368,17 +371,33 @@ export default function NewLineupPage() {
     return getTodayDate();
   }, [currentTrip?.startDate]);
 
+  // Smart default tee time based on current time of day
+  const defaultTeeTime = useMemo(() => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    // If before 11am, default to morning tee time (8:00)
+    // If after 11am, default to afternoon tee time (13:00)
+    return currentHour < 11 ? '08:00' : '13:00';
+  }, []);
+
   const [step, setStep] = useState<Step>('setup');
   const [sessionName, setSessionName] = useState(defaultSessionName);
   const [sessionType, setSessionType] = useState<SessionType>('fourball'); // Most common format
   const [scheduledDate, setScheduledDate] = useState(defaultDate);
-  const [firstTeeTime, setFirstTeeTime] = useState('08:00');
+  const [firstTeeTime, setFirstTeeTime] = useState(defaultTeeTime);
   const [teeTimeInterval, setTeeTimeInterval] = useState(10); // minutes between matches
   const [matchCount, setMatchCount] = useState(4);
   const [pointsPerMatch, setPointsPerMatch] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [tooltipFormat, setTooltipFormat] = useState<string | null>(null);
+  const [showAllFormats, setShowAllFormats] = useState(false);
+
+  // Filter formats: show popular by default, all when expanded
+  const displayedFormats = useMemo(() => {
+    if (showAllFormats) return ALL_FORMATS;
+    return ALL_FORMATS.filter((f) => POPULAR_FORMATS.includes(f.value));
+  }, [showAllFormats]);
 
   // Generate tee times based on first tee time and interval
   const teeTimes = useMemo(() => {
@@ -738,9 +757,11 @@ export default function NewLineupPage() {
 
                   {/* Format Categories */}
                   {FORMAT_CATEGORIES.map((category) => {
-                    const categoryFormats = ALL_FORMATS.filter(
+                    const categoryFormats = displayedFormats.filter(
                       (f) => f.category === category.value
                     );
+                    // Don't render empty categories when filtering
+                    if (categoryFormats.length === 0) return null;
                     return (
                       <div key={category.value} className="mb-6">
                         <div className="flex items-center gap-2 mb-3">
@@ -837,6 +858,28 @@ export default function NewLineupPage() {
                       </div>
                     );
                   })}
+
+                  {/* Show All / Show Less Formats toggle */}
+                  <div className="text-center mt-4">
+                    <button
+                      onClick={() => setShowAllFormats(!showAllFormats)}
+                      className="text-sm inline-flex items-center gap-1 px-4 py-2 rounded-lg transition-colors hover:bg-surface-100"
+                      style={{ color: 'var(--masters)' }}
+                    >
+                      {showAllFormats
+                        ? 'Show Popular Only'
+                        : `Show All ${ALL_FORMATS.length} Formats`}
+                      <ChevronDown
+                        size={16}
+                        className={`transition-transform ${showAllFormats ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                    {!showAllFormats && (
+                      <p className="text-xs mt-1" style={{ color: 'var(--ink-tertiary)' }}>
+                        Showing {POPULAR_FORMATS.length} most popular formats
+                      </p>
+                    )}
+                  </div>
                 </section>
 
                 {/* Match Count */}

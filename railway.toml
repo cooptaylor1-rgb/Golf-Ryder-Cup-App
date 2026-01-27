@@ -1,14 +1,14 @@
 [build]
 builder = "nixpacks"
 watchPatterns = ["golf-ryder-cup-web/**"]
-buildCommand = "cd golf-ryder-cup-web && npm ci && npm run build"
+buildCommand = "cd golf-ryder-cup-web && pnpm install --frozen-lockfile && pnpm run build"
 
 [deploy]
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-startCommand = "cd golf-ryder-cup-web && npm start"
+startCommand = "cd golf-ryder-cup-web && pnpm start"
 numReplicas = 1
 
 [service]

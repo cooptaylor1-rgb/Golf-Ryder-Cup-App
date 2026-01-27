@@ -60,7 +60,13 @@ interface DaySchedule {
 
 export default function SchedulePage() {
   const router = useRouter();
-  const { currentTrip, sessions, players, teams: _teams, teamMembers: _teamMembers } = useTripStore();
+  const {
+    currentTrip,
+    sessions,
+    players,
+    teams: _teams,
+    teamMembers: _teamMembers,
+  } = useTripStore();
   const { currentUser, isAuthenticated } = useAuthStore();
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedTab, setSelectedTab] = useState<'my' | 'all'>('my');
@@ -75,17 +81,14 @@ export default function SchedulePage() {
       }
 
       try {
-        const sessionIds = sessions.map(s => s.id);
+        const sessionIds = sessions.map((s) => s.id);
         if (sessionIds.length === 0) {
           setMatches([]);
           setIsLoading(false);
           return;
         }
 
-        const allMatches = await db.matches
-          .where('sessionId')
-          .anyOf(sessionIds)
-          .toArray();
+        const allMatches = await db.matches.where('sessionId').anyOf(sessionIds).toArray();
 
         setMatches(allMatches);
       } catch (error) {
@@ -104,34 +107,45 @@ export default function SchedulePage() {
 
     // Try to match by email first, then by name
     return players.find(
-      p =>
-        (p.email && currentUser.email && p.email.toLowerCase() === currentUser.email.toLowerCase()) ||
+      (p) =>
+        (p.email &&
+          currentUser.email &&
+          p.email.toLowerCase() === currentUser.email.toLowerCase()) ||
         (p.firstName.toLowerCase() === currentUser.firstName.toLowerCase() &&
           p.lastName.toLowerCase() === currentUser.lastName.toLowerCase())
     );
   }, [currentUser, isAuthenticated, players]);
 
   // Get player name helper - memoized for stable reference
-  const getPlayerName = useCallback((playerId: string): string => {
-    const player = players.find(p => p.id === playerId);
-    return player ? `${player.firstName} ${player.lastName?.[0] || ''}`.trim() : 'Unknown';
-  }, [players]);
+  const getPlayerName = useCallback(
+    (playerId: string): string => {
+      const player = players.find((p) => p.id === playerId);
+      return player ? `${player.firstName} ${player.lastName?.[0] || ''}`.trim() : 'Unknown';
+    },
+    [players]
+  );
 
   // Get player names for a match - memoized for stable reference
-  const getMatchPlayerNames = useCallback((match: Match): { teamA: string; teamB: string } => {
-    const teamA = match.teamAPlayerIds.map(getPlayerName).join(' & ');
-    const teamB = match.teamBPlayerIds.map(getPlayerName).join(' & ');
-    return { teamA, teamB };
-  }, [getPlayerName]);
+  const getMatchPlayerNames = useCallback(
+    (match: Match): { teamA: string; teamB: string } => {
+      const teamA = match.teamAPlayerIds.map(getPlayerName).join(' & ');
+      const teamB = match.teamBPlayerIds.map(getPlayerName).join(' & ');
+      return { teamA, teamB };
+    },
+    [getPlayerName]
+  );
 
   // Check if user is in a match - memoized for stable reference
-  const isUserInMatch = useCallback((match: Match): boolean => {
-    if (!currentUserPlayer) return false;
-    return (
-      match.teamAPlayerIds.includes(currentUserPlayer.id) ||
-      match.teamBPlayerIds.includes(currentUserPlayer.id)
-    );
-  }, [currentUserPlayer]);
+  const isUserInMatch = useCallback(
+    (match: Match): boolean => {
+      if (!currentUserPlayer) return false;
+      return (
+        match.teamAPlayerIds.includes(currentUserPlayer.id) ||
+        match.teamBPlayerIds.includes(currentUserPlayer.id)
+      );
+    },
+    [currentUserPlayer]
+  );
 
   // Get user's team in a match
   const _getUserTeam = (match: Match): 'A' | 'B' | null => {
@@ -158,20 +172,22 @@ export default function SchedulePage() {
       const entries: ScheduleEntry[] = [];
 
       // Find sessions for this day
-      const daySessions = sessions.filter(s => {
-        if (!s.scheduledDate) return false;
-        const sessionDate = new Date(s.scheduledDate).toISOString().split('T')[0];
-        return sessionDate === dateStr;
-      }).sort((a, b) => {
-        // Sort by time slot (AM before PM)
-        if (a.timeSlot === 'AM' && b.timeSlot === 'PM') return -1;
-        if (a.timeSlot === 'PM' && b.timeSlot === 'AM') return 1;
-        return a.sessionNumber - b.sessionNumber;
-      });
+      const daySessions = sessions
+        .filter((s) => {
+          if (!s.scheduledDate) return false;
+          const sessionDate = new Date(s.scheduledDate).toISOString().split('T')[0];
+          return sessionDate === dateStr;
+        })
+        .sort((a, b) => {
+          // Sort by time slot (AM before PM)
+          if (a.timeSlot === 'AM' && b.timeSlot === 'PM') return -1;
+          if (a.timeSlot === 'PM' && b.timeSlot === 'AM') return 1;
+          return a.sessionNumber - b.sessionNumber;
+        });
 
       // Add session entries with their matches
       for (const session of daySessions) {
-        const sessionMatches = matches.filter(m => m.sessionId === session.id);
+        const sessionMatches = matches.filter((m) => m.sessionId === session.id);
 
         // Add session header
         entries.push({
@@ -182,7 +198,12 @@ export default function SchedulePage() {
           time: session.timeSlot === 'AM' ? '8:00 AM' : '1:00 PM',
           date: dateStr,
           sessionType: session.sessionType,
-          status: session.status === 'completed' ? 'completed' : session.status === 'inProgress' ? 'inProgress' : 'upcoming',
+          status:
+            session.status === 'completed'
+              ? 'completed'
+              : session.status === 'inProgress'
+                ? 'inProgress'
+                : 'upcoming',
         });
 
         // Add individual match entries
@@ -207,7 +228,12 @@ export default function SchedulePage() {
             matchId: match.id,
             isUserMatch: userInMatch,
             players: [...match.teamAPlayerIds, ...match.teamBPlayerIds],
-            status: match.status === 'completed' ? 'completed' : match.status === 'inProgress' ? 'inProgress' : 'upcoming',
+            status:
+              match.status === 'completed'
+                ? 'completed'
+                : match.status === 'inProgress'
+                  ? 'inProgress'
+                  : 'upcoming',
           });
         }
       }
@@ -226,10 +252,12 @@ export default function SchedulePage() {
   // Filter for user's schedule
   const mySchedule = useMemo(() => {
     if (!currentUserPlayer) return [];
-    return scheduleByDay.map(day => ({
-      ...day,
-      entries: day.entries.filter(e => e.isUserMatch || e.type === 'session'),
-    })).filter(day => day.entries.some(e => e.isUserMatch));
+    return scheduleByDay
+      .map((day) => ({
+        ...day,
+        entries: day.entries.filter((e) => e.isUserMatch || e.type === 'session'),
+      }))
+      .filter((day) => day.entries.some((e) => e.isUserMatch));
   }, [scheduleByDay, currentUserPlayer]);
 
   // Redirect if no trip
@@ -247,7 +275,10 @@ export default function SchedulePage() {
   const hasUserSchedule = mySchedule.length > 0;
 
   return (
-    <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>
+    <div
+      className="min-h-screen pb-nav page-premium-enter texture-grain"
+      style={{ background: 'var(--canvas)' }}
+    >
       {/* Premium Header */}
       <header className="header-premium">
         <div className="container-editorial flex items-center justify-between">
@@ -267,14 +298,20 @@ export default function SchedulePage() {
               <CalendarDays size={16} style={{ color: 'var(--color-accent)' }} />
             </div>
             <div>
-              <span className="type-overline" style={{ letterSpacing: '0.1em' }}>Schedule</span>
+              <span className="type-overline" style={{ letterSpacing: '0.1em' }}>
+                Schedule
+              </span>
               <p className="type-caption">{currentTrip.name}</p>
             </div>
           </div>
           {currentUserPlayer && (
             <div
               className="flex items-center gap-2 px-3 py-1.5 rounded-full"
-              style={{ background: 'var(--surface-card)', border: '1px solid var(--rule)', boxShadow: 'var(--shadow-sm)' }}
+              style={{
+                background: 'var(--surface-card)',
+                border: '1px solid var(--rule)',
+                boxShadow: 'var(--shadow-sm)',
+              }}
             >
               <User size={14} style={{ color: 'var(--masters)' }} />
               <span className="text-xs font-medium">{currentUserPlayer.firstName}</span>
@@ -291,23 +328,25 @@ export default function SchedulePage() {
             role="tab"
             aria-selected={selectedTab === 'my'}
             aria-controls="schedule-content"
-            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${selectedTab === 'my' ? 'text-white' : ''
-              }`}
+            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+              selectedTab === 'my' ? 'text-white' : ''
+            }`}
             style={{
               background: selectedTab === 'my' ? 'var(--masters)' : 'var(--surface)',
               border: selectedTab === 'my' ? 'none' : '1px solid var(--rule)',
             }}
           >
             <User size={18} />
-            My Tee Times
+            Your Matches
           </button>
           <button
             onClick={() => setSelectedTab('all')}
             role="tab"
             aria-selected={selectedTab === 'all'}
             aria-controls="schedule-content"
-            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${selectedTab === 'all' ? 'text-white' : ''
-              }`}
+            className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+              selectedTab === 'all' ? 'text-white' : ''
+            }`}
             style={{
               background: selectedTab === 'all' ? 'var(--masters)' : 'var(--surface)',
               border: selectedTab === 'all' ? 'none' : '1px solid var(--rule)',
@@ -324,7 +363,7 @@ export default function SchedulePage() {
         {/* Loading State */}
         {isLoading && (
           <div className="space-y-4">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div
                 key={i}
                 className="animate-pulse rounded-xl p-4"
@@ -346,7 +385,10 @@ export default function SchedulePage() {
               border: '1px solid rgba(161, 98, 7, 0.3)',
             }}
           >
-            <AlertCircle size={20} style={{ color: 'var(--warning)', flexShrink: 0, marginTop: 2 }} />
+            <AlertCircle
+              size={20}
+              style={{ color: 'var(--warning)', flexShrink: 0, marginTop: 2 }}
+            />
             <div>
               <p className="font-medium" style={{ color: 'var(--warning)' }}>
                 Profile not linked
@@ -372,7 +414,8 @@ export default function SchedulePage() {
             <Calendar size={48} className="mx-auto mb-4 opacity-30" />
             <p className="type-title-sm">No tee times yet</p>
             <p className="type-caption mt-2 max-w-xs mx-auto">
-              You haven&apos;t been assigned to any matches. Check the &quot;Full Schedule&quot; tab or ask your captain.
+              You haven&apos;t been assigned to any matches. Check the &quot;Full Schedule&quot; tab
+              or ask your captain.
             </p>
             <button
               onClick={() => setSelectedTab('all')}
@@ -386,52 +429,55 @@ export default function SchedulePage() {
         )}
 
         {/* Schedule Days */}
-        {!isLoading && displaySchedule.map((day) => (
-          <div key={day.date} className="mb-8">
-            {/* Day Header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-12 h-12 rounded-xl flex flex-col items-center justify-center"
-                style={{ background: 'var(--masters)', color: 'white' }}
-              >
-                <span className="text-xs font-medium opacity-80">Day</span>
-                <span className="text-lg font-bold leading-none">{day.dayNumber}</span>
+        {!isLoading &&
+          displaySchedule.map((day) => (
+            <div key={day.date} className="mb-8">
+              {/* Day Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className="w-12 h-12 rounded-xl flex flex-col items-center justify-center"
+                  style={{ background: 'var(--masters)', color: 'white' }}
+                >
+                  <span className="text-xs font-medium opacity-80">Day</span>
+                  <span className="text-lg font-bold leading-none">{day.dayNumber}</span>
+                </div>
+                <div>
+                  <p className="font-semibold">{day.dayName}</p>
+                  <p className="type-caption">
+                    {new Date(day.date).toLocaleDateString('en-US', {
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold">{day.dayName}</p>
-                <p className="type-caption">
-                  {new Date(day.date).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </p>
-              </div>
-            </div>
 
-            {/* Entries */}
-            {day.entries.length === 0 ? (
-              <div
-                className="p-4 rounded-xl text-center"
-                style={{ background: 'var(--surface)', border: '1px solid var(--rule)' }}
-              >
-                <p className="type-caption">No scheduled events</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {day.entries.map((entry) => (
-                  <ScheduleEntryCard
-                    key={entry.id}
-                    entry={entry}
-                    onPress={entry.matchId ? () => router.push(`/score/${entry.matchId}`) : undefined}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+              {/* Entries */}
+              {day.entries.length === 0 ? (
+                <div
+                  className="p-4 rounded-xl text-center"
+                  style={{ background: 'var(--surface)', border: '1px solid var(--rule)' }}
+                >
+                  <p className="type-caption">No scheduled events</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {day.entries.map((entry) => (
+                    <ScheduleEntryCard
+                      key={entry.id}
+                      entry={entry}
+                      onPress={
+                        entry.matchId ? () => router.push(`/score/${entry.matchId}`) : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
 
         {/* Empty State for All Schedule */}
-        {selectedTab === 'all' && scheduleByDay.every(day => day.entries.length === 0) && (
+        {selectedTab === 'all' && scheduleByDay.every((day) => day.entries.length === 0) && (
           <div className="text-center py-16">
             <Calendar size={48} className="mx-auto mb-4 opacity-30" />
             <p className="type-title-sm">No sessions scheduled</p>
@@ -572,10 +618,7 @@ function ScheduleEntryCard({ entry, onPress }: ScheduleEntryCardProps) {
             )}
           </div>
           {entry.subtitle && (
-            <p
-              className="text-sm mt-1 truncate"
-              style={{ color: 'var(--ink-secondary)' }}
-            >
+            <p className="text-sm mt-1 truncate" style={{ color: 'var(--ink-secondary)' }}>
               {entry.subtitle}
             </p>
           )}

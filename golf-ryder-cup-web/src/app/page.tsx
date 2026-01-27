@@ -41,6 +41,7 @@ import {
   FeatureCard,
   YourMatchCard,
   CaptainToggle,
+  ContinueScoringBanner,
 } from '@/components/ui';
 import { JoinTripModal } from '@/components/ui/JoinTripModal';
 import { BottomNav, type NavBadges } from '@/components/layout';
@@ -66,23 +67,24 @@ export default function HomePage() {
   const [, setShowWhatsNew] = useState(false);
   const [dismissedFeatureCard, setDismissedFeatureCard] = useState(false);
 
-  const trips = useLiveQuery(
-    () => db.trips.orderBy('startDate').reverse().toArray(),
-    []
-  );
+  const trips = useLiveQuery(() => db.trips.orderBy('startDate').reverse().toArray(), []);
 
   // Find active trip
-  const activeTrip = trips?.find(t => {
-    const now = new Date();
-    const start = new Date(t.startDate);
-    const end = new Date(t.endDate);
-    return now >= start && now <= end;
-  }) || currentTrip;
+  const activeTrip =
+    trips?.find((t) => {
+      const now = new Date();
+      const start = new Date(t.startDate);
+      const end = new Date(t.endDate);
+      return now >= start && now <= end;
+    }) || currentTrip;
 
   // BUG-004 FIX: Memoize loadTrip call to avoid stale closure issues
-  const loadTripStable = useCallback((tripId: string) => {
-    loadTrip(tripId);
-  }, [loadTrip]);
+  const loadTripStable = useCallback(
+    (tripId: string) => {
+      loadTrip(tripId);
+    },
+    [loadTrip]
+  );
 
   // Load standings for active trip
   useEffect(() => {
@@ -101,13 +103,16 @@ export default function HomePage() {
     const userFirstName = currentUser.firstName?.toLowerCase();
     const userLastName = currentUser.lastName?.toLowerCase();
 
-    return players.find(
-      p =>
-        (p.email && userEmail && p.email.toLowerCase() === userEmail) ||
-        (userFirstName && userLastName &&
-          p.firstName.toLowerCase() === userFirstName &&
-          p.lastName.toLowerCase() === userLastName)
-    ) ?? null;
+    return (
+      players.find(
+        (p) =>
+          (p.email && userEmail && p.email.toLowerCase() === userEmail) ||
+          (userFirstName &&
+            userLastName &&
+            p.firstName.toLowerCase() === userFirstName &&
+            p.lastName.toLowerCase() === userLastName)
+      ) ?? null
+    );
   }, [currentUser, isAuthenticated, players]);
 
   // Find the current user's match (scheduled or in progress) (P0-1)
@@ -119,42 +124,35 @@ export default function HomePage() {
     if (!activeTrip || !currentUserPlayer) return null;
 
     // Get sessions for this trip
-    const tripSessions = await db.sessions
-      .where('tripId')
-      .equals(activeTrip.id)
-      .toArray();
+    const tripSessions = await db.sessions.where('tripId').equals(activeTrip.id).toArray();
 
     if (tripSessions.length === 0) return null;
 
     // Find matches where user is playing
-    const sessionIds = tripSessions.map(s => s.id);
-    const allMatches = await db.matches
-      .where('sessionId')
-      .anyOf(sessionIds)
-      .toArray();
+    const sessionIds = tripSessions.map((s) => s.id);
+    const allMatches = await db.matches.where('sessionId').anyOf(sessionIds).toArray();
 
     // Find user's match (prefer inProgress, then scheduled)
     const userMatches = allMatches.filter(
-      m => m.teamAPlayerIds.includes(currentUserPlayer.id) ||
+      (m) =>
+        m.teamAPlayerIds.includes(currentUserPlayer.id) ||
         m.teamBPlayerIds.includes(currentUserPlayer.id)
     );
 
     // Prioritize: inProgress > scheduled
-    const userMatch = userMatches.find(m => m.status === 'inProgress') ||
-      userMatches.find(m => m.status === 'scheduled');
+    const userMatch =
+      userMatches.find((m) => m.status === 'inProgress') ||
+      userMatches.find((m) => m.status === 'scheduled');
 
     if (!userMatch) return null;
 
-    const session = tripSessions.find(s => s.id === userMatch.sessionId);
+    const session = tripSessions.find((s) => s.id === userMatch.sessionId);
     if (!session) return null;
 
     // Get match state if in progress
     let matchState: MatchState | null = null;
     if (userMatch.status === 'inProgress') {
-      const holeResults = await db.holeResults
-        .where('matchId')
-        .equals(userMatch.id)
-        .toArray();
+      const holeResults = await db.holeResults.where('matchId').equals(userMatch.id).toArray();
       matchState = calculateMatchState(userMatch, holeResults);
     }
 
@@ -162,8 +160,8 @@ export default function HomePage() {
   }, [activeTrip?.id, currentUserPlayer?.id]);
 
   // Get team names
-  const teamA = teams.find(t => t.color === 'usa');
-  const teamB = teams.find(t => t.color === 'europe');
+  const teamA = teams.find((t) => t.color === 'usa');
+  const teamB = teams.find((t) => t.color === 'europe');
   const teamAName = teamA?.name || 'USA';
   const teamBName = teamB?.name || 'Europe';
 
@@ -178,73 +176,80 @@ export default function HomePage() {
     }
   }, [router, userMatchData]);
 
-  const handleQuickStartComplete = useCallback(async (tripData: {
-    name: string;
-    location: string;
-    startDate: string;
-    endDate: string;
-    teamAName: string;
-    teamBName: string;
-  }) => {
-    try {
-      // Create the trip using db
-      const tripId = crypto.randomUUID();
-      const now = new Date().toISOString();
+  const handleQuickStartComplete = useCallback(
+    async (tripData: {
+      name: string;
+      location: string;
+      startDate: string;
+      endDate: string;
+      teamAName: string;
+      teamBName: string;
+    }) => {
+      try {
+        // Create the trip using db
+        const tripId = crypto.randomUUID();
+        const now = new Date().toISOString();
 
-      await db.trips.add({
-        id: tripId,
-        name: tripData.name,
-        location: tripData.location || undefined,
-        startDate: tripData.startDate,
-        endDate: tripData.endDate,
-        isCaptainModeEnabled: false,
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      // Create teams with custom names
-      const teamAId = crypto.randomUUID();
-      const teamBId = crypto.randomUUID();
-
-      await db.teams.bulkAdd([
-        {
-          id: teamAId,
-          tripId,
-          name: tripData.teamAName || 'USA',
-          color: 'usa' as const,
-          mode: 'ryderCup' as const,
+        await db.trips.add({
+          id: tripId,
+          name: tripData.name,
+          location: tripData.location || undefined,
+          startDate: tripData.startDate,
+          endDate: tripData.endDate,
+          isCaptainModeEnabled: false,
           createdAt: now,
-        },
-        {
-          id: teamBId,
-          tripId,
-          name: tripData.teamBName || 'Europe',
-          color: 'europe' as const,
-          mode: 'ryderCup' as const,
-          createdAt: now,
-        },
-      ]);
+          updatedAt: now,
+        });
 
-      setShowQuickStart(false);
-      await loadTrip(tripId);
-      router.push('/players');
-    } catch (error) {
-      tripLogger.error('Failed to create trip:', error);
-      // Could add toast notification here
-    }
-  }, [loadTrip, router]);
+        // Create teams with custom names
+        const teamAId = crypto.randomUUID();
+        const teamBId = crypto.randomUUID();
+
+        await db.teams.bulkAdd([
+          {
+            id: teamAId,
+            tripId,
+            name: tripData.teamAName || 'USA',
+            color: 'usa' as const,
+            mode: 'ryderCup' as const,
+            createdAt: now,
+          },
+          {
+            id: teamBId,
+            tripId,
+            name: tripData.teamBName || 'Europe',
+            color: 'europe' as const,
+            mode: 'ryderCup' as const,
+            createdAt: now,
+          },
+        ]);
+
+        setShowQuickStart(false);
+        await loadTrip(tripId);
+        router.push('/players');
+      } catch (error) {
+        tripLogger.error('Failed to create trip:', error);
+        // Could add toast notification here
+      }
+    },
+    [loadTrip, router]
+  );
 
   const hasTrips = trips && trips.length > 0;
-  const pastTrips = trips?.filter(t => t.id !== activeTrip?.id) || [];
+  const pastTrips = trips?.filter((t) => t.id !== activeTrip?.id) || [];
   const isLoading = trips === undefined;
 
   // Get real live match count from database
   const liveMatches = useLiveQuery(async () => {
     if (!activeTrip) return [];
     const sessions = await db.sessions.where('tripId').equals(activeTrip.id).toArray();
-    const sessionIds = sessions.map(s => s.id);
+    const sessionIds = sessions.map((s) => s.id);
     if (sessionIds.length === 0) return [];
-    return db.matches.where('sessionId').anyOf(sessionIds).and(m => m.status === 'inProgress').toArray();
+    return db.matches
+      .where('sessionId')
+      .anyOf(sessionIds)
+      .and((m) => m.status === 'inProgress')
+      .toArray();
   }, [activeTrip?.id]);
 
   // Get real banter/social counts
@@ -306,7 +311,7 @@ export default function HomePage() {
         // Capitalize first letter of each word
         return betType
           .split(/[_\s]+/)
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
           .join(' ');
     }
   };
@@ -315,7 +320,10 @@ export default function HomePage() {
   const liveMatchesCount = liveMatches?.length || 0;
   const _recentPhotosCount = 0; // Photos not implemented yet
   const unreadMessages = banterPosts?.length || 0;
-  const activeSideBetsCount = sideBets?.filter(b => b.status === 'active').length || 0;
+  const activeSideBetsCount = sideBets?.filter((b) => b.status === 'active').length || 0;
+
+  // Power user: Smart routing - if exactly 1 live match, navigate directly to it
+  const activeMatchId = liveMatchesCount === 1 ? liveMatches?.[0]?.id : undefined;
 
   // Navigation badges
   const navBadges: NavBadges = {
@@ -325,25 +333,37 @@ export default function HomePage() {
   // Loading state - show skeleton while trips are loading
   if (isLoading) {
     return (
-      <div className="pb-nav page-premium-enter texture-grain" style={{ minHeight: '100vh', background: 'var(--canvas)' }}>
+      <div
+        className="pb-nav page-premium-enter texture-grain"
+        style={{ minHeight: '100vh', background: 'var(--canvas)' }}
+      >
         <header className="header-premium">
-          <div className="container-editorial" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div
+            className="container-editorial"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
               <div
                 style={{
                   width: '32px',
                   height: '32px',
                   borderRadius: 'var(--radius-md)',
-                  background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
+                  background:
+                    'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: 'var(--shadow-glow-green)'
+                  boxShadow: 'var(--shadow-glow-green)',
                 }}
               >
                 <Trophy size={16} style={{ color: 'var(--color-accent)' }} />
               </div>
-              <span className="type-overline" style={{ letterSpacing: '0.15em', color: 'var(--ink)' }}>Ryder Cup Tracker</span>
+              <span
+                className="type-overline"
+                style={{ letterSpacing: '0.15em', color: 'var(--ink)' }}
+              >
+                Ryder Cup Tracker
+              </span>
             </div>
           </div>
         </header>
@@ -354,13 +374,16 @@ export default function HomePage() {
             <div className="h-20 rounded-xl bg-muted/50" />
           </div>
         </main>
-        <BottomNav badges={navBadges} />
+        <BottomNav badges={navBadges} activeMatchId={activeMatchId} />
       </div>
     );
   }
 
   return (
-    <div className="pb-nav page-premium-enter texture-grain" style={{ minHeight: '100vh', background: 'var(--canvas)' }}>
+    <div
+      className="pb-nav page-premium-enter texture-grain"
+      style={{ minHeight: '100vh', background: 'var(--canvas)' }}
+    >
       {/* Quick Start Wizard Modal */}
       {showQuickStart && (
         <QuickStartWizard
@@ -384,7 +407,10 @@ export default function HomePage() {
 
       {/* Premium Header with Captain Toggle (P0-2) */}
       <header className="header-premium">
-        <div className="container-editorial" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          className="container-editorial"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
             <div
               style={{
@@ -395,12 +421,17 @@ export default function HomePage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: 'var(--shadow-glow-green)'
+                boxShadow: 'var(--shadow-glow-green)',
               }}
             >
               <Trophy size={16} style={{ color: 'var(--color-accent)' }} />
             </div>
-            <span className="type-overline" style={{ letterSpacing: '0.15em', color: 'var(--ink)' }}>Ryder Cup Tracker</span>
+            <span
+              className="type-overline"
+              style={{ letterSpacing: '0.15em', color: 'var(--ink)' }}
+            >
+              Ryder Cup Tracker
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)' }}>
             {/* Captain Mode Toggle (P0-2) */}
@@ -416,7 +447,7 @@ export default function HomePage() {
                   background: 'rgba(var(--masters-rgb), 0.1)',
                   border: 'none',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
                 }}
                 aria-label="What's new"
               >
@@ -426,6 +457,23 @@ export default function HomePage() {
           </div>
         </div>
       </header>
+
+      {/* CONTINUE SCORING BANNER (Power User P1-4) — Sticky quick-access for in-progress match */}
+      {userMatchData?.match?.status === 'inProgress' && (
+        <div className="sticky top-0 z-40 px-4 py-2" style={{ background: 'var(--canvas)' }}>
+          <ContinueScoringBanner
+            match={userMatchData.match}
+            matchState={userMatchData.matchState || undefined}
+            matchDescription={
+              userMatchData.session?.sessionType === 'fourball'
+                ? 'Four-Ball'
+                : userMatchData.session?.sessionType === 'foursomes'
+                  ? 'Foursomes'
+                  : 'Singles'
+            }
+          />
+        </div>
+      )}
 
       <main className="container-editorial">
         {/* YOUR MATCH HERO CARD (P0-1) — Top priority for participants */}
@@ -461,7 +509,8 @@ export default function HomePage() {
               className="card"
               style={{
                 padding: 'var(--space-5)',
-                background: 'linear-gradient(135deg, rgba(0, 103, 71, 0.08) 0%, rgba(0, 103, 71, 0.03) 100%)',
+                background:
+                  'linear-gradient(135deg, rgba(0, 103, 71, 0.08) 0%, rgba(0, 103, 71, 0.03) 100%)',
                 border: '1px solid rgba(0, 103, 71, 0.2)',
               }}
             >
@@ -490,7 +539,7 @@ export default function HomePage() {
                 <SetupStep
                   number={2}
                   label="Assign Teams"
-                  done={teams.length >= 2 && players.some(_p => teams.some(t => t.id))}
+                  done={teams.length >= 2 && players.some((_p) => teams.some((t) => t.id))}
                   href="/captain/draft"
                   hint="Draft players to teams"
                 />
@@ -529,7 +578,13 @@ export default function HomePage() {
               <button
                 onClick={() => handleSelectTrip(activeTrip.id)}
                 className="w-full text-left press-scale card-interactive"
-                style={{ background: 'transparent', border: 'none', borderRadius: 'var(--radius-xl)', padding: 'var(--space-4)', margin: 'calc(-1 * var(--space-4))' }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: 'var(--radius-xl)',
+                  padding: 'var(--space-4)',
+                  margin: 'calc(-1 * var(--space-4))',
+                }}
               >
                 {/* Live Badge */}
                 <div className="live-indicator" style={{ marginBottom: 'var(--space-4)' }}>
@@ -554,9 +609,10 @@ export default function HomePage() {
                     <p
                       className="score-monumental"
                       style={{
-                        color: standings.teamAPoints >= standings.teamBPoints
-                          ? 'var(--team-usa)'
-                          : 'var(--ink-tertiary)'
+                        color:
+                          standings.teamAPoints >= standings.teamBPoints
+                            ? 'var(--team-usa)'
+                            : 'var(--ink-tertiary)',
                       }}
                     >
                       {standings.teamAPoints}
@@ -565,7 +621,7 @@ export default function HomePage() {
                       className="type-overline"
                       style={{
                         marginTop: 'var(--space-3)',
-                        color: 'var(--team-usa)'
+                        color: 'var(--team-usa)',
                       }}
                     >
                       USA
@@ -586,9 +642,10 @@ export default function HomePage() {
                     <p
                       className="score-monumental"
                       style={{
-                        color: standings.teamBPoints > standings.teamAPoints
-                          ? 'var(--team-europe)'
-                          : 'var(--ink-tertiary)'
+                        color:
+                          standings.teamBPoints > standings.teamAPoints
+                            ? 'var(--team-europe)'
+                            : 'var(--ink-tertiary)',
                       }}
                     >
                       {standings.teamBPoints}
@@ -597,7 +654,7 @@ export default function HomePage() {
                       className="type-overline"
                       style={{
                         marginTop: 'var(--space-3)',
-                        color: 'var(--team-europe)'
+                        color: 'var(--team-europe)',
                       }}
                     >
                       EUR
@@ -628,7 +685,7 @@ export default function HomePage() {
                   style={{
                     marginTop: 'var(--space-10)',
                     color: 'var(--masters)',
-                    fontWeight: 500
+                    fontWeight: 500,
                   }}
                 >
                   <span>View standings</span>
@@ -642,7 +699,13 @@ export default function HomePage() {
               <h2 className="type-overline" style={{ marginBottom: 'var(--space-4)' }}>
                 Quick Actions
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--space-3)' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: 'var(--space-3)',
+                }}
+              >
                 <QuickActionButton
                   icon={<Tv size={20} />}
                   label="Live"
@@ -675,26 +738,45 @@ export default function HomePage() {
             {/* Captain Quick Actions - Only shown when in Captain Mode */}
             {isCaptainMode && (
               <section className="section-sm">
-                <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-4)' }}>
+                <div
+                  className="flex items-center justify-between"
+                  style={{ marginBottom: 'var(--space-4)' }}
+                >
                   <div className="flex items-center gap-2">
                     <Shield size={14} style={{ color: 'var(--masters)' }} />
-                    <h2 className="type-overline" style={{ color: 'var(--masters)' }}>Captain Tools</h2>
+                    <h2 className="type-overline" style={{ color: 'var(--masters)' }}>
+                      Captain Tools
+                    </h2>
                   </div>
                   <Link
                     href="/captain"
                     className="type-caption"
-                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--masters)' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--space-1)',
+                      color: 'var(--masters)',
+                    }}
                   >
                     All Tools <ChevronRight size={14} />
                   </Link>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-3)' }}>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: 'var(--space-3)',
+                  }}
+                >
                   <Link
                     href="/lineup/new"
                     className="card press-scale"
                     style={{ padding: 'var(--space-3)', textAlign: 'center' }}
                   >
-                    <Users size={20} style={{ color: 'var(--masters)', marginBottom: 'var(--space-2)' }} />
+                    <Users
+                      size={20}
+                      style={{ color: 'var(--masters)', marginBottom: 'var(--space-2)' }}
+                    />
                     <p className="type-micro">Create Lineup</p>
                   </Link>
                   <Link
@@ -702,7 +784,10 @@ export default function HomePage() {
                     className="card press-scale"
                     style={{ padding: 'var(--space-3)', textAlign: 'center' }}
                   >
-                    <ClipboardCheck size={20} style={{ color: '#3b82f6', marginBottom: 'var(--space-2)' }} />
+                    <ClipboardCheck
+                      size={20}
+                      style={{ color: '#3b82f6', marginBottom: 'var(--space-2)' }}
+                    />
                     <p className="type-micro">Pre-Flight</p>
                   </Link>
                   <Link
@@ -735,19 +820,15 @@ export default function HomePage() {
               <h2 className="type-overline" style={{ marginBottom: 'var(--space-4)' }}>
                 Momentum
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--space-3)' }}>
-                <MomentumCard
-                  team="USA"
-                  streak={2}
-                  trend="up"
-                  color="var(--team-usa)"
-                />
-                <MomentumCard
-                  team="EUR"
-                  streak={0}
-                  trend="neutral"
-                  color="var(--team-europe)"
-                />
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 'var(--space-3)',
+                }}
+              >
+                <MomentumCard team="USA" streak={2} trend="up" color="var(--team-usa)" />
+                <MomentumCard team="EUR" streak={0} trend="neutral" color="var(--team-europe)" />
               </div>
             </section>
 
@@ -755,32 +836,44 @@ export default function HomePage() {
             {/* Only show when there are active side bets or captain mode is on */}
             {(activeSideBetsCount > 0 || isCaptainMode) && (
               <section className="section-sm">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-4)' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 'var(--space-4)',
+                  }}
+                >
                   <h2 className="type-overline">Side Bets</h2>
                   <Link
                     href="/bets"
                     className="type-caption"
-                    style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-1)', color: 'var(--masters)' }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--space-1)',
+                      color: 'var(--masters)',
+                    }}
                   >
                     {activeSideBetsCount > 0 ? 'View All' : 'Create'} <ChevronRight size={14} />
                   </Link>
                 </div>
                 {activeSideBetsCount > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-                    {sideBets?.filter(b => b.status === 'active').slice(0, 3).map(bet => (
-                      <SideBetRow
-                        key={bet.id}
-                        type={formatBetType(bet.type)}
-                        status={bet.status === 'active' ? 'In Progress' : 'Complete'}
-                        icon={getBetIcon(bet.type)}
-                      />
-                    ))}
+                    {sideBets
+                      ?.filter((b) => b.status === 'active')
+                      .slice(0, 3)
+                      .map((bet) => (
+                        <SideBetRow
+                          key={bet.id}
+                          type={formatBetType(bet.type)}
+                          status={bet.status === 'active' ? 'In Progress' : 'Complete'}
+                          icon={getBetIcon(bet.type)}
+                        />
+                      ))}
                   </div>
                 ) : (
-                  <div
-                    className="text-center py-6"
-                    style={{ color: 'var(--ink-tertiary)' }}
-                  >
+                  <div className="text-center py-6" style={{ color: 'var(--ink-tertiary)' }}>
                     <DollarSign size={24} style={{ margin: '0 auto var(--space-2)' }} />
                     <p className="type-caption">No active side bets</p>
                     <p className="type-caption" style={{ marginTop: 'var(--space-1)' }}>
@@ -796,10 +889,7 @@ export default function HomePage() {
         ) : activeTrip ? (
           /* Active trip loading */
           <section className="section">
-            <button
-              onClick={() => handleSelectTrip(activeTrip.id)}
-              className="w-full text-left"
-            >
+            <button onClick={() => handleSelectTrip(activeTrip.id)} className="w-full text-left">
               <div className="live-indicator" style={{ marginBottom: 'var(--space-4)' }}>
                 Active
               </div>
@@ -823,7 +913,7 @@ export default function HomePage() {
                 style={{
                   marginTop: 'var(--space-6)',
                   color: 'var(--masters)',
-                  fontWeight: 500
+                  fontWeight: 500,
                 }}
               >
                 <span>Continue</span>
@@ -866,7 +956,10 @@ export default function HomePage() {
           </div>
 
           {pastTrips.length > 0 ? (
-            <div className="stagger-fast" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            <div
+              className="stagger-fast"
+              style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}
+            >
               {pastTrips.map((trip, index) => (
                 <button
                   key={trip.id}
@@ -893,7 +986,8 @@ export default function HomePage() {
                       width: '52px',
                       height: '52px',
                       borderRadius: 'var(--radius-xl)',
-                      background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
+                      background:
+                        'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -903,18 +997,56 @@ export default function HomePage() {
                     <Trophy size={24} style={{ color: 'var(--color-accent)' }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p className="type-title" style={{ marginBottom: 'var(--space-2)', fontWeight: 700, fontSize: '17px' }}>
+                    <p
+                      className="type-title"
+                      style={{ marginBottom: 'var(--space-2)', fontWeight: 700, fontSize: '17px' }}
+                    >
                       {trip.name}
                     </p>
-                    <div className="type-caption" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', fontSize: '14px' }}>
+                    <div
+                      className="type-caption"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 'var(--space-4)',
+                        fontSize: '14px',
+                      }}
+                    >
                       {trip.location && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          <MapPin size={14} strokeWidth={1.5} style={{ color: 'var(--masters)', flexShrink: 0 }} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{trip.location}</span>
+                        <span
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 'var(--space-2)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          <MapPin
+                            size={14}
+                            strokeWidth={1.5}
+                            style={{ color: 'var(--masters)', flexShrink: 0 }}
+                          />
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {trip.location}
+                          </span>
                         </span>
                       )}
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-                        <Calendar size={14} strokeWidth={1.5} style={{ color: 'var(--ink-tertiary)' }} />
+                      <span
+                        style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
+                      >
+                        <Calendar
+                          size={14}
+                          strokeWidth={1.5}
+                          style={{ color: 'var(--ink-tertiary)' }}
+                        />
                         {formatDate(trip.startDate, 'short')}
                       </span>
                     </div>
@@ -938,7 +1070,7 @@ export default function HomePage() {
       </main>
 
       {/* Bottom Navigation with Badges */}
-      <BottomNav badges={navBadges} />
+      <BottomNav badges={navBadges} activeMatchId={activeMatchId} />
     </div>
   );
 }
@@ -954,10 +1086,7 @@ interface QuickActionButtonProps {
 
 function QuickActionButton({ icon, label, href, badge, color }: QuickActionButtonProps) {
   return (
-    <Link
-      href={href}
-      className="press-scale quick-action-btn"
-    >
+    <Link href={href} className="press-scale quick-action-btn">
       <div style={{ position: 'relative' }}>
         <div style={{ color: color || 'var(--ink-secondary)' }}>{icon}</div>
         {badge && (
@@ -995,12 +1124,18 @@ interface MomentumCardProps {
 
 function MomentumCard({ team, streak, trend, color }: MomentumCardProps) {
   return (
-    <div
-      className="card"
-      style={{ padding: 'var(--space-4)' }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-        <span className="type-overline" style={{ color }}>{team}</span>
+    <div className="card" style={{ padding: 'var(--space-4)' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 'var(--space-2)',
+        }}
+      >
+        <span className="type-overline" style={{ color }}>
+          {team}
+        </span>
         {trend === 'up' && <Flame size={16} style={{ color: 'var(--error)' }} />}
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 'var(--space-2)' }}>

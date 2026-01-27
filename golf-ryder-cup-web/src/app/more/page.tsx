@@ -273,28 +273,32 @@ export default function MorePage() {
         },
       ],
     },
-    // Data & Developer
-    {
-      id: 'data',
-      title: 'Data',
-      items: [
-        {
-          id: 'demo',
-          label: 'Load Demo Data',
-          description: 'Try with sample trip',
-          icon: <Database size={20} />,
-          action: handleSeedData,
-        },
-        {
-          id: 'clear',
-          label: 'Clear All Data',
-          description: 'Start fresh',
-          icon: <Trash2 size={20} />,
-          action: () => setShowClearConfirm(true),
-          destructive: true,
-        },
-      ],
-    },
+    // Data & Developer (only show in development)
+    ...(process.env.NODE_ENV === 'development'
+      ? [
+          {
+            id: 'data',
+            title: 'Developer Tools',
+            items: [
+              {
+                id: 'demo',
+                label: 'Load Demo Data',
+                description: 'Try with sample trip',
+                icon: <Database size={20} />,
+                action: handleSeedData,
+              },
+              {
+                id: 'clear',
+                label: 'Clear All Data',
+                description: 'Start fresh',
+                icon: <Trash2 size={20} />,
+                action: () => setShowClearConfirm(true),
+                destructive: true,
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   return (

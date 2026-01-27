@@ -24,6 +24,7 @@ import {
   Shield,
   CalendarDays,
   BarChart3,
+  HelpCircle,
 } from 'lucide-react';
 
 interface NavItem {
@@ -53,9 +54,11 @@ export interface NavBadges {
 
 interface BottomNavProps {
   badges?: NavBadges;
+  /** If provided, Score button goes directly to this match (power user optimization) */
+  activeMatchId?: string;
 }
 
-export function BottomNav({ badges = {} }: BottomNavProps) {
+export function BottomNav({ badges = {}, activeMatchId }: BottomNavProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { isCaptainMode } = useUIStore();
@@ -70,6 +73,16 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
     return badges[item.badgeKey];
   };
 
+  // Power user: Smart routing for Score button
+  const handleNavClick = (item: NavItem) => {
+    if (item.href === '/score' && activeMatchId) {
+      // Skip the score list and go directly to the active match
+      router.push(`/score/${activeMatchId}`);
+    } else {
+      router.push(item.href);
+    }
+  };
+
   return (
     <nav
       className={cn(
@@ -78,7 +91,7 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
         'fixed bottom-0 left-0 right-0 z-50',
         'flex items-stretch justify-around',
         'h-20 px-1',
-        'safe-bottom',
+        'safe-bottom'
       )}
       style={{
         background: 'linear-gradient(180deg, var(--surface) 0%, var(--canvas) 100%)',
@@ -96,14 +109,14 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
         return (
           <button
             key={item.href}
-            onClick={() => router.push(item.href)}
+            onClick={() => handleNavClick(item)}
             className={cn(
               'relative flex flex-col items-center justify-center',
               'flex-1 min-w-[56px] min-h-[56px] py-1.5',
               'transition-all duration-150',
               'focus-visible:outline-none',
               'active:scale-95 active:opacity-80',
-              'rounded-xl',
+              'rounded-xl'
             )}
             style={{
               color: active ? 'var(--masters, #006747)' : 'var(--ink-tertiary, #807868)',
@@ -122,7 +135,10 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
 
             {/* Icon with badge */}
             <div className="relative">
-              <Icon className={cn('w-6 h-6', active && 'scale-110')} strokeWidth={active ? 2 : 1.75} />
+              <Icon
+                className={cn('w-6 h-6', active && 'scale-110')}
+                strokeWidth={active ? 2 : 1.75}
+              />
 
               {/* Notification badge */}
               {badgeCount !== undefined && badgeCount > 0 && (
@@ -150,16 +166,36 @@ export function BottomNav({ badges = {} }: BottomNavProps) {
 
             {/* Label */}
             <span
-              className={cn(
-                'text-[11px] mt-0.5 font-medium tracking-wide',
-                active && 'font-bold',
-              )}
+              className={cn('text-[11px] mt-0.5 font-medium tracking-wide', active && 'font-bold')}
             >
               {item.label}
             </span>
           </button>
         );
       })}
+
+      {/* Keyboard Shortcuts Hint - Power User Feature */}
+      <button
+        onClick={() => {
+          window.dispatchEvent(new CustomEvent('show-keyboard-help'));
+        }}
+        className={cn(
+          'hidden md:flex flex-col items-center justify-center',
+          'min-w-[40px] min-h-[40px] py-1.5',
+          'transition-all duration-150',
+          'focus-visible:outline-none',
+          'active:scale-95 active:opacity-80',
+          'rounded-xl'
+        )}
+        style={{
+          color: 'var(--ink-tertiary, #807868)',
+        }}
+        aria-label="Show keyboard shortcuts (press ?)"
+        title="Keyboard shortcuts — Press ?"
+      >
+        <HelpCircle size={18} strokeWidth={1.5} />
+        <span className="text-[9px] mt-0.5 opacity-70">?</span>
+      </button>
     </nav>
   );
 }

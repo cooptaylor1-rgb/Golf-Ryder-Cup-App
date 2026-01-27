@@ -333,30 +333,39 @@ export default function PlayersPage() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 'var(--space-2)',
-                  background: 'var(--surface-card)',
-                  border: '1px solid var(--border)',
+                  background:
+                    'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
+                  color: 'white',
+                  border: 'none',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '14px',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0, 103, 71, 0.3)',
                 }}
-                title="Add multiple players at once"
+                title="Add multiple players at once - fastest way to add your group"
               >
                 <UsersRound size={16} />
-                Bulk
+                Add Multiple
               </button>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="btn-premium"
+                className="press-scale"
                 style={{
                   padding: 'var(--space-2) var(--space-3)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 'var(--space-2)',
+                  background: 'var(--surface-card)',
+                  border: '1px solid var(--rule)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
                 }}
               >
                 <UserPlus size={16} />
-                Add
+                Add One
               </button>
             </div>
           )}

@@ -32,6 +32,9 @@ import {
   Trophy,
   X,
   Sparkles,
+  Share2,
+  BarChart3,
+  ArrowRight,
 } from 'lucide-react';
 import type { HoleWinner, PlayerHoleScore } from '@/lib/types/models';
 import { TEAM_COLORS } from '@/lib/constants/teamColors';
@@ -93,7 +96,8 @@ export default function EnhancedMatchScoringPage() {
   const matchId = params.matchId as string;
 
   const { players, teams, teeSets, sessions } = useTripStore();
-  const { showToast, scoringPreferences } = useUIStore();
+  const { showToast, scoringPreferences, getScoringModeForFormat, setScoringModeForFormat } =
+    useUIStore();
   const haptic = useHaptic();
 
   const {
@@ -102,6 +106,7 @@ export default function EnhancedMatchScoringPage() {
     currentHole,
     isSaving,
     undoStack,
+    sessionMatches,
     selectMatch,
     scoreHole,
     undoLastHole,
@@ -115,9 +120,6 @@ export default function EnhancedMatchScoringPage() {
   const [undoAction, setUndoAction] = useState<UndoAction | null>(null);
   const [presses, setPresses] = useState<Press[]>([]);
   const [showHandicapDetails, setShowHandicapDetails] = useState(false);
-  const [scoringMode, setScoringMode] = useState<
-    'swipe' | 'buttons' | 'strokes' | 'fourball' | 'oneHanded'
-  >(scoringPreferences.oneHandedMode ? 'oneHanded' : 'swipe');
   const { showConfirm, ConfirmDialogComponent } = useConfirmDialog();
   const [showScoringModeTip, setShowScoringModeTip] = useState(false);
   const [savingIndicator, setSavingIndicator] = useState<string | null>(null);
@@ -189,6 +191,24 @@ export default function EnhancedMatchScoringPage() {
 
   const isFourball = currentSession?.sessionType === 'fourball';
 
+  // Power user: Initialize scoring mode from persisted preference for this format
+  const [scoringMode, setScoringMode] = useState<
+    'swipe' | 'buttons' | 'strokes' | 'fourball' | 'oneHanded'
+  >(() => {
+    if (!currentSession) return scoringPreferences.oneHandedMode ? 'oneHanded' : 'swipe';
+    return getScoringModeForFormat(currentSession.sessionType);
+  });
+
+  // Update scoring mode when format changes and persist preference
+  const handleScoringModeChange = (
+    mode: 'swipe' | 'buttons' | 'strokes' | 'fourball' | 'oneHanded'
+  ) => {
+    setScoringMode(mode);
+    if (currentSession) {
+      setScoringModeForFormat(currentSession.sessionType, mode);
+    }
+  };
+
   const teamAPlayers = useMemo(() => {
     if (!activeMatch) return [];
     return activeMatch.teamAPlayerIds.map((id) => players.find((p) => p.id === id)).filter(Boolean);
@@ -203,6 +223,25 @@ export default function EnhancedMatchScoringPage() {
     if (!matchState) return null;
     return matchState.holeResults.find((r) => r.holeNumber === currentHole);
   }, [matchState, currentHole]);
+
+  // Find next incomplete match in session for "Score Next Match" navigation
+  const nextIncompleteMatch = useMemo(() => {
+    if (!activeMatch || !sessionMatches.length) return null;
+    const currentIndex = sessionMatches.findIndex((m) => m.id === activeMatch.id);
+    // Look for the next match after current that isn't completed
+    for (let i = currentIndex + 1; i < sessionMatches.length; i++) {
+      if (sessionMatches[i].status !== 'completed') {
+        return sessionMatches[i];
+      }
+    }
+    // Wrap around - look from start to current
+    for (let i = 0; i < currentIndex; i++) {
+      if (sessionMatches[i].status !== 'completed') {
+        return sessionMatches[i];
+      }
+    }
+    return null;
+  }, [activeMatch, sessionMatches]);
 
   // Undo handler - must be defined before executeScore to avoid "accessed before declaration" error
   const handleUndo = useCallback(async () => {
@@ -1059,7 +1098,7 @@ export default function EnhancedMatchScoringPage() {
                 style={{ background: 'var(--canvas-sunken)' }}
               >
                 <button
-                  onClick={() => setScoringMode('swipe')}
+                  onClick={() => handleScoringModeChange('swipe')}
                   className="px-3 py-1 rounded-full transition-all"
                   style={{
                     background: scoringMode === 'swipe' ? 'var(--canvas)' : 'transparent',
@@ -1070,7 +1109,7 @@ export default function EnhancedMatchScoringPage() {
                   Swipe
                 </button>
                 <button
-                  onClick={() => setScoringMode('buttons')}
+                  onClick={() => handleScoringModeChange('buttons')}
                   className="px-3 py-1 rounded-full transition-all"
                   style={{
                     background: scoringMode === 'buttons' ? 'var(--canvas)' : 'transparent',
@@ -1081,7 +1120,7 @@ export default function EnhancedMatchScoringPage() {
                   Buttons
                 </button>
                 <button
-                  onClick={() => setScoringMode('strokes')}
+                  onClick={() => handleScoringModeChange('strokes')}
                   className="px-3 py-1 rounded-full transition-all"
                   style={{
                     background: scoringMode === 'strokes' ? 'var(--canvas)' : 'transparent',
@@ -1093,7 +1132,7 @@ export default function EnhancedMatchScoringPage() {
                 </button>
                 {isFourball && (
                   <button
-                    onClick={() => setScoringMode('fourball')}
+                    onClick={() => handleScoringModeChange('fourball')}
                     className="px-3 py-1 rounded-full transition-all"
                     style={{
                       background: scoringMode === 'fourball' ? 'var(--masters)' : 'transparent',
@@ -1105,7 +1144,7 @@ export default function EnhancedMatchScoringPage() {
                   </button>
                 )}
                 <button
-                  onClick={() => setScoringMode('oneHanded')}
+                  onClick={() => handleScoringModeChange('oneHanded')}
                   className="px-3 py-1 rounded-full transition-all"
                   style={{
                     background: scoringMode === 'oneHanded' ? 'var(--masters)' : 'transparent',
@@ -1119,35 +1158,90 @@ export default function EnhancedMatchScoringPage() {
             </div>
           </section>
         ) : (
-          /* Match Complete State */
-          <section className="py-12 text-center">
+          /* Match Complete State - Enhanced Celebration */
+          <section className="py-8 text-center">
+            {/* Confetti burst animation */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 pointer-events-none overflow-hidden"
+            >
+              {[...Array(20)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-3 h-3 rounded-full"
+                  initial={{
+                    opacity: 1,
+                    x: '50%',
+                    y: '30%',
+                    scale: 0,
+                  }}
+                  animate={{
+                    opacity: [1, 1, 0],
+                    x: `${50 + (Math.random() - 0.5) * 100}%`,
+                    y: `${30 + Math.random() * 60}%`,
+                    scale: [0, 1.5, 0.5],
+                    rotate: Math.random() * 360,
+                  }}
+                  transition={{
+                    duration: 2 + Math.random(),
+                    delay: i * 0.05,
+                    ease: 'easeOut',
+                  }}
+                  style={{
+                    background:
+                      i % 3 === 0 ? 'var(--masters)' : i % 3 === 1 ? teamAColor : teamBColor,
+                  }}
+                />
+              ))}
+            </motion.div>
+
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: 'spring', damping: 15 }}
+              className="relative z-10"
             >
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4"
+              {/* Trophy Icon */}
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', damping: 10, delay: 0.2 }}
+                className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6"
                 style={{
                   background:
                     matchState.winningTeam === 'teamA'
                       ? teamAColor
                       : matchState.winningTeam === 'teamB'
                         ? teamBColor
-                        : '#666',
+                        : 'linear-gradient(135deg, var(--ink-tertiary) 0%, #888 100%)',
+                  boxShadow:
+                    matchState.winningTeam !== 'halved'
+                      ? `0 8px 32px ${matchState.winningTeam === 'teamA' ? teamAColor : teamBColor}40`
+                      : 'var(--shadow-lg)',
                 }}
               >
-                <Trophy className="w-10 h-10 text-white" />
-              </div>
+                <Trophy className="w-12 h-12 text-white" />
+              </motion.div>
 
-              <h2 className="text-2xl font-bold mb-2">
+              {/* Winner Announcement */}
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-3xl font-bold mb-2"
+              >
                 {matchState.winningTeam === 'halved'
-                  ? 'Match Halved'
+                  ? 'Match Halved!'
                   : `${matchState.winningTeam === 'teamA' ? teamAName : teamBName} Wins!`}
-              </h2>
+              </motion.h2>
 
-              <p
-                className="text-xl font-semibold"
+              {/* Final Score */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-2xl font-bold mb-6"
                 style={{
                   color:
                     matchState.winningTeam === 'teamA'
@@ -1158,15 +1252,125 @@ export default function EnhancedMatchScoringPage() {
                 }}
               >
                 {matchState.displayScore}
-              </p>
+              </motion.p>
 
-              <button
-                onClick={() => router.push('/score')}
-                className="mt-6 px-6 py-3 rounded-xl font-medium"
-                style={{ background: 'var(--masters)', color: 'white' }}
+              {/* Match Stats Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="rounded-2xl p-5 mb-6 mx-auto max-w-sm"
+                style={{ background: 'var(--surface-card)', border: '1px solid var(--rule)' }}
               >
-                Back to Matches
-              </button>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold" style={{ color: teamAColor }}>
+                      {matchState.teamAHolesWon}
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--ink-tertiary)' }}>
+                      {teamAName} Holes
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold" style={{ color: 'var(--ink-tertiary)' }}>
+                      {matchState.holeResults.filter((r) => r.winner === 'halved').length}
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--ink-tertiary)' }}>
+                      Halved
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold" style={{ color: teamBColor }}>
+                      {matchState.teamBHolesWon}
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--ink-tertiary)' }}>
+                      {teamBName} Holes
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--rule)' }}>
+                  <p className="text-sm" style={{ color: 'var(--ink-secondary)' }}>
+                    Completed through hole {matchState.holesPlayed}
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Action Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="flex flex-col gap-3 max-w-sm mx-auto"
+              >
+                {/* Score Next Match - Primary CTA if available */}
+                {nextIncompleteMatch && (
+                  <button
+                    onClick={() => router.push(`/score/${nextIncompleteMatch.id}`)}
+                    className="w-full py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                    style={{ background: 'var(--masters)', color: 'white' }}
+                  >
+                    Score Next Match
+                    <ArrowRight size={20} />
+                  </button>
+                )}
+
+                {/* View Standings */}
+                <button
+                  onClick={() => router.push('/standings')}
+                  className={`w-full py-3 px-6 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${!nextIncompleteMatch ? 'py-4 font-semibold' : ''}`}
+                  style={
+                    nextIncompleteMatch
+                      ? {
+                          background: 'var(--canvas-raised)',
+                          border: '1px solid var(--rule)',
+                          color: 'var(--ink)',
+                        }
+                      : {
+                          background: 'var(--masters)',
+                          color: 'white',
+                        }
+                  }
+                >
+                  <BarChart3 size={nextIncompleteMatch ? 18 : 20} />
+                  View Standings
+                </button>
+
+                {/* Share Result */}
+                <button
+                  onClick={() => {
+                    const winnerText =
+                      matchState.winningTeam === 'halved'
+                        ? 'Match halved!'
+                        : `${matchState.winningTeam === 'teamA' ? teamAName : teamBName} wins ${matchState.displayScore}!`;
+                    const shareText = `⛳ ${winnerText}\n${teamAPlayers.map((p) => formatPlayerName(p!.firstName, p!.lastName, 'short')).join(' & ')} vs ${teamBPlayers.map((p) => formatPlayerName(p!.firstName, p!.lastName, 'short')).join(' & ')}`;
+
+                    if (navigator.share) {
+                      navigator.share({ text: shareText });
+                    } else {
+                      navigator.clipboard.writeText(shareText);
+                      showToast('success', 'Result copied to clipboard!');
+                    }
+                  }}
+                  className="w-full py-3 px-6 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+                  style={{
+                    background: 'var(--canvas-raised)',
+                    border: '1px solid var(--rule)',
+                    color: 'var(--ink)',
+                  }}
+                >
+                  <Share2 size={18} />
+                  Share Result
+                </button>
+
+                {/* Back to Matches */}
+                <button
+                  onClick={() => router.push('/score')}
+                  className="w-full py-3 px-6 rounded-xl font-medium text-center transition-colors"
+                  style={{ color: 'var(--ink-secondary)' }}
+                >
+                  Back to Matches
+                </button>
+              </motion.div>
             </motion.div>
           </section>
         )}

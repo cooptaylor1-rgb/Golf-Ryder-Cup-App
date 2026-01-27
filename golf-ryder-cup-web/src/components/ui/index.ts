@@ -6,8 +6,20 @@
 
 // Core primitives
 export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from './Button';
-export { IconButton, type IconButtonProps, type IconButtonSize, type IconButtonVariant } from './IconButton';
-export { Card, CardHeader, CardContent, CardFooter, type CardProps, type CardVariant } from './Card';
+export {
+  IconButton,
+  type IconButtonProps,
+  type IconButtonSize,
+  type IconButtonVariant,
+} from './IconButton';
+export {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+  type CardProps,
+  type CardVariant,
+} from './Card';
 export { Input, type InputProps } from './Input';
 
 // Accessibility & Form validation
@@ -39,12 +51,7 @@ export {
 } from './ErrorBoundary';
 
 // Celebration & success
-export {
-  SuccessOverlay,
-  VictoryCelebration,
-  PointScored,
-  AchievementBadge,
-} from './Celebration';
+export { SuccessOverlay, VictoryCelebration, PointScored, AchievementBadge } from './Celebration';
 
 // Navigation & organization
 export { Tabs, TabList, TabTrigger, TabContent, type TabsProps } from './Tabs';
@@ -99,7 +106,12 @@ export {
 } from './EmptyState';
 
 // Navigation components
-export { Breadcrumb, SimpleBreadcrumb, type BreadcrumbItem, type BreadcrumbProps } from './Breadcrumb';
+export {
+  Breadcrumb,
+  SimpleBreadcrumb,
+  type BreadcrumbItem,
+  type BreadcrumbProps,
+} from './Breadcrumb';
 
 // Legacy aliases for backwards compatibility
 export { NoTripsEmpty as NoTournamentsEmpty } from './EmptyState';
@@ -135,37 +147,20 @@ export {
 } from './illustrations';
 
 // Onboarding & Discovery
-export {
-  Onboarding,
-  WelcomeBack,
-  FeatureSpotlight,
-} from './Onboarding';
+export { Onboarding, WelcomeBack, FeatureSpotlight } from './Onboarding';
 
-export {
-  WhatsNew,
-  FeatureCard,
-  useWhatsNew,
-} from './WhatsNew';
+export { WhatsNew, FeatureCard, useWhatsNew } from './WhatsNew';
 
-export {
-  QuickStartWizard,
-} from './QuickStartWizard';
+export { QuickStartWizard } from './QuickStartWizard';
 
-export {
-  LiveMatchBanner,
-  LiveMatchPill,
-} from './LiveMatchBanner';
+export { LiveMatchBanner, LiveMatchPill } from './LiveMatchBanner';
+
+export { ContinueScoringBanner } from './ContinueScoringBanner';
 
 // Performance & Offline
-export {
-  PullToRefresh,
-  usePullToRefresh,
-} from './PullToRefresh';
+export { PullToRefresh, usePullToRefresh } from './PullToRefresh';
 
-export {
-  SyncStatus,
-  FloatingSyncStatus,
-} from './SyncStatus';
+export { SyncStatus, FloatingSyncStatus } from './SyncStatus';
 
 // Celebrations & Delight
 export {
