@@ -2,13 +2,13 @@
 # Points to the Next.js web app in the subdirectory
 
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_20", "pnpm"]
 
 [phases.install]
-cmds = ["cd golf-ryder-cup-web && npm ci"]
+cmds = ["cd golf-ryder-cup-web && pnpm install --frozen-lockfile"]
 
 [phases.build]
-cmds = ["cd golf-ryder-cup-web && npm run build"]
+cmds = ["cd golf-ryder-cup-web && pnpm run build"]
 
 [start]
-cmd = "cd golf-ryder-cup-web && npm start"
+cmd = "cd golf-ryder-cup-web && pnpm start"
