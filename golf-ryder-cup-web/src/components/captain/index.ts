@@ -213,3 +213,9 @@ export {
   AuditHistoryList,
   type AuditInfo,
 } from './audit';
+
+// Session Lock Manager
+export {
+  SessionLockManager,
+  default as SessionLockManagerDefault,
+} from './SessionLockManager';

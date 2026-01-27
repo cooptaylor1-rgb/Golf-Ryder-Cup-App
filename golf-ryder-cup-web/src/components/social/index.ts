@@ -72,3 +72,12 @@ export {
   type LiveReaction,
   type LiveReactionType,
 } from './live/LiveReactionStream';
+
+// Chat - NEW
+export { ChatMessage, ChatRoom } from './chat';
+
+// Polls - NEW
+export { PollCard, CreatePollModal } from './polls';
+
+// Stats - NEW
+export { PlayerStatsCard, StatsDashboard } from './stats';
