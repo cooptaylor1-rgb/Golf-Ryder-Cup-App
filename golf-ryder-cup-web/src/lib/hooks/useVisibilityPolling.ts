@@ -76,9 +76,7 @@ export function useVisibilityPolling(
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
   const effectiveInterval =
-    prefersReducedMotion && reducedMotionInterval
-      ? reducedMotionInterval
-      : interval;
+    prefersReducedMotion && reducedMotionInterval ? reducedMotionInterval : interval;
 
   const clearPolling = useCallback(() => {
     if (intervalRef.current) {
@@ -139,12 +137,13 @@ export function useVisibilityPolling(
     return clearPolling;
   }, [clearPolling, enabled, isPaused, isVisible, startPolling]);
 
-  // Initial fetch on mount
+  // Initial fetch on mount only - intentionally empty deps
+  // We only want this to run once when the component mounts
   useEffect(() => {
     if (fetchOnMount && enabled) {
       doFetch();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentional: mount-only effect
   }, []);
 
   const refetch = useCallback(() => {

@@ -1,9 +1,31 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { runPreFlightCheck, getPreFlightSummary, type PreFlightCheckResult } from '@/lib/services/preFlightValidationService';
-import type { Trip, Player, Team, TeamMember, RyderCupSession, Match, Course, TeeSet } from '@/lib/types';
-import { CheckCircle, XCircle, AlertTriangle, ChevronDown, ChevronUp, Loader2, RefreshCw, Rocket } from 'lucide-react';
+import {
+  runPreFlightCheck,
+  getPreFlightSummary,
+  type PreFlightCheckResult,
+} from '@/lib/services/preFlightValidationService';
+import type {
+  Trip,
+  Player,
+  Team,
+  TeamMember,
+  RyderCupSession,
+  Match,
+  Course,
+  TeeSet,
+} from '@/lib/types';
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  RefreshCw,
+  Rocket,
+} from 'lucide-react';
 import { createLogger } from '@/lib/utils/logger';
 
 const logger = createLogger('PreFlight');
@@ -31,7 +53,7 @@ export function PreFlightChecklist({
   matches = [],
   courses = [],
   teeSets = [],
-  onAllClear
+  onAllClear,
 }: PreFlightChecklistProps) {
   const [result, setResult] = useState<PreFlightCheckResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,7 +88,7 @@ export function PreFlightChecklist({
 
       // Auto-expand sections with issues
       const sectionsWithIssues = new Set<string>();
-      [...checkResult.errors, ...checkResult.warnings].forEach(item => {
+      [...checkResult.errors, ...checkResult.warnings].forEach((item) => {
         sectionsWithIssues.add(item.category);
       });
       setExpandedSections(sectionsWithIssues);
@@ -83,11 +105,11 @@ export function PreFlightChecklist({
 
   useEffect(() => {
     runCheck();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentional: runCheck is stable, only re-run on tripId change
   }, [tripId]);
 
   const toggleSection = (category: string) => {
-    setExpandedSections(prev => {
+    setExpandedSections((prev) => {
       const next = new Set(prev);
       if (next.has(category)) {
         next.delete(category);
@@ -130,24 +152,23 @@ export function PreFlightChecklist({
   }
 
   if (!result) {
-    return (
-      <div className="text-center p-8 text-red-500">
-        Failed to run pre-flight checks
-      </div>
-    );
+    return <div className="text-center p-8 text-red-500">Failed to run pre-flight checks</div>;
   }
 
   const summary = getPreFlightSummary(result);
   const allItems = [...result.errors, ...result.warnings, ...result.info];
-  const _categories = [...new Set(allItems.map(item => item.category))];
+  const _categories = [...new Set(allItems.map((item) => item.category))];
 
   return (
     <div className="space-y-4">
       {/* Summary Header */}
-      <div className={`rounded-xl p-6 border-2 ${result.isReady
-        ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-700'
-        : 'bg-yellow-50 border-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700'
-        }`}>
+      <div
+        className={`rounded-xl p-6 border-2 ${
+          result.isReady
+            ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-700'
+            : 'bg-yellow-50 border-yellow-300 dark:bg-yellow-900/20 dark:border-yellow-700'
+        }`}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {result.isReady ? (
@@ -221,13 +242,19 @@ export function PreFlightChecklist({
           </div>
           <div className="p-4 space-y-2 bg-white dark:bg-gray-900">
             {result.errors.map((item, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <div
+                key={idx}
+                className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+              >
                 <p className="font-medium text-red-800 dark:text-red-200">{item.title}</p>
                 {item.description && (
                   <p className="text-sm text-red-600 dark:text-red-300 mt-1">{item.description}</p>
                 )}
                 {item.actionLabel && item.actionHref && (
-                  <a href={item.actionHref} className="text-sm text-blue-600 dark:text-blue-400 mt-2 inline-block">
+                  <a
+                    href={item.actionHref}
+                    className="text-sm text-blue-600 dark:text-blue-400 mt-2 inline-block"
+                  >
                     {item.actionLabel} →
                   </a>
                 )}
@@ -248,13 +275,21 @@ export function PreFlightChecklist({
           </div>
           <div className="p-4 space-y-2 bg-white dark:bg-gray-900">
             {result.warnings.map((item, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+              <div
+                key={idx}
+                className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
+              >
                 <p className="font-medium text-yellow-800 dark:text-yellow-200">{item.title}</p>
                 {item.description && (
-                  <p className="text-sm text-yellow-600 dark:text-yellow-300 mt-1">{item.description}</p>
+                  <p className="text-sm text-yellow-600 dark:text-yellow-300 mt-1">
+                    {item.description}
+                  </p>
                 )}
                 {item.actionLabel && item.actionHref && (
-                  <a href={item.actionHref} className="text-sm text-blue-600 dark:text-blue-400 mt-2 inline-block">
+                  <a
+                    href={item.actionHref}
+                    className="text-sm text-blue-600 dark:text-blue-400 mt-2 inline-block"
+                  >
                     {item.actionLabel} →
                   </a>
                 )}
@@ -286,7 +321,10 @@ export function PreFlightChecklist({
           {expandedSections.has('info') && (
             <div className="p-4 space-y-2 bg-white dark:bg-gray-900">
               {result.info.map((item, idx) => (
-                <div key={idx} className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                <div
+                  key={idx}
+                  className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+                >
                   <p className="text-green-800 dark:text-green-200">{item.title}</p>
                 </div>
               ))}

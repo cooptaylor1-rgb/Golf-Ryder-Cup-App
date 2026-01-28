@@ -15,14 +15,7 @@
 
 'use client';
 
-import {
-  useRef,
-  useCallback,
-  useEffect,
-  useState,
-  useMemo,
-  type RefObject,
-} from 'react';
+import { useRef, useCallback, useEffect, useState, useMemo, type RefObject } from 'react';
 
 // ============================================
 // Types & Interfaces
@@ -123,10 +116,18 @@ export function useSwipeGesture(
   config: SwipeConfig = {}
 ) {
   // Memoize settings to avoid recreating on every render
+  // Using specific properties to avoid object reference changes
   const settings = useMemo(
     () => ({ ...DEFAULT_SWIPE_CONFIG, ...config }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.threshold, config.velocityThreshold, config.directions, config.edgeWidth, config.resistance, config.haptics]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentional: using specific props instead of object reference
+    [
+      config.threshold,
+      config.velocityThreshold,
+      config.directions,
+      config.edgeWidth,
+      config.resistance,
+      config.haptics,
+    ]
   );
 
   const [gestureState, setGestureState] = useState<GestureState>({
@@ -150,29 +151,23 @@ export function useSwipeGesture(
   const isEdge = useRef(false);
 
   // Calculate velocity with exponential smoothing
-  const calculateVelocity = useCallback(
-    (current: number, last: number, timeDelta: number) => {
-      if (timeDelta === 0) return 0;
-      return (current - last) / timeDelta;
-    },
-    []
-  );
+  const calculateVelocity = useCallback((current: number, last: number, timeDelta: number) => {
+    if (timeDelta === 0) return 0;
+    return (current - last) / timeDelta;
+  }, []);
 
   // Determine swipe direction
-  const getDirection = useCallback(
-    (dx: number, dy: number): GestureState['direction'] => {
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
+  const getDirection = useCallback((dx: number, dy: number): GestureState['direction'] => {
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
 
-      if (absDx < 10 && absDy < 10) return null;
+    if (absDx < 10 && absDy < 10) return null;
 
-      if (absDx > absDy) {
-        return dx > 0 ? 'right' : 'left';
-      }
-      return dy > 0 ? 'down' : 'up';
-    },
-    []
-  );
+    if (absDx > absDy) {
+      return dx > 0 ? 'right' : 'left';
+    }
+    return dy > 0 ? 'down' : 'up';
+  }, []);
 
   useEffect(() => {
     const element = ref.current;
@@ -193,8 +188,7 @@ export function useSwipeGesture(
       // Check if this is an edge gesture
       const relativeX = touch.clientX - rect.left;
       isEdge.current =
-        relativeX <= settings.edgeWidth ||
-        relativeX >= rect.width - settings.edgeWidth;
+        relativeX <= settings.edgeWidth || relativeX >= rect.width - settings.edgeWidth;
 
       setGestureState((prev) => ({
         ...prev,
@@ -274,13 +268,12 @@ export function useSwipeGesture(
 
       const absDx = Math.abs(dx);
       const absDy = Math.abs(dy);
-      const velocity = Math.sqrt(
-        gestureState.velocityX ** 2 + gestureState.velocityY ** 2
-      );
+      const velocity = Math.sqrt(gestureState.velocityX ** 2 + gestureState.velocityY ** 2);
 
       const direction = getDirection(dx, dy);
       const isSwipe =
-        (absDx > settings.threshold || absDy > settings.threshold) ||
+        absDx > settings.threshold ||
+        absDy > settings.threshold ||
         velocity > settings.velocityThreshold;
 
       // Fire swipe callbacks
@@ -439,8 +432,7 @@ export function useLongPress(
     (e: TouchEvent | MouseEvent) => {
       isPressed.current = true;
 
-      const point =
-        'touches' in e ? e.touches[0] : e;
+      const point = 'touches' in e ? e.touches[0] : e;
       startX.current = point.clientX;
       startY.current = point.clientY;
 
@@ -528,8 +520,7 @@ export function useEdgeSwipe(
       startY = touch.clientY;
 
       // Check if touch started at edge
-      isEdgeTouch =
-        startX <= edgeWidth || startX >= window.innerWidth - edgeWidth;
+      isEdgeTouch = startX <= edgeWidth || startX >= window.innerWidth - edgeWidth;
     };
 
     const handleTouchEnd = (e: TouchEvent) => {

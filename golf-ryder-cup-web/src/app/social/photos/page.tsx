@@ -190,6 +190,7 @@ export default function PhotosPage() {
                 border: 'none',
                 cursor: 'pointer',
               }}
+              aria-label={viewMode === 'grid' ? 'Switch to masonry view' : 'Switch to grid view'}
             >
               {viewMode === 'grid' ? <LayoutGrid size={20} /> : <Grid size={20} />}
             </button>
@@ -197,6 +198,7 @@ export default function PhotosPage() {
               onClick={() => fileInputRef.current?.click()}
               className="btn-premium p-2 rounded-lg"
               style={{ color: 'var(--color-accent)' }}
+              aria-label="Add photo"
             >
               <Plus size={22} />
             </button>
@@ -256,6 +258,7 @@ export default function PhotosPage() {
           <button
             onClick={() => setSelectedPhoto(null)}
             className="absolute top-4 right-4 p-2 text-white/70 hover:text-white"
+            aria-label="Close photo viewer"
           >
             <X size={28} />
           </button>
@@ -275,21 +278,30 @@ export default function PhotosPage() {
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <button className="flex items-center gap-2 text-white/70 hover:text-white">
+                  <button
+                    className="flex items-center gap-2 text-white/70 hover:text-white"
+                    aria-label={`Like photo, ${selectedPhoto.likes} likes`}
+                  >
                     <Heart size={20} />
                     <span>{selectedPhoto.likes}</span>
                   </button>
-                  <button className="flex items-center gap-2 text-white/70 hover:text-white">
+                  <button
+                    className="flex items-center gap-2 text-white/70 hover:text-white"
+                    aria-label="Comment on photo"
+                  >
                     <MessageCircle size={20} />
                     <span>Comment</span>
                   </button>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button className="p-2 text-white/70 hover:text-white">
+                  <button className="p-2 text-white/70 hover:text-white" aria-label="Share photo">
                     <Share2 size={20} />
                   </button>
-                  <button className="p-2 text-white/70 hover:text-white">
+                  <button
+                    className="p-2 text-white/70 hover:text-white"
+                    aria-label="Download photo"
+                  >
                     <Download size={20} />
                   </button>
                 </div>

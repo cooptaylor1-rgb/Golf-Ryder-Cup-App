@@ -17,7 +17,7 @@
 
 'use client';
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, lazy, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScoringStore, useTripStore, useUIStore } from '@/lib/stores';
@@ -38,10 +38,10 @@ import {
 } from 'lucide-react';
 import type { HoleWinner, PlayerHoleScore } from '@/lib/types/models';
 import { TEAM_COLORS } from '@/lib/constants/teamColors';
+// Core scoring components - loaded immediately
 import {
   SwipeScorePanel,
   HoleMiniMap,
-  ScoreCelebration,
   ScoreToast,
   HandicapStrokeIndicator,
   StrokeAlertBanner,
@@ -51,6 +51,10 @@ import {
   OneHandedScoringPanel,
   type Press,
 } from '@/components/scoring';
+// Lazy load heavy components that aren't immediately needed
+const ScoreCelebration = lazy(() =>
+  import('@/components/scoring').then((mod) => ({ default: mod.ScoreCelebration }))
+);
 import {
   StickyUndoBanner,
   VoiceScoring,
@@ -533,20 +537,22 @@ export default function EnhancedMatchScoringPage() {
 
   return (
     <div className="min-h-screen pb-nav" style={{ background: 'var(--canvas)' }}>
-      {/* Celebration Overlay */}
+      {/* Celebration Overlay - Lazy loaded for performance */}
       <AnimatePresence>
         {celebration && (
-          <ScoreCelebration
-            type={celebration.type}
-            winner={celebration.winner}
-            teamName={celebration.teamName}
-            teamColor={celebration.teamColor}
-            holeNumber={celebration.holeNumber}
-            finalScore={celebration.finalScore}
-            show={true}
-            onComplete={() => setCelebration(null)}
-            duration={celebration.type === 'matchWon' ? 3500 : 1500}
-          />
+          <Suspense fallback={null}>
+            <ScoreCelebration
+              type={celebration.type}
+              winner={celebration.winner}
+              teamName={celebration.teamName}
+              teamColor={celebration.teamColor}
+              holeNumber={celebration.holeNumber}
+              finalScore={celebration.finalScore}
+              show={true}
+              onComplete={() => setCelebration(null)}
+              duration={celebration.type === 'matchWon' ? 3500 : 1500}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
 

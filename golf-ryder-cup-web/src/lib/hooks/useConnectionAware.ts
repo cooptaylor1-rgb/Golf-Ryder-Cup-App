@@ -65,14 +65,16 @@ export function getConnectionQuality(): ConnectionQuality {
   if (!navigator.onLine) return 'offline';
 
   // Use Network Information API if available
-  const connection = (navigator as Navigator & {
-    connection?: {
-      effectiveType?: string;
-      downlink?: number;
-      rtt?: number;
-      saveData?: boolean;
-    };
-  }).connection;
+  const connection = (
+    navigator as Navigator & {
+      connection?: {
+        effectiveType?: string;
+        downlink?: number;
+        rtt?: number;
+        saveData?: boolean;
+      };
+    }
+  ).connection;
 
   if (!connection) return 'good';
 
@@ -111,9 +113,11 @@ export function useConnectionQuality(): ConnectionQuality {
     setQuality(getConnectionQuality());
 
     // Listen for connection changes
-    const connection = (navigator as Navigator & {
-      connection?: EventTarget;
-    }).connection;
+    const connection = (
+      navigator as Navigator & {
+        connection?: EventTarget;
+      }
+    ).connection;
 
     if (connection) {
       const handleChange = () => setQuality(getConnectionQuality());
@@ -216,30 +220,33 @@ export function useConnectionAwareFetch<T>({
   const wasOfflineRef = useRef(!isOnline);
 
   // Fetch fresh data
-  const fetchData = useCallback(async (showLoading = true) => {
-    if (showLoading) setIsLoading(true);
-    setIsError(false);
-    setError(null);
+  const fetchData = useCallback(
+    async (showLoading = true) => {
+      if (showLoading) setIsLoading(true);
+      setIsError(false);
+      setError(null);
 
-    try {
-      const freshData = await fetchFn();
-      if (isMountedRef.current) {
-        setData(freshData);
-        setIsStale(false);
-        setLastUpdated(new Date());
-        await setCache(cacheKey, freshData);
+      try {
+        const freshData = await fetchFn();
+        if (isMountedRef.current) {
+          setData(freshData);
+          setIsStale(false);
+          setLastUpdated(new Date());
+          await setCache(cacheKey, freshData);
+        }
+      } catch (err) {
+        if (isMountedRef.current) {
+          setIsError(true);
+          setError(err instanceof Error ? err : new Error(String(err)));
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
-    } catch (err) {
-      if (isMountedRef.current) {
-        setIsError(true);
-        setError(err instanceof Error ? err : new Error(String(err)));
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, [cacheKey, fetchFn]);
+    },
+    [cacheKey, fetchFn]
+  );
 
   // Load cached data
   const loadCached = useCallback(async () => {
@@ -296,7 +303,7 @@ export function useConnectionAwareFetch<T>({
     return () => {
       isMountedRef.current = false;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentional: deps spread from caller, fetchData uses refs
   }, [cacheKey, ...deps]);
 
   // Refetch on reconnect
@@ -331,11 +338,7 @@ export function useConnectionAwareFetch<T>({
 /**
  * Prefetch data on good connections
  */
-export function usePrefetch<T>(
-  cacheKey: string,
-  fetchFn: () => Promise<T>,
-  enabled = true
-) {
+export function usePrefetch<T>(cacheKey: string, fetchFn: () => Promise<T>, enabled = true) {
   const connectionQuality = useConnectionQuality();
 
   useEffect(() => {
@@ -371,29 +374,32 @@ export function useOfflineMutation<TData, TVariables>(
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const mutate = useCallback(async (variables: TVariables) => {
-    setIsLoading(true);
-    setError(null);
+  const mutate = useCallback(
+    async (variables: TVariables) => {
+      setIsLoading(true);
+      setError(null);
 
-    if (!isOnline) {
-      // Queue for later
-      options.onOffline?.(variables);
-      setIsLoading(false);
-      return;
-    }
+      if (!isOnline) {
+        // Queue for later
+        options.onOffline?.(variables);
+        setIsLoading(false);
+        return;
+      }
 
-    try {
-      const result = await mutationFn(variables);
-      options.onSuccess?.(result);
-      return result;
-    } catch (err) {
-      const errorObj = err instanceof Error ? err : new Error(String(err));
-      setError(errorObj);
-      options.onError?.(errorObj);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isOnline, mutationFn, options]);
+      try {
+        const result = await mutationFn(variables);
+        options.onSuccess?.(result);
+        return result;
+      } catch (err) {
+        const errorObj = err instanceof Error ? err : new Error(String(err));
+        setError(errorObj);
+        options.onError?.(errorObj);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [isOnline, mutationFn, options]
+  );
 
   return { mutate, isLoading, error };
 }

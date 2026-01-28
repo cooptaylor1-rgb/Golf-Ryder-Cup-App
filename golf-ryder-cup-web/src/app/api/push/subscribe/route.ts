@@ -8,21 +8,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { applyRateLimit } from '@/lib/utils/apiMiddleware';
+import { z } from 'zod';
 
-interface PushSubscriptionData {
-  endpoint: string;
-  expirationTime?: number | null;
-  keys: {
-    p256dh: string;
-    auth: string;
-  };
-}
+// Zod schema for push subscription validation
+const pushSubscriptionKeysSchema = z.object({
+  p256dh: z.string().min(1, 'p256dh key is required'),
+  auth: z.string().min(1, 'auth key is required'),
+});
 
-interface SubscriptionRequest {
-  subscription: PushSubscriptionData;
-  userId?: string;
-  tripId?: string;
-}
+const pushSubscriptionDataSchema = z.object({
+  endpoint: z.string().url('Invalid endpoint URL'),
+  expirationTime: z.number().nullable().optional(),
+  keys: pushSubscriptionKeysSchema,
+});
+
+const subscriptionRequestSchema = z.object({
+  subscription: pushSubscriptionDataSchema,
+  userId: z.string().uuid().optional(),
+  tripId: z.string().uuid().optional(),
+});
+
+type PushSubscriptionData = z.infer<typeof pushSubscriptionDataSchema>;
+type _SubscriptionRequest = z.infer<typeof subscriptionRequestSchema>;
 
 // Rate limit config (10 requests per minute)
 const RATE_LIMIT_CONFIG = {
@@ -35,12 +42,15 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // In-memory fallback for local development when Supabase is not configured
-const localSubscriptions = new Map<string, {
-  subscription: PushSubscriptionData;
-  userId?: string;
-  tripId?: string;
-  createdAt: string;
-}>();
+const localSubscriptions = new Map<
+  string,
+  {
+    subscription: PushSubscriptionData;
+    userId?: string;
+    tripId?: string;
+    createdAt: string;
+  }
+>();
 
 /**
  * Store subscription in Supabase (or fallback to memory)
@@ -54,9 +64,8 @@ async function storeSubscription(
   if (supabaseUrl && supabaseServiceKey) {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .upsert({
+    const { error } = await supabase.from('push_subscriptions').upsert(
+      {
         endpoint,
         p256dh_key: subscription.keys.p256dh,
         auth_key: subscription.keys.auth,
@@ -65,9 +74,11 @@ async function storeSubscription(
         trip_id: tripId || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      }, {
+      },
+      {
         onConflict: 'endpoint',
-      });
+      }
+    );
 
     if (error) {
       console.error('Supabase push subscription error:', error);
@@ -93,10 +104,7 @@ async function removeSubscription(endpoint: string): Promise<boolean> {
   if (supabaseUrl && supabaseServiceKey) {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { error } = await supabase
-      .from('push_subscriptions')
-      .delete()
-      .eq('endpoint', endpoint);
+    const { error } = await supabase.from('push_subscriptions').delete().eq('endpoint', endpoint);
 
     return !error;
   }
@@ -116,28 +124,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body: SubscriptionRequest = await request.json();
+    const body = await request.json();
 
-    if (!body.subscription || !body.subscription.endpoint) {
+    // Validate request body with Zod schema
+    const parseResult = subscriptionRequestSchema.safeParse(body);
+    if (!parseResult.success) {
+      const errors = parseResult.error.issues.map((e) => e.message).join(', ');
       return NextResponse.json(
-        { error: 'Invalid subscription data' },
+        { error: 'Invalid subscription data', details: errors },
         { status: 400 }
       );
     }
 
-    if (!body.subscription.keys?.p256dh || !body.subscription.keys?.auth) {
-      return NextResponse.json(
-        { error: 'Invalid subscription keys' },
-        { status: 400 }
-      );
-    }
+    const { subscription, userId, tripId } = parseResult.data;
 
-    const result = await storeSubscription(
-      body.subscription.endpoint,
-      body.subscription,
-      body.userId,
-      body.tripId
-    );
+    const result = await storeSubscription(subscription.endpoint, subscription, userId, tripId);
 
     if (!result.success) {
       return NextResponse.json(
@@ -153,10 +154,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Push subscription error:', error);
-    return NextResponse.json(
-      { error: 'Failed to register subscription' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to register subscription' }, { status: 500 });
   }
 }
 
@@ -175,10 +173,7 @@ export async function DELETE(request: NextRequest) {
     const body: { endpoint: string } = await request.json();
 
     if (!body.endpoint) {
-      return NextResponse.json(
-        { error: 'Endpoint required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Endpoint required' }, { status: 400 });
     }
 
     const deleted = await removeSubscription(body.endpoint);
@@ -189,10 +184,7 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('Push unsubscribe error:', error);
-    return NextResponse.json(
-      { error: 'Failed to unregister subscription' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to unregister subscription' }, { status: 500 });
   }
 }
 
