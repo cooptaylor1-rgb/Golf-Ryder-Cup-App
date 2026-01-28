@@ -9,6 +9,8 @@ import {
   type SWUpdateCallback,
 } from '@/lib/utils/serviceWorker';
 import { pwaLogger } from '@/lib/utils/logger';
+import { useServiceWorkerHardening } from '@/lib/hooks/useServiceWorkerHardening';
+import { useBackgroundSyncFallback } from '@/lib/hooks/useBackgroundSyncFallback';
 
 interface PWAContextValue {
   isOnline: boolean;
@@ -37,6 +39,12 @@ export function PWAProvider({ children }: PWAProviderProps) {
   const [installed, setInstalled] = useState(false);
   const [hasUpdate, setHasUpdate] = useState(false);
   const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+
+  // iOS Safari service worker hardening
+  useServiceWorkerHardening();
+
+  // iOS Background Sync fallback (polling-based)
+  useBackgroundSyncFallback();
 
   useEffect(() => {
     // Check initial state - deferred to avoid setState-in-effect

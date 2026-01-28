@@ -12,10 +12,7 @@ export { useOnboarding } from './useOnboarding';
 export { useHomeData } from './useHomeData';
 
 // iOS/Mobile hooks
-export {
-  useIOSKeyboard,
-  useIOSInputZoomPrevention,
-} from './useIOSKeyboard';
+export { useIOSKeyboard, useIOSInputZoomPrevention } from './useIOSKeyboard';
 
 // Optimistic updates & sync
 export {
@@ -61,10 +58,7 @@ export {
 } from './useLiveUpdates';
 
 // Offline queue management
-export {
-  useOfflineQueue,
-  type QueuedAction,
-} from './useOfflineQueue';
+export { useOfflineQueue, type QueuedAction } from './useOfflineQueue';
 
 // Trip data management
 export {
@@ -98,9 +92,7 @@ export {
 } from './useKeyboardShortcuts';
 
 // Visibility-based polling (battery optimization)
-export {
-  useVisibilityPolling,
-} from './useVisibilityPolling';
+export { useVisibilityPolling } from './useVisibilityPolling';
 
 // Session timeout management
 export {
@@ -126,3 +118,22 @@ export {
   type LongPressConfig,
   type PinchState,
 } from './useIOSGestures';
+
+// ============================================
+// iOS/PWA Hardening
+// ============================================
+export {
+  useServiceWorkerHardening,
+  ServiceWorkerHardeningProvider,
+} from './useServiceWorkerHardening';
+
+export {
+  useBackgroundSyncFallback,
+  BackgroundSyncFallbackProvider,
+} from './useBackgroundSyncFallback';
+
+export {
+  useSwipeBackProtection,
+  SwipeBackProtector,
+  swipeBackProtectionStyles,
+} from './useSwipeBackProtection';
