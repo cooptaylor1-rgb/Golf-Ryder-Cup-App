@@ -81,6 +81,11 @@ export {
   DashboardSkeleton,
   PageSkeleton,
 } from './Skeleton';
+export {
+  PageLoadingSkeleton,
+  InlineLoadingSkeleton,
+  CardLoadingSkeleton,
+} from './PageLoadingSkeleton';
 
 // Empty states (consolidated - using Premium as primary)
 export {

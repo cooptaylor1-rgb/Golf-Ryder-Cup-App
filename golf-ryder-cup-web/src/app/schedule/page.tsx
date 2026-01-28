@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTripStore, useAuthStore } from '@/lib/stores';
+import { PageLoadingSkeleton } from '@/components/ui';
 import { db } from '@/lib/db';
 import { tripLogger } from '@/lib/utils/logger';
 import { getCountdown, getCountdownColor, isToday } from '@/lib/utils';
@@ -268,7 +269,7 @@ export default function SchedulePage() {
   }, [currentTrip, isLoading, router]);
 
   if (!currentTrip) {
-    return null;
+    return <PageLoadingSkeleton title="Schedule" variant="list" />;
   }
 
   const displaySchedule = selectedTab === 'my' ? mySchedule : scheduleByDay;

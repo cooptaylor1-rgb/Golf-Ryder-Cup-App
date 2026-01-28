@@ -214,6 +214,37 @@ export function SwipeScorePanel({
     onScore('halved');
   }, [disabled, haptic, onScore]);
 
+  // Keyboard handler for accessibility
+  // Arrow keys: Left = Team A, Right = Team B, Up = Halved
+  // Also supports: A = Team A, B = Team B, H = Halved
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (disabled) return;
+
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          e.preventDefault();
+          handleTapTeamA();
+          break;
+        case 'ArrowRight':
+        case 'b':
+        case 'B':
+          e.preventDefault();
+          handleTapTeamB();
+          break;
+        case 'ArrowUp':
+        case 'h':
+        case 'H':
+          e.preventDefault();
+          handleTapHalved();
+          break;
+      }
+    },
+    [disabled, handleTapTeamA, handleTapTeamB, handleTapHalved]
+  );
+
   // Get score display
   const getScoreDisplay = () => {
     if (currentScore === 0) return 'AS';
@@ -225,7 +256,7 @@ export function SwipeScorePanel({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full aspect-[4/3] max-h-[400px] rounded-3xl overflow-hidden ${className}`}
+      className={`relative w-full aspect-[4/3] max-h-[400px] rounded-3xl overflow-hidden focus:outline-none focus:ring-2 focus:ring-masters-green ${className}`}
       style={{
         background: 'var(--surface)',
         touchAction: 'none',
@@ -233,6 +264,10 @@ export function SwipeScorePanel({
         overscrollBehaviorX: 'contain',
         WebkitOverflowScrolling: 'touch',
       }}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      role="application"
+      aria-label={`Score entry for hole ${holeNumber}. Press Left arrow or A for ${teamAName} wins, Right arrow or B for ${teamBName} wins, Up arrow or H for halved.`}
     >
       {/* Background gradient based on gesture */}
       <motion.div
@@ -408,6 +443,16 @@ export function SwipeScorePanel({
         >
           {teamBName}
         </button>
+      </div>
+
+      {/* Keyboard shortcut hint - visible on focus */}
+      <div
+        className="absolute bottom-20 left-1/2 -translate-x-1/2 opacity-0 focus-within:opacity-100 transition-opacity pointer-events-none"
+        aria-hidden="true"
+      >
+        <div className="px-3 py-1.5 rounded-lg bg-black/50 backdrop-blur-sm">
+          <span className="text-xs text-white/80">← A wins • ↑ Halved • B wins →</span>
+        </div>
       </div>
 
       {/* Current score display */}

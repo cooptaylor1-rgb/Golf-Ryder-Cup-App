@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useTripStore, useAuthStore, useUIStore } from '@/lib/stores';
+import { useHomeData } from '@/lib/hooks/useHomeData';
 import { tripLogger } from '@/lib/utils/logger';
 import {
   ChevronRight,
@@ -28,11 +28,7 @@ import {
   Ruler,
 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { calculateTeamStandings } from '@/lib/services/tournamentEngine';
-import type { TeamStandings, MatchState } from '@/lib/types/computed';
-import type { Match, RyderCupSession } from '@/lib/types/models';
-import { calculateMatchState } from '@/lib/services/scoringEngine';
+import { useState, useCallback } from 'react';
 import {
   NoTournamentsEmpty,
   LiveMatchBanner,
@@ -58,112 +54,28 @@ import { WeatherWidget } from '@/components/course';
  */
 export default function HomePage() {
   const router = useRouter();
-  const { loadTrip, currentTrip, players, teams, sessions } = useTripStore();
-  const { currentUser, isAuthenticated } = useAuthStore();
+  const { loadTrip, currentTrip: _currentTrip, players, teams, sessions } = useTripStore();
+  const { currentUser: _currentUser, isAuthenticated: _isAuthenticated } = useAuthStore();
   const { isCaptainMode } = useUIStore();
-  const [standings, setStandings] = useState<TeamStandings | null>(null);
   const [showQuickStart, setShowQuickStart] = useState(false);
   const [showJoinTrip, setShowJoinTrip] = useState(false);
   const [, setShowWhatsNew] = useState(false);
   const [dismissedFeatureCard, setDismissedFeatureCard] = useState(false);
 
-  const trips = useLiveQuery(() => db.trips.orderBy('startDate').reverse().toArray(), []);
-
-  // Find active trip
-  const activeTrip =
-    trips?.find((t) => {
-      const now = new Date();
-      const start = new Date(t.startDate);
-      const end = new Date(t.endDate);
-      return now >= start && now <= end;
-    }) || currentTrip;
-
-  // BUG-004 FIX: Memoize loadTrip call to avoid stale closure issues
-  const loadTripStable = useCallback(
-    (tripId: string) => {
-      loadTrip(tripId);
-    },
-    [loadTrip]
-  );
-
-  // Load standings for active trip
-  useEffect(() => {
-    if (activeTrip) {
-      loadTripStable(activeTrip.id);
-      calculateTeamStandings(activeTrip.id).then(setStandings);
-    }
-  }, [activeTrip, loadTripStable]);
-
-  // Find the current user's player record (P0-1)
-  // BUG-003 FIX: Added optional chaining for currentUser properties
-  const currentUserPlayer = useMemo(() => {
-    if (!isAuthenticated || !currentUser) return null;
-    // Ensure currentUser has required properties before comparison
-    const userEmail = currentUser.email?.toLowerCase();
-    const userFirstName = currentUser.firstName?.toLowerCase();
-    const userLastName = currentUser.lastName?.toLowerCase();
-
-    return (
-      players.find(
-        (p) =>
-          (p.email && userEmail && p.email.toLowerCase() === userEmail) ||
-          (userFirstName &&
-            userLastName &&
-            p.firstName.toLowerCase() === userFirstName &&
-            p.lastName.toLowerCase() === userLastName)
-      ) ?? null
-    );
-  }, [currentUser, isAuthenticated, players]);
-
-  // Find the current user's match (scheduled or in progress) (P0-1)
-  const userMatchData = useLiveQuery(async (): Promise<{
-    match: Match;
-    session: RyderCupSession;
-    matchState: MatchState | null;
-  } | null> => {
-    if (!activeTrip || !currentUserPlayer) return null;
-
-    // Get sessions for this trip
-    const tripSessions = await db.sessions.where('tripId').equals(activeTrip.id).toArray();
-
-    if (tripSessions.length === 0) return null;
-
-    // Find matches where user is playing
-    const sessionIds = tripSessions.map((s) => s.id);
-    const allMatches = await db.matches.where('sessionId').anyOf(sessionIds).toArray();
-
-    // Find user's match (prefer inProgress, then scheduled)
-    const userMatches = allMatches.filter(
-      (m) =>
-        m.teamAPlayerIds.includes(currentUserPlayer.id) ||
-        m.teamBPlayerIds.includes(currentUserPlayer.id)
-    );
-
-    // Prioritize: inProgress > scheduled
-    const userMatch =
-      userMatches.find((m) => m.status === 'inProgress') ||
-      userMatches.find((m) => m.status === 'scheduled');
-
-    if (!userMatch) return null;
-
-    const session = tripSessions.find((s) => s.id === userMatch.sessionId);
-    if (!session) return null;
-
-    // Get match state if in progress
-    let matchState: MatchState | null = null;
-    if (userMatch.status === 'inProgress') {
-      const holeResults = await db.holeResults.where('matchId').equals(userMatch.id).toArray();
-      matchState = calculateMatchState(userMatch, holeResults);
-    }
-
-    return { match: userMatch, session, matchState };
-  }, [activeTrip?.id, currentUserPlayer?.id]);
-
-  // Get team names
-  const teamA = teams.find((t) => t.color === 'usa');
-  const teamB = teams.find((t) => t.color === 'europe');
-  const teamAName = teamA?.name || 'USA';
-  const teamBName = teamB?.name || 'Europe';
+  // Consolidated data fetching - reduces N+1 queries from 7+ to 2 batched queries
+  const {
+    trips,
+    activeTrip,
+    standings,
+    userMatchData,
+    currentUserPlayer,
+    liveMatches,
+    banterPosts,
+    sideBets,
+    isLoading,
+    teamAName,
+    teamBName,
+  } = useHomeData();
 
   const handleSelectTrip = async (tripId: string) => {
     await loadTrip(tripId);
@@ -237,32 +149,6 @@ export default function HomePage() {
 
   const hasTrips = trips && trips.length > 0;
   const pastTrips = trips?.filter((t) => t.id !== activeTrip?.id) || [];
-  const isLoading = trips === undefined;
-
-  // Get real live match count from database
-  const liveMatches = useLiveQuery(async () => {
-    if (!activeTrip) return [];
-    const sessions = await db.sessions.where('tripId').equals(activeTrip.id).toArray();
-    const sessionIds = sessions.map((s) => s.id);
-    if (sessionIds.length === 0) return [];
-    return db.matches
-      .where('sessionId')
-      .anyOf(sessionIds)
-      .and((m) => m.status === 'inProgress')
-      .toArray();
-  }, [activeTrip?.id]);
-
-  // Get real banter/social counts
-  const banterPosts = useLiveQuery(async () => {
-    if (!activeTrip) return [];
-    return db.banterPosts.where('tripId').equals(activeTrip.id).toArray();
-  }, [activeTrip?.id]);
-
-  // Get real side bets data (P1: Progressive disclosure)
-  const sideBets = useLiveQuery(async () => {
-    if (!activeTrip) return [];
-    return db.sideBets.where('tripId').equals(activeTrip.id).toArray();
-  }, [activeTrip?.id]);
 
   // Helper function to get appropriate icon for each bet type
   const getBetIcon = (betType: string) => {

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTripStore } from '@/lib/stores';
-import { NoPhotosEmpty } from '@/components/ui';
+import { NoPhotosEmpty, PageLoadingSkeleton } from '@/components/ui';
 import {
   ChevronLeft,
   Home,
@@ -130,10 +130,15 @@ export default function PhotosPage() {
 
   const getPlayer = (id: string) => players.find((p) => p.id === id);
 
-  if (!currentTrip) return null;
+  if (!currentTrip) {
+    return <PageLoadingSkeleton title="Photos" variant="grid" />;
+  }
 
   return (
-    <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>
+    <div
+      className="min-h-screen pb-nav page-premium-enter texture-grain"
+      style={{ background: 'var(--canvas)' }}
+    >
       {/* Premium Header */}
       <header className="header-premium">
         <div className="container-editorial flex items-center justify-between">
@@ -141,7 +146,12 @@ export default function PhotosPage() {
             <button
               onClick={() => router.back()}
               className="p-2 -ml-2 press-scale"
-              style={{ color: 'var(--ink-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              style={{
+                color: 'var(--ink-secondary)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
               aria-label="Back"
             >
               <ChevronLeft size={22} />
@@ -152,7 +162,8 @@ export default function PhotosPage() {
                   width: '32px',
                   height: '32px',
                   borderRadius: 'var(--radius-md)',
-                  background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
+                  background:
+                    'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -162,7 +173,9 @@ export default function PhotosPage() {
                 <Camera size={16} style={{ color: 'var(--color-accent)' }} />
               </div>
               <div>
-                <span className="type-overline" style={{ letterSpacing: '0.1em' }}>Photos</span>
+                <span className="type-overline" style={{ letterSpacing: '0.1em' }}>
+                  Photos
+                </span>
                 <p className="type-caption">{photos.length} photos</p>
               </div>
             </div>
@@ -171,7 +184,12 @@ export default function PhotosPage() {
             <button
               onClick={() => setViewMode(viewMode === 'grid' ? 'masonry' : 'grid')}
               className="p-2 rounded-lg"
-              style={{ color: 'var(--ink-tertiary)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              style={{
+                color: 'var(--ink-tertiary)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               {viewMode === 'grid' ? <LayoutGrid size={20} /> : <Grid size={20} />}
             </button>
@@ -198,11 +216,7 @@ export default function PhotosPage() {
       {/* Photo Grid */}
       <main className="container-editorial py-4">
         {photos.length > 0 ? (
-          <div
-            className={`grid gap-2 ${
-              viewMode === 'grid' ? 'grid-cols-3' : 'grid-cols-2'
-            }`}
-          >
+          <div className={`grid gap-2 ${viewMode === 'grid' ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {photos.map((photo, index) => (
               <button
                 key={photo.id}
@@ -246,10 +260,7 @@ export default function PhotosPage() {
             <X size={28} />
           </button>
 
-          <div
-            className="max-w-4xl w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="max-w-4xl w-full mx-4" onClick={(e) => e.stopPropagation()}>
             <Image
               src={selectedPhoto.url}
               alt={selectedPhoto.caption || 'Golf trip photo'}
@@ -260,9 +271,7 @@ export default function PhotosPage() {
             />
 
             <div className="mt-4 text-white">
-              {selectedPhoto.caption && (
-                <p className="text-lg mb-2">{selectedPhoto.caption}</p>
-              )}
+              {selectedPhoto.caption && <p className="text-lg mb-2">{selectedPhoto.caption}</p>}
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, useUIStore, type UserProfile } from '@/lib/stores';
 import { createLogger } from '@/lib/utils/logger';
-import { Button } from '@/components/ui';
+import { Button, PageLoadingSkeleton } from '@/components/ui';
 import { GolfersIllustration } from '@/components/ui/illustrations';
 import {
   Hash,
@@ -151,7 +151,7 @@ export default function CompleteProfilePage() {
   };
 
   if (!currentUser) {
-    return null;
+    return <PageLoadingSkeleton title="Complete Your Profile" variant="form" />;
   }
 
   return (
