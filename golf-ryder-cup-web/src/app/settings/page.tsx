@@ -47,7 +47,7 @@ const SETTINGS_ITEMS: SettingItem[] = [
     label: 'Theme & Display',
     description: 'Light, dark, or outdoor mode',
     icon: Palette,
-    href: '/more#display',
+    href: '/settings/appearance',
     color: '#8b5cf6',
   },
   {
@@ -80,7 +80,10 @@ export default function SettingsPage() {
   const { theme } = useUIStore();
 
   return (
-    <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>
+    <div
+      className="min-h-screen pb-nav page-premium-enter texture-grain"
+      style={{ background: 'var(--canvas)' }}
+    >
       {/* Premium Header */}
       <header className="header-premium">
         <div className="container-editorial flex items-center justify-between">
@@ -88,7 +91,12 @@ export default function SettingsPage() {
             <Link
               href="/more"
               className="p-2 -ml-2 press-scale"
-              style={{ color: 'var(--ink-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              style={{
+                color: 'var(--ink-secondary)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               <ChevronLeft size={22} strokeWidth={1.75} />
             </Link>
@@ -98,7 +106,8 @@ export default function SettingsPage() {
                   width: '32px',
                   height: '32px',
                   borderRadius: 'var(--radius-md)',
-                  background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
+                  background:
+                    'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -108,7 +117,9 @@ export default function SettingsPage() {
                 <Settings size={16} style={{ color: 'var(--color-accent)' }} />
               </div>
               <div>
-                <span className="type-overline" style={{ letterSpacing: '0.1em' }}>Settings</span>
+                <span className="type-overline" style={{ letterSpacing: '0.1em' }}>
+                  Settings
+                </span>
                 <p className="type-caption truncate" style={{ marginTop: '2px' }}>
                   App preferences
                 </p>
@@ -148,15 +159,13 @@ export default function SettingsPage() {
 
         {/* Settings List */}
         <section className="section">
-          <h2 className="type-overline" style={{ marginBottom: 'var(--space-4)' }}>Preferences</h2>
+          <h2 className="type-overline" style={{ marginBottom: 'var(--space-4)' }}>
+            Preferences
+          </h2>
 
           <div className="space-y-3">
             {SETTINGS_ITEMS.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className="match-row"
-              >
+              <Link key={item.id} href={item.href} className="match-row">
                 <div
                   style={{
                     width: '36px',
@@ -183,7 +192,10 @@ export default function SettingsPage() {
         {/* App Info */}
         <section className="section-sm">
           <div className="card text-center" style={{ padding: 'var(--space-4)' }}>
-            <p className="type-overline" style={{ color: 'var(--masters)', marginBottom: 'var(--space-2)' }}>
+            <p
+              className="type-overline"
+              style={{ color: 'var(--masters)', marginBottom: 'var(--space-2)' }}
+            >
               Ryder Cup Tracker
             </p>
             <p className="type-caption">Version 1.0.0</p>

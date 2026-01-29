@@ -12,6 +12,9 @@ import {
   Smartphone,
   Scan,
   Volume2,
+  Gauge,
+  BellRing,
+  Navigation,
 } from 'lucide-react';
 import { useUIStore } from '@/lib/stores';
 import { cn } from '@/lib/utils';
@@ -179,6 +182,68 @@ export default function ScoringSettingsPage() {
               <Toggle
                 checked={scoringPreferences.soundEffects}
                 onChange={(v) => updateScoringPreference('soundEffects', v)}
+              />
+            }
+          />
+
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center gap-2 mb-3">
+              <Gauge className="w-5 h-5 text-gray-600" />
+              <div className="font-medium text-gray-900">Haptic Intensity</div>
+            </div>
+            <div className="flex gap-2">
+              {(['low', 'medium', 'high'] as const).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => updateScoringPreference('hapticIntensity', level)}
+                  className={cn(
+                    'flex-1 py-2.5 rounded-lg font-medium transition-colors border-2 text-sm',
+                    scoringPreferences.hapticIntensity === level
+                      ? 'border-augusta-green bg-augusta-green/5 text-augusta-green'
+                      : 'border-gray-200 bg-gray-50 text-gray-600'
+                  )}
+                >
+                  {level === 'low' ? 'Low' : level === 'medium' ? 'Medium' : 'High'}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Adjust vibration strength for score feedback.
+            </p>
+          </div>
+
+          <SettingRow
+            icon={<Navigation className="w-5 h-5" />}
+            title="Navigation Haptics"
+            description="Subtle taps for navigation and selection"
+            action={
+              <Toggle
+                checked={scoringPreferences.hapticsNavigation}
+                onChange={(v) => updateScoringPreference('hapticsNavigation', v)}
+              />
+            }
+          />
+
+          <SettingRow
+            icon={<BellRing className="w-5 h-5" />}
+            title="Alert Haptics"
+            description="Warnings and undo confirmations"
+            action={
+              <Toggle
+                checked={scoringPreferences.hapticsAlerts}
+                onChange={(v) => updateScoringPreference('hapticsAlerts', v)}
+              />
+            }
+          />
+
+          <SettingRow
+            icon={<Vibrate className="w-5 h-5" />}
+            title="Score Haptics"
+            description="Point scored and match win feedback"
+            action={
+              <Toggle
+                checked={scoringPreferences.hapticsScore}
+                onChange={(v) => updateScoringPreference('hapticsScore', v)}
               />
             }
           />

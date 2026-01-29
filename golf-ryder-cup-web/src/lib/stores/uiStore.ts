@@ -17,6 +17,7 @@ import type { SessionType } from '@/lib/types';
 type Tab = 'score' | 'matchups' | 'standings' | 'more';
 type Theme = 'light' | 'dark' | 'outdoor';
 type ScoringMode = 'swipe' | 'buttons' | 'strokes' | 'fourball' | 'oneHanded';
+type AccentTheme = 'masters' | 'usa' | 'europe';
 
 interface Toast {
   id: string;
@@ -40,6 +41,10 @@ interface UIState {
   isDarkMode: boolean;
   setTheme: (theme: Theme) => void;
   toggleDarkMode: () => void;
+  autoTheme: boolean;
+  setAutoTheme: (enabled: boolean) => void;
+  accentTheme: AccentTheme;
+  setAccentTheme: (theme: AccentTheme) => void;
 
   // Captain Mode
   isCaptainMode: boolean;
@@ -105,6 +110,8 @@ export const useUIStore = create<UIState>()(
       // Theme (default to outdoor for better visibility on the course)
       theme: 'outdoor' as Theme,
       isDarkMode: false,
+      autoTheme: false,
+      accentTheme: 'masters',
 
       setTheme: (theme: Theme) => {
         set({ theme, isDarkMode: theme === 'dark' });
@@ -124,6 +131,14 @@ export const useUIStore = create<UIState>()(
         const currentTheme = get().theme;
         const newTheme = currentTheme === 'dark' ? 'outdoor' : 'dark';
         get().setTheme(newTheme);
+      },
+
+      setAutoTheme: (enabled) => {
+        set({ autoTheme: enabled });
+      },
+
+      setAccentTheme: (theme) => {
+        set({ accentTheme: theme });
       },
 
       // Captain Mode

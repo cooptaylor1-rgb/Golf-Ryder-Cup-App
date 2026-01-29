@@ -135,6 +135,56 @@ export function useHaptic() {
     []
   );
 
+  const intensityMultiplier = useMemo(() => {
+    switch (scoringPreferences.hapticIntensity) {
+      case 'low':
+        return 0.6;
+      case 'high':
+        return 1.3;
+      default:
+        return 1;
+    }
+  }, [scoringPreferences.hapticIntensity]);
+
+  const isHapticAllowed = useCallback(
+    (type: HapticType) => {
+      if (!scoringPreferences.hapticFeedback) return false;
+
+      const scoreTypes: HapticType[] = [
+        'scorePoint',
+        'scoreWin',
+        'scoreTie',
+        'teamA',
+        'teamB',
+        'success',
+      ];
+      const navigationTypes: HapticType[] = ['navigation', 'selection', 'snap', 'pull', 'light'];
+      const alertTypes: HapticType[] = ['warning', 'error', 'delete', 'heavy'];
+
+      if (scoreTypes.includes(type)) return scoringPreferences.hapticsScore;
+      if (navigationTypes.includes(type)) return scoringPreferences.hapticsNavigation;
+      if (alertTypes.includes(type)) return scoringPreferences.hapticsAlerts;
+
+      return true;
+    },
+    [
+      scoringPreferences.hapticFeedback,
+      scoringPreferences.hapticsScore,
+      scoringPreferences.hapticsNavigation,
+      scoringPreferences.hapticsAlerts,
+    ]
+  );
+
+  const scalePattern = useCallback(
+    (pattern: number | number[]) => {
+      if (Array.isArray(pattern)) {
+        return pattern.map((value) => Math.max(1, Math.round(value * intensityMultiplier)));
+      }
+      return Math.max(1, Math.round(pattern * intensityMultiplier));
+    },
+    [intensityMultiplier]
+  );
+
   /**
    * Apply visual haptic feedback to an element
    * Used as fallback on iOS or when vibration fails
@@ -173,18 +223,18 @@ export function useHaptic() {
    */
   const trigger = useCallback(
     (type: HapticType = 'light') => {
-      if (!scoringPreferences.hapticFeedback) return;
+      if (!isHapticAllowed(type)) return;
 
       // Try vibration API first (Android, Capacitor)
       if (supportsVibration() && !isIOS()) {
         try {
-          navigator.vibrate(patterns[type]);
+          navigator.vibrate(scalePattern(patterns[type]));
         } catch {
           // Ignore errors - haptic is optional enhancement
         }
       }
     },
-    [scoringPreferences.hapticFeedback, patterns]
+    [isHapticAllowed, patterns, scalePattern]
   );
 
   /**
@@ -194,12 +244,12 @@ export function useHaptic() {
    */
   const triggerWithVisual = useCallback(
     (type: HapticType = 'light', element?: HTMLElement | null) => {
-      if (!scoringPreferences.hapticFeedback) return;
+      if (!isHapticAllowed(type)) return;
 
       // Try vibration API (Android, Capacitor)
       if (supportsVibration() && !isIOS()) {
         try {
-          navigator.vibrate(patterns[type]);
+          navigator.vibrate(scalePattern(patterns[type]));
         } catch {
           // Fall through to visual feedback
         }
@@ -210,7 +260,7 @@ export function useHaptic() {
         applyVisualFeedback(element, type);
       }
     },
-    [scoringPreferences.hapticFeedback, patterns, applyVisualFeedback]
+    [isHapticAllowed, patterns, scalePattern, applyVisualFeedback]
   );
 
   // Convenience methods for common interactions

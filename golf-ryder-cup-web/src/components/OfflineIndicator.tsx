@@ -203,29 +203,38 @@ export function OfflineIndicator() {
                   >
                     <div className="mt-2 pt-2 border-t border-white/20 space-y-1 max-h-32 overflow-y-auto">
                       {queueItems.slice(0, 5).map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-2 text-white/90 text-xs"
-                        >
-                          <Clock size={12} className="shrink-0" />
-                          <span className="truncate flex-1">{item.description}</span>
-                          <span
-                            className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                              item.status === 'failed'
-                                ? 'bg-white/20 text-white'
-                                : item.status === 'syncing'
-                                  ? 'bg-white/15 text-white/90'
-                                  : 'bg-white/10 text-white/80'
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                          <span className="text-white/60">
-                            {new Date(item.timestamp).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
+                        <div key={item.id} className="flex flex-col gap-1 text-white/90 text-xs">
+                          <div className="flex items-center gap-2">
+                            <Clock size={12} className="shrink-0" />
+                            <span className="truncate flex-1">{item.description}</span>
+                            {item.retryCount > 0 && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/80">
+                                Retry {item.retryCount}
+                              </span>
+                            )}
+                            <span
+                              className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                                item.status === 'failed'
+                                  ? 'bg-white/20 text-white'
+                                  : item.status === 'syncing'
+                                    ? 'bg-white/15 text-white/90'
+                                    : 'bg-white/10 text-white/80'
+                              }`}
+                            >
+                              {item.status}
+                            </span>
+                            <span className="text-white/60">
+                              {new Date(item.timestamp).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                          {item.error && (
+                            <div className="text-[10px] text-white/70 pl-5" title={item.error}>
+                              Last error: {item.error}
+                            </div>
+                          )}
                         </div>
                       ))}
                       {queueItems.length > 5 && (

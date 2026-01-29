@@ -1,12 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/db';
 import { useTripStore, useUIStore } from '@/lib/stores';
-import { calculateTeamStandings, calculateMagicNumber, calculatePlayerLeaderboard } from '@/lib/services/tournamentEngine';
+import {
+  calculateTeamStandings,
+  calculateMagicNumber,
+  tripSummaryText: string;
+  calculatePlayerLeaderboard,
+} from '@/lib/services/tournamentEngine';
 import { computeAwards, calculatePlayerStats } from '@/lib/services/awardsService';
 import { createLogger } from '@/lib/utils/logger';
 import { STAT_DEFINITIONS, type TripStatType } from '@/lib/types/tripStats';
@@ -41,6 +46,38 @@ import { NoStandingsPremiumEmpty } from '@/components/ui';
  * - Fun stats add personality and memorable moments
  * - Awards celebrate achievements beyond just wins
  */
+
+        <div
+          className="card"
+          style={{
+            padding: 'var(--space-4)',
+            marginBottom: 'var(--space-5)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+            <Trophy size={22} style={{ color: 'var(--masters)' }} />
+            <div>
+              <p className="type-title-sm">Share Trip Summary</p>
+              <p className="type-caption" style={{ color: 'var(--ink-tertiary)' }}>
+                Send final standings to the group.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              if (!tripSummaryText) return;
+              if (navigator.share) {
+                navigator.share({ text: tripSummaryText });
+              } else {
+                navigator.clipboard.writeText(tripSummaryText);
+              }
+            }}
+            className="btn-premium"
+            style={{ marginTop: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)' }}
+          >
+            Share Trip Summary
+          </button>
+        </div>
 
 type TabType = 'competition' | 'stats' | 'awards';
 
@@ -105,7 +142,10 @@ export default function StandingsPage() {
   // Show loading skeleton while data loads or redirecting
   if (!currentTrip || isLoading) {
     return (
-      <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>
+      <div
+        className="min-h-screen pb-nav page-premium-enter texture-grain"
+        style={{ background: 'var(--canvas)' }}
+      >
         <header className="header-premium">
           <div className="container-editorial flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg skeleton-pulse" />
@@ -134,13 +174,24 @@ export default function StandingsPage() {
     );
   }
 
-  const teamA = teams.find(t => t.color === 'usa');
-  const teamB = teams.find(t => t.color === 'europe');
+  const teamA = teams.find((t) => t.color === 'usa');
+  const teamB = teams.find((t) => t.color === 'europe');
   const teamAName = teamA?.name || 'USA';
   const teamBName = teamB?.name || 'Europe';
 
+  const tripSummaryText = useMemo(() => {
+    if (!standings) return '';
+    const leaderText = standings.leader
+      ? `${standings.leader === 'teamA' ? teamAName : teamBName} leads by ${Math.abs(standings.margin)}`
+      : 'All square';
+    return `🏆 Trip Summary\n${teamAName}: ${standings.teamAPoints} pts\n${teamBName}: ${standings.teamBPoints} pts\n${leaderText}\nMatches completed: ${standings.matchesCompleted}/${standings.totalMatches}`;
+  }, [standings, teamAName, teamBName]);
+
   // Aggregate fun stats by type
-  const statTotals = new Map<TripStatType, { total: number; leader: string; leaderValue: number }>();
+  const statTotals = new Map<
+    TripStatType,
+    { total: number; leader: string; leaderValue: number }
+  >();
   if (tripStats && tripStats.length > 0) {
     const playerTotals = new Map<TripStatType, Map<string, number>>();
 
@@ -159,7 +210,7 @@ export default function StandingsPage() {
       for (const [playerId, value] of playerMap) {
         if (value > leaderValue) {
           leaderValue = value;
-          const player = players.find(p => p.id === playerId);
+          const player = players.find((p) => p.id === playerId);
           leader = player ? player.firstName : 'Unknown';
         }
       }
@@ -168,8 +219,21 @@ export default function StandingsPage() {
   }
 
   // Get highlight stats for the quick overview
-  const highlightStats: { type: TripStatType; label: string; emoji: string; value: number; leader: string }[] = [];
-  const funStatTypes: TripStatType[] = ['beers', 'birdies', 'balls_lost', 'mulligans', 'chip_ins', 'longest_drive'];
+  const highlightStats: {
+    type: TripStatType;
+    label: string;
+    emoji: string;
+    value: number;
+    leader: string;
+  }[] = [];
+  const funStatTypes: TripStatType[] = [
+    'beers',
+    'birdies',
+    'balls_lost',
+    'mulligans',
+    'chip_ins',
+    'longest_drive',
+  ];
   for (const type of funStatTypes) {
     const data = statTotals.get(type);
     if (data && data.total > 0) {
@@ -185,7 +249,10 @@ export default function StandingsPage() {
   }
 
   return (
-    <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>
+    <div
+      className="min-h-screen pb-nav page-premium-enter texture-grain"
+      style={{ background: 'var(--canvas)' }}
+    >
       {/* Premium Header */}
       <header className="header-premium">
         <div className="container-editorial flex items-center gap-3">
@@ -219,7 +286,9 @@ export default function StandingsPage() {
               <Trophy size={16} style={{ color: 'var(--color-accent)' }} />
             </div>
             <div>
-              <span className="type-overline" style={{ letterSpacing: '0.1em' }}>Standings</span>
+              <span className="type-overline" style={{ letterSpacing: '0.1em' }}>
+                Standings
+              </span>
               <p className="type-caption truncate" style={{ marginTop: '2px' }}>
                 {currentTrip.name}
               </p>
@@ -274,15 +343,9 @@ export default function StandingsPage() {
             pointsToWin={currentTrip.settings?.pointsToWin ?? 14.5}
           />
         ) : activeTab === 'stats' ? (
-          <FunStatsTab
-            statTotals={statTotals}
-            highlightStats={highlightStats}
-          />
+          <FunStatsTab statTotals={statTotals} highlightStats={highlightStats} />
         ) : (
-          <AwardsTab
-            awards={awards}
-            playerStats={playerStats}
-          />
+          <AwardsTab awards={awards} playerStats={playerStats} tripSummaryText={tripSummaryText} />
         )}
       </main>
 
@@ -411,9 +474,10 @@ function CompetitionTab({
             <p
               className="score-monumental"
               style={{
-                color: standings.teamAPoints >= standings.teamBPoints
-                  ? 'var(--team-usa)'
-                  : 'var(--ink-tertiary)'
+                color:
+                  standings.teamAPoints >= standings.teamBPoints
+                    ? 'var(--team-usa)'
+                    : 'var(--ink-tertiary)',
               }}
             >
               {standings.teamAPoints}
@@ -422,7 +486,7 @@ function CompetitionTab({
               className="type-overline"
               style={{
                 marginTop: 'var(--space-3)',
-                color: 'var(--team-usa)'
+                color: 'var(--team-usa)',
               }}
             >
               {teamAName}
@@ -443,9 +507,10 @@ function CompetitionTab({
             <p
               className="score-monumental"
               style={{
-                color: standings.teamBPoints > standings.teamAPoints
-                  ? 'var(--team-europe)'
-                  : 'var(--ink-tertiary)'
+                color:
+                  standings.teamBPoints > standings.teamAPoints
+                    ? 'var(--team-europe)'
+                    : 'var(--ink-tertiary)',
               }}
             >
               {standings.teamBPoints}
@@ -454,7 +519,7 @@ function CompetitionTab({
               className="type-overline"
               style={{
                 marginTop: 'var(--space-3)',
-                color: 'var(--team-europe)'
+                color: 'var(--team-europe)',
               }}
             >
               {teamBName}
@@ -475,17 +540,21 @@ function CompetitionTab({
               {magicNumber.clinchingTeam === 'A' ? teamAName : teamBName} Wins
             </p>
           </div>
-        ) : (magicNumber.teamANeeded <= 3 || magicNumber.teamBNeeded <= 3) && standings.leader && (
-          <p
-            className="type-caption"
-            style={{
-              marginTop: 'var(--space-8)',
-              color: 'var(--masters)',
-              fontWeight: 500
-            }}
-          >
-            Magic Number: {standings.leader === 'teamA' ? magicNumber.teamANeeded : magicNumber.teamBNeeded}
-          </p>
+        ) : (
+          (magicNumber.teamANeeded <= 3 || magicNumber.teamBNeeded <= 3) &&
+          standings.leader && (
+            <p
+              className="type-caption"
+              style={{
+                marginTop: 'var(--space-8)',
+                color: 'var(--masters)',
+                fontWeight: 500,
+              }}
+            >
+              Magic Number:{' '}
+              {standings.leader === 'teamA' ? magicNumber.teamANeeded : magicNumber.teamBNeeded}
+            </p>
+          )
         )}
 
         {/* Progress */}
@@ -544,14 +613,54 @@ function FunStatsTab({
   highlightStats,
 }: {
   statTotals: Map<TripStatType, { total: number; leader: string; leaderValue: number }>;
-  highlightStats: { type: TripStatType; label: string; emoji: string; value: number; leader: string }[];
+  highlightStats: {
+    type: TripStatType;
+    label: string;
+    emoji: string;
+    value: number;
+    leader: string;
+  }[];
 }) {
   const categories = [
-    { key: 'golf_highlights', label: 'Highlights', emoji: '⭐', types: ['birdies', 'eagles', 'chip_ins', 'longest_putt', 'longest_drive', 'closest_to_pin'] },
-    { key: 'golf_mishaps', label: 'Mishaps', emoji: '😅', types: ['balls_lost', 'sand_traps', 'water_hazards', 'mulligans', 'club_throws', 'whiffs', 'shanks', 'four_putts'] },
-    { key: 'beverages', label: 'Beverages', emoji: '🍺', types: ['beers', 'cocktails', 'shots', 'waters', 'cigars', 'snacks'] },
-    { key: 'cart_chaos', label: 'Cart Chaos', emoji: '🛒', types: ['cart_path_violations', 'near_misses', 'stuck_in_mud', 'wrong_fairway'] },
-    { key: 'social', label: 'Social', emoji: '😂', types: ['late_to_tee', 'phone_checks', 'naps_taken', 'excuses_made', 'rules_argued'] },
+    {
+      key: 'golf_highlights',
+      label: 'Highlights',
+      emoji: '⭐',
+      types: ['birdies', 'eagles', 'chip_ins', 'longest_putt', 'longest_drive', 'closest_to_pin'],
+    },
+    {
+      key: 'golf_mishaps',
+      label: 'Mishaps',
+      emoji: '😅',
+      types: [
+        'balls_lost',
+        'sand_traps',
+        'water_hazards',
+        'mulligans',
+        'club_throws',
+        'whiffs',
+        'shanks',
+        'four_putts',
+      ],
+    },
+    {
+      key: 'beverages',
+      label: 'Beverages',
+      emoji: '🍺',
+      types: ['beers', 'cocktails', 'shots', 'waters', 'cigars', 'snacks'],
+    },
+    {
+      key: 'cart_chaos',
+      label: 'Cart Chaos',
+      emoji: '🛒',
+      types: ['cart_path_violations', 'near_misses', 'stuck_in_mud', 'wrong_fairway'],
+    },
+    {
+      key: 'social',
+      label: 'Social',
+      emoji: '😂',
+      types: ['late_to_tee', 'phone_checks', 'naps_taken', 'excuses_made', 'rules_argued'],
+    },
   ];
 
   const hasAnyStats = statTotals.size > 0;
@@ -582,10 +691,17 @@ function FunStatsTab({
                 }}
               >
                 <span style={{ fontSize: '24px' }}>{stat.emoji}</span>
-                <p className="type-title-lg" style={{ marginTop: 'var(--space-1)' }}>{stat.value}</p>
-                <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>{stat.label}</p>
+                <p className="type-title-lg" style={{ marginTop: 'var(--space-1)' }}>
+                  {stat.value}
+                </p>
+                <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>
+                  {stat.label}
+                </p>
                 {stat.leader && (
-                  <p className="type-micro" style={{ color: 'var(--masters)', marginTop: 'var(--space-1)' }}>
+                  <p
+                    className="type-micro"
+                    style={{ color: 'var(--masters)', marginTop: 'var(--space-1)' }}
+                  >
                     👑 {stat.leader}
                   </p>
                 )}
@@ -625,56 +741,63 @@ function FunStatsTab({
                 <span>{category.label}</span>
               </h3>
               <div className="space-y-2">
-                {categoryStats.map((stat) => stat && (
-                  <div
-                    key={stat.statType}
-                    className="card"
-                    style={{
-                      padding: 'var(--space-3) var(--space-4)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                      <span style={{ fontSize: '20px' }}>{stat.emoji}</span>
-                      <div>
-                        <p className="type-body-sm">{stat.label}</p>
-                        <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>
-                          {stat.description}
-                        </p>
+                {categoryStats.map(
+                  (stat) =>
+                    stat && (
+                      <div
+                        key={stat.statType}
+                        className="card"
+                        style={{
+                          padding: 'var(--space-3) var(--space-4)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <div
+                          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}
+                        >
+                          <span style={{ fontSize: '20px' }}>{stat.emoji}</span>
+                          <div>
+                            <p className="type-body-sm">{stat.label}</p>
+                            <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>
+                              {stat.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p
+                            className="type-title"
+                            style={{ color: stat.isNegative ? 'var(--error)' : 'var(--masters)' }}
+                          >
+                            {stat.total}
+                          </p>
+                          {stat.leader && (
+                            <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>
+                              👑 {stat.leader}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p className="type-title" style={{ color: stat.isNegative ? 'var(--error)' : 'var(--masters)' }}>
-                        {stat.total}
-                      </p>
-                      {stat.leader && (
-                        <p className="type-micro" style={{ color: 'var(--ink-tertiary)' }}>
-                          👑 {stat.leader}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                    )
+                )}
               </div>
             </div>
           );
         })
       ) : (
-        <div
-          className="text-center"
-          style={{ padding: 'var(--space-12) var(--space-4)' }}
-        >
+        <div className="text-center" style={{ padding: 'var(--space-12) var(--space-4)' }}>
           <div style={{ fontSize: '48px', marginBottom: 'var(--space-4)' }}>📊</div>
-          <h3 className="type-title" style={{ marginBottom: 'var(--space-2)' }}>No Stats Yet</h3>
-          <p className="type-body" style={{ color: 'var(--ink-tertiary)', marginBottom: 'var(--space-6)' }}>
+          <h3 className="type-title" style={{ marginBottom: 'var(--space-2)' }}>
+            No Stats Yet
+          </h3>
+          <p
+            className="type-body"
+            style={{ color: 'var(--ink-tertiary)', marginBottom: 'var(--space-6)' }}
+          >
             Track beverages, mishaps, highlights and more during your rounds!
           </p>
-          <Link
-            href="/trip-stats"
-            className="btn btn-primary"
-          >
+          <Link href="/trip-stats" className="btn btn-primary">
             Start Tracking
           </Link>
         </div>
@@ -709,33 +832,63 @@ function FunStatsTab({
 /* ============================================
    Awards Tab
    ============================================ */
-function AwardsTab({
-  awards,
-  playerStats,
-}: {
-  awards: Award[];
-  playerStats: PlayerStats[];
-}) {
+function AwardsTab({ awards, playerStats }: { awards: Award[]; playerStats: PlayerStats[] }) {
   const getAwardIcon = (type: string) => {
     switch (type) {
-      case 'mvp': return <Crown size={24} style={{ color: 'var(--color-accent)' }} />;
-      case 'best-record': return <TrendingUp size={24} style={{ color: 'var(--masters)' }} />;
-      case 'most-wins': return <Trophy size={24} style={{ color: 'var(--masters)' }} />;
-      case 'most-halves': return <Medal size={24} style={{ color: 'var(--ink-secondary)' }} />;
-      case 'biggest-win': return <Flame size={24} style={{ color: 'var(--error)' }} />;
-      case 'iron-man': return <Zap size={24} style={{ color: 'var(--team-usa)' }} />;
-      case 'streak-master': return <TrendingUp size={24} style={{ color: 'var(--team-europe)' }} />;
-      default: return <AwardIcon size={24} style={{ color: 'var(--masters)' }} />;
+      case 'mvp':
+        return <Crown size={24} style={{ color: 'var(--color-accent)' }} />;
+      case 'best-record':
+        return <TrendingUp size={24} style={{ color: 'var(--masters)' }} />;
+      case 'most-wins':
+        return <Trophy size={24} style={{ color: 'var(--masters)' }} />;
+      case 'most-halves':
+        return <Medal size={24} style={{ color: 'var(--ink-secondary)' }} />;
+      case 'biggest-win':
+        return <Flame size={24} style={{ color: 'var(--error)' }} />;
+      case 'iron-man':
+        return <Zap size={24} style={{ color: 'var(--team-usa)' }} />;
+      case 'streak-master':
+        return <TrendingUp size={24} style={{ color: 'var(--team-europe)' }} />;
+      default:
+        return <AwardIcon size={24} style={{ color: 'var(--masters)' }} />;
     }
   };
 
-  const hasAwards = awards.some(a => a.winner);
+  const hasAwards = awards.some((a) => a.winner);
 
   return (
     <section className="section-sm">
       <h2 className="type-overline" style={{ marginBottom: 'var(--space-6)' }}>
         Trip Superlatives
       </h2>
+
+      <div
+        className="card"
+        style={{
+          padding: 'var(--space-4)',
+          marginBottom: 'var(--space-5)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-3)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <Crown size={24} style={{ color: 'var(--color-accent)' }} />
+          <div>
+            <p className="type-title-sm">End-of-Trip Highlights</p>
+            <p className="type-caption" style={{ color: 'var(--ink-tertiary)' }}>
+              Vote for MVP and crown the trip superlatives.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/trip-stats/awards"
+          className="btn-premium"
+          style={{ padding: 'var(--space-3) var(--space-4)', textAlign: 'center' }}
+        >
+          Vote for MVP & Awards
+        </Link>
+      </div>
 
       {hasAwards ? (
         <div className="space-y-4">
@@ -767,7 +920,10 @@ function AwardsTab({
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h3 className="type-title-sm">{award.title}</h3>
-                  <p className="type-micro" style={{ color: 'var(--ink-tertiary)', marginTop: '2px' }}>
+                  <p
+                    className="type-micro"
+                    style={{ color: 'var(--ink-tertiary)', marginTop: '2px' }}
+                  >
                     {award.description}
                   </p>
                   {award.winner ? (
@@ -818,7 +974,10 @@ function AwardsTab({
                       )}
                     </div>
                   ) : (
-                    <p className="type-micro" style={{ color: 'var(--ink-tertiary)', marginTop: 'var(--space-2)' }}>
+                    <p
+                      className="type-micro"
+                      style={{ color: 'var(--ink-tertiary)', marginTop: 'var(--space-2)' }}
+                    >
                       Not yet awarded
                     </p>
                   )}
@@ -828,12 +987,11 @@ function AwardsTab({
           ))}
         </div>
       ) : (
-        <div
-          className="text-center"
-          style={{ padding: 'var(--space-12) var(--space-4)' }}
-        >
+        <div className="text-center" style={{ padding: 'var(--space-12) var(--space-4)' }}>
           <div style={{ fontSize: '48px', marginBottom: 'var(--space-4)' }}>🏆</div>
-          <h3 className="type-title" style={{ marginBottom: 'var(--space-2)' }}>Awards Coming Soon</h3>
+          <h3 className="type-title" style={{ marginBottom: 'var(--space-2)' }}>
+            Awards Coming Soon
+          </h3>
           <p className="type-body" style={{ color: 'var(--ink-tertiary)' }}>
             Complete some matches to unlock trip superlatives and see who earns the bragging rights!
           </p>
@@ -864,7 +1022,7 @@ function AwardsTab({
             <RecordCard
               label="Best Win %"
               emoji="📈"
-              stats={playerStats.filter(s => s.matchesPlayed >= 2)}
+              stats={playerStats.filter((s) => s.matchesPlayed >= 2)}
               getValue={(s) => s.winPercentage}
               formatValue={(v) => `${v.toFixed(0)}%`}
             />
@@ -940,7 +1098,10 @@ function RecordCard({
         }}
       >
         <span style={{ fontSize: '20px' }}>{emoji}</span>
-        <p className="type-micro" style={{ marginTop: 'var(--space-1)', color: 'var(--ink-tertiary)' }}>
+        <p
+          className="type-micro"
+          style={{ marginTop: 'var(--space-1)', color: 'var(--ink-tertiary)' }}
+        >
           {label}
         </p>
         <p className="type-micro">-</p>
@@ -957,14 +1118,28 @@ function RecordCard({
       }}
     >
       <span style={{ fontSize: '20px' }}>{emoji}</span>
-      <p className="type-micro" style={{ marginTop: 'var(--space-1)', color: 'var(--ink-tertiary)' }}>
+      <p
+        className="type-micro"
+        style={{ marginTop: 'var(--space-1)', color: 'var(--ink-tertiary)' }}
+      >
         {label}
       </p>
       <p className="type-title-sm" style={{ color: 'var(--masters)' }}>
         {formatValue(getValue(leader))}
       </p>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--space-1)', marginTop: 'var(--space-1)' }}>
-        <span className={`team-dot team-dot-${leader.teamColor}`} style={{ width: '6px', height: '6px' }} />
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 'var(--space-1)',
+          marginTop: 'var(--space-1)',
+        }}
+      >
+        <span
+          className={`team-dot team-dot-${leader.teamColor}`}
+          style={{ width: '6px', height: '6px' }}
+        />
         <p className="type-micro">{leader.playerName.split(' ')[0]}</p>
       </div>
     </div>
@@ -983,7 +1158,9 @@ interface PlayerRowProps {
 
 function PlayerRow({ entry, rank, isTeamA, animationDelay = 0 }: PlayerRowProps) {
   const isTopThree = rank <= 3;
-  const teamClass = isTeamA ? 'team-row-usa team-row-accent-usa' : 'team-row-europe team-row-accent-europe';
+  const teamClass = isTeamA
+    ? 'team-row-usa team-row-accent-usa'
+    : 'team-row-europe team-row-accent-europe';
 
   return (
     <div
@@ -995,7 +1172,7 @@ function PlayerRow({ entry, rank, isTeamA, animationDelay = 0 }: PlayerRowProps)
         marginLeft: 'calc(-1 * var(--space-3))',
         marginRight: 'calc(-1 * var(--space-3))',
         borderRadius: 'var(--radius-md)',
-        animationDelay: `${animationDelay}ms`
+        animationDelay: `${animationDelay}ms`,
       }}
     >
       {/* Rank */}
@@ -1005,7 +1182,7 @@ function PlayerRow({ entry, rank, isTeamA, animationDelay = 0 }: PlayerRowProps)
           fontWeight: 600,
           fontSize: 'var(--text-sm)',
           color: isTopThree ? 'var(--masters)' : 'var(--ink-tertiary)',
-          textAlign: 'center'
+          textAlign: 'center',
         }}
       >
         {rank}
@@ -1043,11 +1220,11 @@ function PlayerRow({ entry, rank, isTeamA, animationDelay = 0 }: PlayerRowProps)
    ============================================ */
 function _LoadingState() {
   return (
-    <div
-      className="section text-center"
-      style={{ padding: 'var(--space-20) 0' }}
-    >
-      <div className="skeleton" style={{ width: '120px', height: '80px', margin: '0 auto var(--space-4)' }} />
+    <div className="section text-center" style={{ padding: 'var(--space-20) 0' }}>
+      <div
+        className="skeleton"
+        style={{ width: '120px', height: '80px', margin: '0 auto var(--space-4)' }}
+      />
       <div className="skeleton" style={{ width: '200px', height: '16px', margin: '0 auto' }} />
     </div>
   );

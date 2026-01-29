@@ -85,6 +85,47 @@ export default function AdminPage() {
     { trips: 0, players: 0, sessions: 0, matches: 0, holeResults: 0, teams: 0 }
   );
 
+  const syncMetrics = useLiveQuery(
+    async () => {
+      const items = await db.tripSyncQueue.toArray();
+      const pending = items.filter(
+        (item) => item.status === 'pending' || item.status === 'syncing'
+      );
+      const failed = items.filter((item) => item.status === 'failed');
+      const oldestPending =
+        pending.length > 0
+          ? Math.min(...pending.map((item) => new Date(item.createdAt).getTime()))
+          : null;
+      const averageRetry =
+        items.length > 0
+          ? Math.round(items.reduce((sum, item) => sum + item.retryCount, 0) / items.length)
+          : 0;
+      const lastAttempt = items
+        .map((item) => item.lastAttemptAt)
+        .filter(Boolean)
+        .map((value) => new Date(value as string).getTime())
+        .sort((a, b) => b - a)[0];
+
+      return {
+        total: items.length,
+        pending: pending.length,
+        failed: failed.length,
+        oldestPending,
+        averageRetry,
+        lastAttempt: lastAttempt || null,
+      };
+    },
+    [],
+    {
+      total: 0,
+      pending: 0,
+      failed: 0,
+      oldestPending: null as number | null,
+      averageRetry: 0,
+      lastAttempt: null as number | null,
+    }
+  );
+
   // Handle trip deletion
   const handleDeleteTrip = useCallback(
     (trip: Trip) => {
@@ -378,6 +419,67 @@ export default function AdminPage() {
                   {dbStats.teams}
                 </div>
                 <div className="type-caption">Teams</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Sync Reliability */}
+        <section className="section">
+          <h2 className="type-overline mb-3">Sync Reliability</h2>
+          <div className="card" style={{ padding: 'var(--space-4)' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 'var(--space-4)',
+              }}
+            >
+              <div style={{ textAlign: 'center' }}>
+                <div className="type-display-sm" style={{ color: 'var(--masters)' }}>
+                  {syncMetrics.total}
+                </div>
+                <div className="type-caption">Queue Depth</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div
+                  className="type-display-sm"
+                  style={{ color: syncMetrics.failed > 0 ? '#dc2626' : 'var(--ink-secondary)' }}
+                >
+                  {syncMetrics.failed}
+                </div>
+                <div className="type-caption">Failed Items</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div className="type-display-sm" style={{ color: 'var(--ink-secondary)' }}>
+                  {syncMetrics.pending}
+                </div>
+                <div className="type-caption">Pending Items</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div className="type-display-sm" style={{ color: 'var(--ink-secondary)' }}>
+                  {syncMetrics.oldestPending
+                    ? Math.max(1, Math.round((Date.now() - syncMetrics.oldestPending) / 60000))
+                    : 0}
+                </div>
+                <div className="type-caption">Oldest Pending (min)</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div className="type-display-sm" style={{ color: 'var(--ink-secondary)' }}>
+                  {syncMetrics.averageRetry}
+                </div>
+                <div className="type-caption">Avg Retry Count</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div className="type-display-sm" style={{ color: 'var(--ink-secondary)' }}>
+                  {syncMetrics.lastAttempt
+                    ? new Date(syncMetrics.lastAttempt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '—'}
+                </div>
+                <div className="type-caption">Last Attempt</div>
               </div>
             </div>
           </div>

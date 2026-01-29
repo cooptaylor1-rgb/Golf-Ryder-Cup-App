@@ -2879,6 +2879,30 @@ html.outdoor body {
   box-shadow: 0 0 8px var(--team-usa-glow);
 }
 
+/* ============================================
+   OLED DARK MODE OVERRIDES
+   ============================================ */
+html.dark,
+html.dark:root {
+  --canvas: #000000;
+  --canvas-raised: #0b0b0b;
+  --canvas-sunken: #050505;
+  --canvas-warm: #0a0a0a;
+  --surface: #0b0b0b;
+  --surface-base: #000000;
+  --surface-elevated: #111111;
+  --surface-muted: #0f0f0f;
+  --surface-highlight: #1a1a1a;
+  --rule: #2a2a2a;
+  --rule-strong: #3a3a3a;
+  --rule-faint: #1a1a1a;
+  color-scheme: dark;
+}
+
+html.dark body {
+  background: #000000;
+}
+
 .dark .hole-dot.team-europe-win {
   background: var(--team-europe);
   box-shadow: 0 0 8px var(--team-europe-glow);

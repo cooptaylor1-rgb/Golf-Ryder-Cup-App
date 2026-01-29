@@ -64,7 +64,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   {
     id: 'attendance',
     label: 'Attendance',
-    description: 'Track who\'s here',
+    description: "Track who's here",
     icon: UserCheck,
     href: '/captain/availability',
     color: '#22c55e',
@@ -89,9 +89,18 @@ const QUICK_ACTIONS: QuickAction[] = [
     priority: true,
   },
   {
+    id: 'audit',
+    label: 'Audit Log',
+    description: 'Review scoring changes',
+    icon: Shield,
+    href: '/captain/audit',
+    color: '#0ea5e9',
+    priority: true,
+  },
+  {
     id: 'checklist',
     label: 'Pre-Flight',
-    description: 'Verify everything\'s ready',
+    description: "Verify everything's ready",
     icon: ClipboardCheck,
     href: '/captain/checklist',
     color: '#3b82f6',
@@ -168,33 +177,40 @@ export default function CaptainPage() {
 
   if (!currentTrip || !isCaptainMode) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--canvas)' }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'var(--canvas)' }}
+      >
         <div className="animate-pulse text-center">
-          <div className="w-12 h-12 rounded-full mx-auto mb-4" style={{ background: 'var(--surface-elevated)' }} />
-          <div className="h-4 w-32 mx-auto rounded" style={{ background: 'var(--surface-elevated)' }} />
+          <div
+            className="w-12 h-12 rounded-full mx-auto mb-4"
+            style={{ background: 'var(--surface-elevated)' }}
+          />
+          <div
+            className="h-4 w-32 mx-auto rounded"
+            style={{ background: 'var(--surface-elevated)' }}
+          />
         </div>
       </div>
     );
   }
 
   const getTeamPlayers = (teamId: string) => {
-    const memberIds = teamMembers
-      .filter(tm => tm.teamId === teamId)
-      .map(tm => tm.playerId);
-    return players.filter(p => memberIds.includes(p.id));
+    const memberIds = teamMembers.filter((tm) => tm.teamId === teamId).map((tm) => tm.playerId);
+    return players.filter((p) => memberIds.includes(p.id));
   };
 
-  const teamA = teams.find(t => t.color === 'usa');
-  const teamB = teams.find(t => t.color === 'europe');
+  const teamA = teams.find((t) => t.color === 'usa');
+  const teamB = teams.find((t) => t.color === 'europe');
   const teamAPlayers = teamA ? getTeamPlayers(teamA.id) : [];
   const teamBPlayers = teamB ? getTeamPlayers(teamB.id) : [];
-  const unassignedPlayers = players.filter(p => {
-    return !teamMembers.some(tm => tm.playerId === p.id);
+  const unassignedPlayers = players.filter((p) => {
+    return !teamMembers.some((tm) => tm.playerId === p.id);
   });
 
-  const activeSessions = sessions.filter(s => s.status === 'inProgress');
-  const upcomingSessions = sessions.filter(s => s.status === 'scheduled');
-  const completedSessions = sessions.filter(s => s.status === 'completed');
+  const activeSessions = sessions.filter((s) => s.status === 'inProgress');
+  const upcomingSessions = sessions.filter((s) => s.status === 'scheduled');
+  const completedSessions = sessions.filter((s) => s.status === 'completed');
 
   // Calculate trip readiness
   const hasPlayers = players.length >= 2;
@@ -202,15 +218,22 @@ export default function CaptainPage() {
   const hasSessions = sessions.length > 0;
   const readinessItems = [
     { label: 'Players Added', done: hasPlayers, count: players.length },
-    { label: 'Teams Balanced', done: hasTeams, count: `${teamAPlayers.length}v${teamBPlayers.length}` },
+    {
+      label: 'Teams Balanced',
+      done: hasTeams,
+      count: `${teamAPlayers.length}v${teamBPlayers.length}`,
+    },
     { label: 'Sessions Created', done: hasSessions, count: sessions.length },
   ];
   const readinessPercent = Math.round(
-    (readinessItems.filter(r => r.done).length / readinessItems.length) * 100
+    (readinessItems.filter((r) => r.done).length / readinessItems.length) * 100
   );
 
   return (
-    <div className="min-h-screen pb-nav page-premium-enter texture-grain" style={{ background: 'var(--canvas)' }}>
+    <div
+      className="min-h-screen pb-nav page-premium-enter texture-grain"
+      style={{ background: 'var(--canvas)' }}
+    >
       {/* Premium Header */}
       <header className="header-premium">
         <div className="container-editorial flex items-center justify-between">
@@ -218,7 +241,12 @@ export default function CaptainPage() {
             <button
               onClick={() => router.back()}
               className="p-2 -ml-2 press-scale"
-              style={{ color: 'var(--ink-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              style={{
+                color: 'var(--ink-secondary)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
               aria-label="Back"
             >
               <ChevronLeft size={22} strokeWidth={1.75} />
@@ -229,7 +257,8 @@ export default function CaptainPage() {
                   width: '32px',
                   height: '32px',
                   borderRadius: 'var(--radius-md)',
-                  background: 'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
+                  background:
+                    'linear-gradient(135deg, var(--masters) 0%, var(--masters-deep) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -239,7 +268,9 @@ export default function CaptainPage() {
                 <Shield size={16} style={{ color: 'var(--color-accent)' }} />
               </div>
               <div>
-                <span className="type-overline" style={{ letterSpacing: '0.1em' }}>Captain Command</span>
+                <span className="type-overline" style={{ letterSpacing: '0.1em' }}>
+                  Captain Command
+                </span>
                 <p className="type-caption truncate" style={{ marginTop: '2px' }}>
                   {currentTrip.name}
                 </p>
@@ -263,12 +294,16 @@ export default function CaptainPage() {
             className="card"
             style={{
               padding: 'var(--space-5)',
-              background: readinessPercent === 100
-                ? 'linear-gradient(135deg, rgba(0, 103, 71, 0.1) 0%, rgba(0, 103, 71, 0.05) 100%)'
-                : 'var(--surface)',
+              background:
+                readinessPercent === 100
+                  ? 'linear-gradient(135deg, rgba(0, 103, 71, 0.1) 0%, rgba(0, 103, 71, 0.05) 100%)'
+                  : 'var(--surface)',
             }}
           >
-            <div className="flex items-center justify-between" style={{ marginBottom: 'var(--space-4)' }}>
+            <div
+              className="flex items-center justify-between"
+              style={{ marginBottom: 'var(--space-4)' }}
+            >
               <div className="flex items-center gap-3">
                 {readinessPercent === 100 ? (
                   <div
@@ -317,7 +352,7 @@ export default function CaptainPage() {
 
             {/* Readiness items */}
             <div className="flex gap-4 mt-4">
-              {readinessItems.map(item => (
+              {readinessItems.map((item) => (
                 <div key={item.label} className="flex items-center gap-2">
                   {item.done ? (
                     <CheckCircle2 size={14} style={{ color: 'var(--success)' }} />
@@ -341,7 +376,7 @@ export default function CaptainPage() {
 
           {/* Priority Actions (always visible) */}
           <div className="grid grid-cols-2 gap-3">
-            {QUICK_ACTIONS.filter(a => a.priority).map(action => (
+            {QUICK_ACTIONS.filter((a) => a.priority).map((action) => (
               <Link
                 key={action.id}
                 href={action.href}
@@ -381,7 +416,7 @@ export default function CaptainPage() {
             {/* Secondary Actions (collapsible) */}
             {showAllActions && (
               <div className="grid grid-cols-2 gap-3 mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                {QUICK_ACTIONS.filter(a => !a.priority).map(action => (
+                {QUICK_ACTIONS.filter((a) => !a.priority).map((action) => (
                   <Link
                     key={action.id}
                     href={action.href}
@@ -420,12 +455,8 @@ export default function CaptainPage() {
               </span>
             </div>
             <div className="space-y-3">
-              {activeSessions.map(session => (
-                <Link
-                  key={session.id}
-                  href={`/lineup/${session.id}`}
-                  className="match-row"
-                >
+              {activeSessions.map((session) => (
+                <Link key={session.id} href={`/lineup/${session.id}`} className="match-row">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center"
                     style={{ background: 'var(--masters)', color: 'white' }}
@@ -458,12 +489,8 @@ export default function CaptainPage() {
           </div>
           {upcomingSessions.length > 0 ? (
             <div className="space-y-3">
-              {upcomingSessions.map(session => (
-                <Link
-                  key={session.id}
-                  href={`/lineup/${session.id}`}
-                  className="match-row"
-                >
+              {upcomingSessions.map((session) => (
+                <Link key={session.id} href={`/lineup/${session.id}`} className="match-row">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center"
                     style={{ background: 'var(--canvas-sunken)' }}
@@ -473,7 +500,10 @@ export default function CaptainPage() {
                   <div className="flex-1">
                     <p className="type-title-sm">{session.name}</p>
                     <p className="type-micro capitalize">
-                      {session.sessionType} • {session.scheduledDate ? new Date(session.scheduledDate).toLocaleDateString() : 'No date'}
+                      {session.sessionType} •{' '}
+                      {session.scheduledDate
+                        ? new Date(session.scheduledDate).toLocaleDateString()
+                        : 'No date'}
                     </p>
                   </div>
                   <span
@@ -492,19 +522,18 @@ export default function CaptainPage() {
               ))}
             </div>
           ) : (
-            <div
-              className="card text-center"
-              style={{ padding: 'var(--space-8)' }}
-            >
-              <Calendar size={32} style={{ color: 'var(--ink-tertiary)', margin: '0 auto var(--space-3)' }} />
-              <p className="type-title-sm" style={{ marginBottom: 'var(--space-2)' }}>No Sessions Yet</p>
+            <div className="card text-center" style={{ padding: 'var(--space-8)' }}>
+              <Calendar
+                size={32}
+                style={{ color: 'var(--ink-tertiary)', margin: '0 auto var(--space-3)' }}
+              />
+              <p className="type-title-sm" style={{ marginBottom: 'var(--space-2)' }}>
+                No Sessions Yet
+              </p>
               <p className="type-caption" style={{ marginBottom: 'var(--space-4)' }}>
                 Create your first session to start building lineups
               </p>
-              <Link
-                href="/lineup/new"
-                className="btn btn-primary inline-flex items-center gap-2"
-              >
+              <Link href="/lineup/new" className="btn btn-primary inline-flex items-center gap-2">
                 <Plus size={16} />
                 Create Session
               </Link>
@@ -517,20 +546,13 @@ export default function CaptainPage() {
         <section className="section-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="type-overline">Team Overview</h2>
-            <Link
-              href="/players"
-              className="type-meta"
-              style={{ color: 'var(--masters)' }}
-            >
+            <Link href="/players" className="type-meta" style={{ color: 'var(--masters)' }}>
               Manage
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-4">
             {/* Team A */}
-            <div
-              className="card team-bg-usa"
-              style={{ padding: 'var(--space-4)' }}
-            >
+            <div className="card team-bg-usa" style={{ padding: 'var(--space-4)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="team-dot team-dot-usa" />
                 <span className="type-overline" style={{ color: 'var(--team-usa)' }}>
@@ -542,10 +564,7 @@ export default function CaptainPage() {
             </div>
 
             {/* Team B */}
-            <div
-              className="card team-bg-europe"
-              style={{ padding: 'var(--space-4)' }}
-            >
+            <div className="card team-bg-europe" style={{ padding: 'var(--space-4)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="team-dot team-dot-europe" />
                 <span className="type-overline" style={{ color: 'var(--team-europe)' }}>
@@ -599,12 +618,8 @@ export default function CaptainPage() {
                 Completed Sessions
               </h2>
               <div className="space-y-3">
-                {completedSessions.slice(0, 3).map(session => (
-                  <Link
-                    key={session.id}
-                    href={`/lineup/${session.id}`}
-                    className="match-row"
-                  >
+                {completedSessions.slice(0, 3).map((session) => (
+                  <Link key={session.id} href={`/lineup/${session.id}`} className="match-row">
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center"
                       style={{ background: 'rgba(34, 197, 94, 0.1)' }}

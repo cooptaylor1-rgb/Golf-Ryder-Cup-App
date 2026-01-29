@@ -26,6 +26,14 @@ export interface ScoringPreferences {
   quickScoreMode: boolean;
   /** Optional sound effects on score entry */
   soundEffects: boolean;
+  /** Haptic intensity setting */
+  hapticIntensity: 'low' | 'medium' | 'high';
+  /** Haptics for scoring actions */
+  hapticsScore: boolean;
+  /** Haptics for navigation and selection */
+  hapticsNavigation: boolean;
+  /** Haptics for warnings and alerts */
+  hapticsAlerts: boolean;
 }
 
 export const DEFAULT_SCORING_PREFERENCES: ScoringPreferences = {
@@ -39,6 +47,10 @@ export const DEFAULT_SCORING_PREFERENCES: ScoringPreferences = {
   swipeNavigation: false,
   quickScoreMode: false,
   soundEffects: false,
+  hapticIntensity: 'medium',
+  hapticsScore: true,
+  hapticsNavigation: true,
+  hapticsAlerts: true,
 };
 
 export const BUTTON_SCALE_SIZES = {

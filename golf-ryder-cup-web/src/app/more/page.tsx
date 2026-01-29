@@ -282,7 +282,7 @@ export default function MorePage() {
           label: 'Appearance',
           description: 'Theme & display',
           icon: <Palette size={20} />,
-          href: '/settings',
+          href: '/settings/appearance',
         },
         {
           id: 'backup',
