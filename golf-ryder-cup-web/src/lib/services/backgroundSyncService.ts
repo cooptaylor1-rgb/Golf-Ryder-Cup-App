@@ -161,18 +161,16 @@ async function syncMatchEvents(
     // Prepare payload for API
     const payload = {
         matchId,
-        events: events.map(event => ({
-            id: event.id,
-            type: event.eventType,
-            payload: event.payload,
-            timestamp: event.timestamp,
-        })),
-        match: {
-            id: match.id,
-            sessionId: match.sessionId,
-            currentHole: match.currentHole,
-            status: match.status,
-        },
+        events: events.map((event) => {
+            const holeNumber = 'holeNumber' in event.payload ? event.payload.holeNumber : undefined;
+            return {
+                id: event.id,
+                type: event.eventType,
+                holeNumber,
+                data: event.payload,
+                timestamp: event.timestamp,
+            };
+        }),
     };
 
     // Check if we have a Supabase connection for remote sync

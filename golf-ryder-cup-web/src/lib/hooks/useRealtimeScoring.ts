@@ -9,7 +9,6 @@
 'use client';
 
 import { useEffect, useCallback, useRef, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import type { UUID } from '@/lib/types/models';
 import {
   subscribeToMatch,
@@ -19,30 +18,15 @@ import {
   type PlayerPresence,
 } from '@/lib/services/realtimeSyncService';
 import { syncLogger } from '@/lib/utils/logger';
-
-// Supabase client singleton (only created if env vars are present)
-let supabaseClient: ReturnType<typeof createClient> | null = null;
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
 function getSupabaseClient() {
-  if (supabaseClient) return supabaseClient;
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
+  if (!isSupabaseConfigured || !supabase) {
     syncLogger.log('Supabase not configured - realtime disabled');
     return null;
   }
 
-  supabaseClient = createClient(url, key, {
-    realtime: {
-      params: {
-        eventsPerSecond: 10,
-      },
-    },
-  });
-
-  return supabaseClient;
+  return supabase;
 }
 
 export interface UseRealtimeScoringOptions {

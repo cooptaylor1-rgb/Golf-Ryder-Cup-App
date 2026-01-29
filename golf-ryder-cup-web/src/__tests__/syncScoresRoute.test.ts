@@ -71,6 +71,26 @@ describe('Score Sync API Route', () => {
 
             expect(response.status).toBe(400);
         });
+
+        it('rejects events missing data payload', async () => {
+            const req = createMockRequest({
+                matchId: '550e8400-e29b-41d4-a716-446655440000',
+                events: [
+                    {
+                        id: '550e8400-e29b-41d4-a716-446655440001',
+                        type: 'SCORE',
+                        holeNumber: 1,
+                        timestamp: new Date().toISOString(),
+                    },
+                ],
+            });
+
+            const response = await POST(req);
+            const data = await response.json();
+
+            expect(response.status).toBe(400);
+            expect(data.error).toContain('data');
+        });
     });
 
     describe('Local-Only Mode (No Supabase)', () => {

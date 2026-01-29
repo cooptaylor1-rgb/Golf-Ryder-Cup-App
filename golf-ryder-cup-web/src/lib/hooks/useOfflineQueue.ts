@@ -13,10 +13,19 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useOnlineStatus } from './useOnlineStatus';
 import { useHaptic } from './useHaptic';
 import { createLogger } from '../utils/logger';
+import { db, useLiveQuery } from '../db';
+import {
+  queueSyncOperation,
+  processSyncQueue,
+  retryFailedQueue,
+  clearQueue as clearSyncQueue,
+  clearFailedQueue,
+} from '../services/tripSyncService';
+import type { SyncQueueItem } from '../types/sync';
 
 const logger = createLogger('OfflineQueue');
 
@@ -25,129 +34,125 @@ const logger = createLogger('OfflineQueue');
 // ============================================
 
 export type QueueActionType =
-    | 'score'
-    | 'score-update'
-    | 'score-delete'
-    | 'match-finalize'
-    | 'match-create'
-    | 'player-join'
-    | 'player-update'
-    | 'photo-upload'
-    | 'reaction'
-    | 'comment';
+  | 'score'
+  | 'score-update'
+  | 'score-delete'
+  | 'match-finalize'
+  | 'match-create'
+  | 'player-join'
+  | 'player-update'
+  | 'photo-upload'
+  | 'reaction'
+  | 'comment';
 
 export interface QueuedAction {
-    id: string;
-    type: QueueActionType;
-    matchId?: string;
-    playerId?: string;
-    holeNumber?: number;
-    data?: unknown;
-    timestamp: string;
-    retryCount: number;
-    status: 'pending' | 'processing' | 'failed' | 'complete';
-    error?: string;
+  id: string;
+  type: QueueActionType;
+  matchId?: string;
+  playerId?: string;
+  holeNumber?: number;
+  data?: unknown;
+  timestamp: string;
+  retryCount: number;
+  status: 'pending' | 'processing' | 'failed' | 'complete';
+  error?: string;
 }
 
 interface UseOfflineQueueReturn {
-    // State
-    pendingCount: number;
-    failedCount: number;
-    isSyncing: boolean;
-    lastSyncTime: string | null;
-    progress: number; // 0-100
+  // State
+  pendingCount: number;
+  failedCount: number;
+  isSyncing: boolean;
+  lastSyncTime: string | null;
+  progress: number; // 0-100
 
-    // Actions
-    queueAction: (action: Omit<QueuedAction, 'id' | 'timestamp' | 'retryCount' | 'status'>) => void;
-    retryFailed: () => Promise<void>;
-    clearQueue: () => Promise<void>;
-    clearFailed: () => Promise<void>;
+  // Actions
+  queueAction: (action: Omit<QueuedAction, 'id' | 'timestamp' | 'retryCount' | 'status'>) => void;
+  retryFailed: () => Promise<void>;
+  clearQueue: () => Promise<void>;
+  clearFailed: () => Promise<void>;
 
-    // Queue data
-    queue: QueuedAction[];
-    failedActions: QueuedAction[];
+  // Queue data
+  queue: QueuedAction[];
+  failedActions: QueuedAction[];
 }
 
 // ============================================
-// QUEUE STORE (using Dexie table)
+// HELPERS
 // ============================================
 
-// This would be a Dexie table in production
-const queueStore = {
-    items: [] as QueuedAction[],
+function mapQueueType(item: SyncQueueItem): QueueActionType {
+  if (item.entity === 'holeResult') {
+    if (item.operation === 'create') return 'score';
+    if (item.operation === 'update') return 'score-update';
+    return 'score-delete';
+  }
 
-    add(action: QueuedAction) {
-        this.items.push(action);
-        this.persist();
-    },
+  if (item.entity === 'match') {
+    return item.operation === 'create' ? 'match-create' : 'match-finalize';
+  }
 
-    update(id: string, updates: Partial<QueuedAction>) {
-        const index = this.items.findIndex((a) => a.id === id);
-        if (index !== -1) {
-            this.items[index] = { ...this.items[index], ...updates };
-            this.persist();
-        }
-    },
+  if (item.entity === 'player') {
+    return item.operation === 'create' ? 'player-join' : 'player-update';
+  }
 
-    remove(id: string) {
-        this.items = this.items.filter((a) => a.id !== id);
-        this.persist();
-    },
+  return 'comment';
+}
 
-    getAll() {
-        return this.items;
-    },
+function toQueuedAction(item: SyncQueueItem): QueuedAction {
+  const data = item.data as
+    | { matchId?: string; playerId?: string; holeNumber?: number }
+    | undefined;
 
-    getPending() {
-        return this.items.filter((a) => a.status === 'pending' || a.status === 'processing');
-    },
+  let status: QueuedAction['status'];
+  if (item.status === 'syncing') {
+    status = 'processing';
+  } else if (item.status === 'completed') {
+    status = 'complete';
+  } else {
+    status = item.status;
+  }
 
-    getFailed() {
-        return this.items.filter((a) => a.status === 'failed');
-    },
+  return {
+    id: item.id,
+    type: mapQueueType(item),
+    matchId: data?.matchId ?? (item.entity === 'match' ? item.entityId : undefined),
+    playerId: data?.playerId,
+    holeNumber: data?.holeNumber,
+    data: item.data,
+    timestamp: item.createdAt,
+    retryCount: item.retryCount,
+    status,
+    error: item.error,
+  };
+}
 
-    clear() {
-        this.items = [];
-        this.persist();
-    },
+async function resolveTripId(
+  action: Omit<QueuedAction, 'id' | 'timestamp' | 'retryCount' | 'status'>
+): Promise<string | null> {
+  const data = action.data as { tripId?: string; sessionId?: string; matchId?: string } | undefined;
 
-    persist() {
-        try {
-            localStorage.setItem('offline_queue', JSON.stringify(this.items));
-        } catch (e) {
-            logger.warn('Failed to persist queue:', e);
-        }
-    },
+  if (data?.tripId) return data.tripId;
 
-    restore() {
-        try {
-            const stored = localStorage.getItem('offline_queue');
-            if (stored) {
-                this.items = JSON.parse(stored);
-            }
-        } catch (e) {
-            logger.warn('Failed to restore queue:', e);
-        }
-    },
-};
+  if (data?.sessionId) {
+    const session = await db.sessions.get(data.sessionId);
+    return session?.tripId ?? null;
+  }
 
-// ============================================
-// SYNC ENGINE
-// ============================================
-
-async function syncAction(_action: QueuedAction): Promise<boolean> {
-    // Simulate API call
-    // In production, this would call the actual Supabase API
-    await new Promise((resolve) => setTimeout(resolve, 500 + Math.random() * 500));
-
-    // Simulate success rate (95%)
-    const success = Math.random() > 0.05;
-
-    if (!success) {
-        throw new Error('Sync failed: Network error');
+  if (action.matchId) {
+    const match = await db.matches.get(action.matchId);
+    if (match) {
+      const session = await db.sessions.get(match.sessionId);
+      return session?.tripId ?? null;
     }
+  }
 
-    return true;
+  if (action.playerId) {
+    const player = await db.players.get(action.playerId);
+    return player?.tripId ?? null;
+  }
+
+  return null;
 }
 
 // ============================================
@@ -155,169 +160,140 @@ async function syncAction(_action: QueuedAction): Promise<boolean> {
 // ============================================
 
 export function useOfflineQueue(): UseOfflineQueueReturn {
-    const isOnline = useOnlineStatus();
-    const haptic = useHaptic();
+  const isOnline = useOnlineStatus();
+  const haptic = useHaptic();
 
-    const [queue, setQueue] = useState<QueuedAction[]>([]);
-    const [isSyncing, setIsSyncing] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
+  const queueItems = useLiveQuery(
+    async () => db.tripSyncQueue.toArray(),
+    [],
+    [] as SyncQueueItem[]
+  );
+  const queue = useMemo(() => (queueItems || []).map(toQueuedAction), [queueItems]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
-    const syncingRef = useRef(false);
+  const syncingRef = useRef(false);
 
-    // Restore queue on mount
-    useEffect(() => {
-        queueStore.restore();
-        setQueue(queueStore.getAll());
-    }, []);
+  // Calculate derived state
+  const pendingCount = (queueItems ?? []).filter(
+    (a) => a.status === 'pending' || a.status === 'syncing'
+  ).length;
 
-    // Calculate derived state
-    const pendingCount = queue.filter(
-        (a: QueuedAction) => a.status === 'pending' || a.status === 'processing'
-    ).length;
+  const failedCount = (queueItems ?? []).filter((a) => a.status === 'failed').length;
 
-    const failedCount = queue.filter((a: QueuedAction) => a.status === 'failed').length;
+  const failedActions = queue.filter((a: QueuedAction) => a.status === 'failed');
 
-    const failedActions = queue.filter((a: QueuedAction) => a.status === 'failed');
-
-    // Queue a new action
-    const queueAction = useCallback(
-        (action: Omit<QueuedAction, 'id' | 'timestamp' | 'retryCount' | 'status'>) => {
-            const newAction: QueuedAction = {
-                ...action,
-                id: `queue-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                timestamp: new Date().toISOString(),
-                retryCount: 0,
-                status: 'pending',
-            };
-
-            queueStore.add(newAction);
-            setQueue(queueStore.getAll());
-
-            haptic.tap();
-        },
-        [haptic]
-    );
-
-    // Process queue
-    const processQueue = useCallback(async () => {
-        if (syncingRef.current || !isOnline) return;
-
-        const pending = queueStore.getPending();
-        if (pending.length === 0) return;
-
-        syncingRef.current = true;
-        setIsSyncing(true);
-        setProgress(0);
-
-        let processed = 0;
-        const total = pending.length;
-
-        for (const action of pending) {
-            // Update status to processing
-            queueStore.update(action.id, { status: 'processing' });
-            setQueue(queueStore.getAll());
-
-            try {
-                await syncAction(action);
-
-                // Success - remove from queue
-                queueStore.remove(action.id);
-
-                processed++;
-                setProgress(Math.round((processed / total) * 100));
-            } catch (err) {
-                const error = err as Error;
-                const newRetryCount = action.retryCount + 1;
-
-                if (newRetryCount >= 3) {
-                    // Max retries - mark as failed
-                    queueStore.update(action.id, {
-                        status: 'failed',
-                        retryCount: newRetryCount,
-                        error: error.message,
-                    });
-                    haptic.press();
-                } else {
-                    // Will retry - keep as pending
-                    queueStore.update(action.id, {
-                        status: 'pending',
-                        retryCount: newRetryCount,
-                        error: error.message,
-                    });
-                }
-            }
-
-            setQueue(queueStore.getAll());
+  // Queue a new action
+  const queueAction = useCallback(
+    (action: Omit<QueuedAction, 'id' | 'timestamp' | 'retryCount' | 'status'>) => {
+      const enqueue = async () => {
+        const tripId = await resolveTripId(action);
+        if (!tripId) {
+          logger.warn('Unable to resolve tripId for offline action:', action.type);
+          return;
         }
 
-        setIsSyncing(false);
-        setProgress(100);
-        setLastSyncTime(new Date().toISOString());
-        syncingRef.current = false;
-
-        // Haptic for completion
-        if (processed > 0) {
-            haptic.tap();
+        if (action.type === 'score') {
+          if (!action.matchId || !action.holeNumber) return;
+          const data = action.data as { id?: string } | undefined;
+          const entityId = data?.id || `${action.matchId}-hole-${action.holeNumber}`;
+          queueSyncOperation('holeResult', entityId, 'create', tripId, action.data);
+        } else if (action.type === 'score-update') {
+          if (!action.matchId || !action.holeNumber) return;
+          const data = action.data as { id?: string } | undefined;
+          const entityId = data?.id || `${action.matchId}-hole-${action.holeNumber}`;
+          queueSyncOperation('holeResult', entityId, 'update', tripId, action.data);
+        } else if (action.type === 'score-delete') {
+          if (!action.matchId || !action.holeNumber) return;
+          const entityId = `${action.matchId}-hole-${action.holeNumber}`;
+          queueSyncOperation('holeResult', entityId, 'delete', tripId);
+        } else if (action.type === 'match-finalize') {
+          if (!action.matchId) return;
+          queueSyncOperation('match', action.matchId, 'update', tripId);
+        } else if (action.type === 'match-create') {
+          if (!action.matchId) return;
+          queueSyncOperation('match', action.matchId, 'create', tripId, action.data);
+        } else if (action.type === 'player-join') {
+          if (!action.playerId) return;
+          queueSyncOperation('player', action.playerId, 'create', tripId, action.data);
+        } else if (action.type === 'player-update') {
+          if (!action.playerId) return;
+          queueSyncOperation('player', action.playerId, 'update', tripId, action.data);
+        } else {
+          logger.warn('Offline action type not supported for sync:', action.type);
         }
-    }, [isOnline, haptic]);
 
-    // Auto-sync when coming online
-    useEffect(() => {
-        if (isOnline && pendingCount > 0) {
-            processQueue();
-        }
-    }, [isOnline, pendingCount, processQueue]);
+        haptic.tap();
+      };
 
-    // Retry failed actions
-    const retryFailed = useCallback(async () => {
-        const failed = queueStore.getFailed();
+      void enqueue();
+    },
+    [haptic]
+  );
 
-        for (const action of failed) {
-            queueStore.update(action.id, {
-                status: 'pending',
-                retryCount: 0,
-                error: undefined,
-            });
-        }
+  // Process queue
+  const processQueue = useCallback(async () => {
+    if (syncingRef.current || !isOnline) return;
 
-        setQueue(queueStore.getAll());
-        await processQueue();
-    }, [processQueue]);
+    if (pendingCount === 0) return;
 
-    // Clear entire queue
-    const clearQueue = useCallback(async () => {
-        queueStore.clear();
-        setQueue([]);
-    }, []);
+    syncingRef.current = true;
+    setIsSyncing(true);
+    setProgress(0);
+    const result = await processSyncQueue();
 
-    // Clear only failed
-    const clearFailed = useCallback(async () => {
-        const failed = queueStore.getFailed();
-        for (const action of failed) {
-            queueStore.remove(action.id);
-        }
-        setQueue(queueStore.getAll());
-    }, []);
+    setProgress(result.synced + result.failed > 0 ? 100 : 0);
+    setLastSyncTime(new Date().toISOString());
+    setIsSyncing(false);
+    syncingRef.current = false;
 
-    return {
-        // State
-        pendingCount,
-        failedCount,
-        isSyncing,
-        lastSyncTime,
-        progress,
+    if (result.synced > 0) {
+      haptic.tap();
+    }
+  }, [isOnline, haptic, pendingCount]);
 
-        // Actions
-        queueAction,
-        retryFailed,
-        clearQueue,
-        clearFailed,
+  // Auto-sync when coming online
+  useEffect(() => {
+    if (isOnline && pendingCount > 0) {
+      processQueue();
+    }
+  }, [isOnline, pendingCount, processQueue]);
 
-        // Queue data
-        queue,
-        failedActions,
-    };
+  // Retry failed actions
+  const retryFailed = useCallback(async () => {
+    await retryFailedQueue();
+    await processQueue();
+  }, [processQueue]);
+
+  // Clear entire queue
+  const clearQueue = useCallback(async () => {
+    await clearSyncQueue();
+  }, []);
+
+  // Clear only failed
+  const clearFailed = useCallback(async () => {
+    await clearFailedQueue();
+  }, []);
+
+  return {
+    // State
+    pendingCount,
+    failedCount,
+    isSyncing,
+    lastSyncTime,
+    progress,
+
+    // Actions
+    queueAction,
+    retryFailed,
+    clearQueue,
+    clearFailed,
+
+    // Queue data
+    queue,
+    failedActions,
+  };
 }
 
 // ============================================
@@ -325,23 +301,23 @@ export function useOfflineQueue(): UseOfflineQueueReturn {
 // ============================================
 
 export function useOfflineIndicator() {
-    const isOnline = useOnlineStatus();
-    const { pendingCount, isSyncing, progress } = useOfflineQueue();
+  const isOnline = useOnlineStatus();
+  const { pendingCount, isSyncing, progress } = useOfflineQueue();
 
-    return {
-        showIndicator: !isOnline || pendingCount > 0,
-        isOffline: !isOnline,
-        hasPending: pendingCount > 0,
-        isSyncing,
-        progress,
-        message: !isOnline
-            ? 'You are offline'
-            : isSyncing
-                ? `Syncing ${pendingCount} items...`
-                : pendingCount > 0
-                    ? `${pendingCount} items waiting to sync`
-                    : '',
-    };
+  return {
+    showIndicator: !isOnline || pendingCount > 0,
+    isOffline: !isOnline,
+    hasPending: pendingCount > 0,
+    isSyncing,
+    progress,
+    message: !isOnline
+      ? 'You are offline'
+      : isSyncing
+        ? `Syncing ${pendingCount} items...`
+        : pendingCount > 0
+          ? `${pendingCount} items waiting to sync`
+          : '',
+  };
 }
 
 export default useOfflineQueue;

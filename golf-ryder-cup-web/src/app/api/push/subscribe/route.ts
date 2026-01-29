@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { applyRateLimit } from '@/lib/utils/apiMiddleware';
+import { applyRateLimit, requireTripAccess, requireAuth } from '@/lib/utils/apiMiddleware';
 import { apiLogger } from '@/lib/utils/logger';
 import { z } from 'zod';
 
@@ -138,6 +138,26 @@ export async function POST(request: NextRequest) {
     }
 
     const { subscription, userId, tripId } = parseResult.data;
+
+    if (tripId) {
+      const tripAccessError = await requireTripAccess(request, tripId);
+      if (tripAccessError) {
+        return tripAccessError;
+      }
+    }
+
+    if (userId) {
+      const { response, userId: authUserId } = await requireAuth(request);
+      if (response) {
+        return response;
+      }
+      if (authUserId !== userId) {
+        return NextResponse.json(
+          { error: 'Forbidden', message: 'User mismatch for subscription' },
+          { status: 403 }
+        );
+      }
+    }
 
     const result = await storeSubscription(subscription.endpoint, subscription, userId, tripId);
 

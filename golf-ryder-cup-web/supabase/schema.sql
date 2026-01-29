@@ -700,17 +700,17 @@ CREATE POLICY "audit_log_update_all" ON audit_log FOR UPDATE USING (true);
 CREATE POLICY "audit_log_delete_all" ON audit_log FOR DELETE USING (true);
 
 -- SCORING_EVENTS policies (server-side only via service role)
-CREATE POLICY "scoring_events_select_all" ON scoring_events FOR SELECT USING (true);
-CREATE POLICY "scoring_events_insert_all" ON scoring_events FOR INSERT WITH CHECK (true);
-CREATE POLICY "scoring_events_update_all" ON scoring_events FOR UPDATE USING (true);
-CREATE POLICY "scoring_events_delete_all" ON scoring_events FOR DELETE USING (true);
+CREATE POLICY "scoring_events_select_service" ON scoring_events FOR SELECT USING (auth.role() = 'service_role');
+CREATE POLICY "scoring_events_insert_service" ON scoring_events FOR INSERT WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "scoring_events_update_service" ON scoring_events FOR UPDATE USING (auth.role() = 'service_role');
+CREATE POLICY "scoring_events_delete_service" ON scoring_events FOR DELETE USING (auth.role() = 'service_role');
 
 -- PUSH_SUBSCRIPTIONS policies (server-side only via service role)
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "push_subscriptions_select_all" ON push_subscriptions FOR SELECT USING (true);
-CREATE POLICY "push_subscriptions_insert_all" ON push_subscriptions FOR INSERT WITH CHECK (true);
-CREATE POLICY "push_subscriptions_update_all" ON push_subscriptions FOR UPDATE USING (true);
-CREATE POLICY "push_subscriptions_delete_all" ON push_subscriptions FOR DELETE USING (true);
+CREATE POLICY "push_subscriptions_select_service" ON push_subscriptions FOR SELECT USING (auth.role() = 'service_role');
+CREATE POLICY "push_subscriptions_insert_service" ON push_subscriptions FOR INSERT WITH CHECK (auth.role() = 'service_role');
+CREATE POLICY "push_subscriptions_update_service" ON push_subscriptions FOR UPDATE USING (auth.role() = 'service_role');
+CREATE POLICY "push_subscriptions_delete_service" ON push_subscriptions FOR DELETE USING (auth.role() = 'service_role');
 
 -- ============================================
 -- VIEWS

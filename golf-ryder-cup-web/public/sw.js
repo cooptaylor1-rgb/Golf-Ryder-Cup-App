@@ -99,6 +99,11 @@ self.addEventListener('fetch', (event) => {
 
   // Always prefer network for document navigations to avoid stale HTML/chunk mismatches
   if (request.mode === 'navigate' || request.destination === 'document') {
+    if (url.pathname.startsWith('/score/')) {
+      // Cache match pages so recently viewed matches work offline
+      event.respondWith(networkFirst(request));
+      return;
+    }
     event.respondWith(networkFirstNoCache(request));
     return;
   }
